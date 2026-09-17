@@ -9,12 +9,6 @@ const BRANCH_STYLES: Record<string, { header: string; card: string; dot: string 
 
 const FALLBACK_STYLE = { header: 'bg-neutral-700', card: 'border-neutral-200 bg-neutral-50/60', dot: 'bg-neutral-500' };
 
-const STATUS_STYLES: Record<string, string> = {
-  Pending: 'bg-amber-100 text-amber-700',
-  Confirmed: 'bg-emerald-100 text-emerald-700',
-  Completed: 'bg-sky-100 text-sky-700',
-};
-
 const toDateStr = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -31,6 +25,8 @@ export default function App() {
   const [board, setBoard] = useState<ScheduleEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [locFilter, setLocFilter] = useState<'all' | 'Jakarta Barat' | 'Jakarta Selatan'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Confirmed' | 'Completed'>('all');
 
   const load = (d: string) => {
     setLoading(true);
@@ -52,15 +48,20 @@ export default function App() {
   };
 
   const grouped = useMemo(() => {
+    const rows = board.filter(
+      (e) =>
+        (locFilter === 'all' || e.branch === locFilter) &&
+        (statusFilter === 'all' || e.status === statusFilter),
+    );
     const map = new Map<string, ScheduleEntry[]>();
-    for (const e of board) {
+    for (const e of rows) {
       const key = e.branch ?? 'Cabang Lain';
       const arr = map.get(key) ?? [];
       arr.push(e);
       map.set(key, arr);
     }
     return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [board]);
+  }, [board, locFilter, statusFilter]);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-800">
@@ -99,6 +100,31 @@ export default function App() {
           </button>
         </div>
 
+        {/* Filters */}
+        <div className="flex flex-wrap items-center justify-center gap-3 bg-white border border-neutral-200 rounded-2xl p-3">
+          <div className="text-xs text-neutral-400">Lokasi</div>
+          <select
+            value={locFilter}
+            onChange={(e) => setLocFilter(e.target.value as typeof locFilter)}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-pink-300"
+          >
+            <option value="all">Semua Cabang</option>
+            <option value="Jakarta Barat">Jakarta Barat</option>
+            <option value="Jakarta Selatan">Jakarta Selatan</option>
+          </select>
+          <div className="text-xs text-neutral-400">Status</div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-pink-300"
+          >
+            <option value="all">Semua</option>
+            <option value="Confirmed">Belum Selesai</option>
+            <option value="Completed">Selesai</option>
+          </select>
+          <span className="text-[11px] text-neutral-400">Menampilkan booking yang sudah di-acc admin</span>
+        </div>
+
         {error && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
             <AlertCircle className="w-4 h-4 shrink-0" /> {error}
@@ -123,23 +149,14 @@ export default function App() {
                   </div>
                   <div className="divide-y divide-neutral-100">
                     {entries.map((e) => (
-                      <div key={e.id} className={`px-4 py-3 border-l-4 ${style.card}`} style={{ borderLeftColor: 'currentColor', color: 'inherit' }}>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-mono font-semibold">
-                            {e.start_time.slice(0, 5)} – {e.end_time.slice(0, 5)}
-                          </p>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUS_STYLES[e.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                            {e.status}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-[13px] font-medium text-neutral-900">{e.therapist ?? '—'}</p>
-                        <p className="text-[12px] text-neutral-500">{e.services.join(', ') || '—'}</p>
-                        <div className="mt-1 flex items-center gap-2 text-[11px] text-neutral-400">
-                          <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                          {e.room_number ? `Ruang ${e.room_number}` : 'Ruang —'}
-                        </div>
-                      </div>
-                    ))}
+  <div key={e.id} className={`px-4 py-3 border-l-4 ${style.card}`}>
+    <p className="text-sm font-mono font-semibold">
+      {e.start_time.slice(0, 5)} – {e.end_time.slice(0, 5)}
+    </p>
+    <p className="mt-1 text-[13px] font-medium text-neutral-900">{e.therapist ?? '—'}</p>
+    <p className="text-[12px] text-neutral-500">{e.services.join(', ') || '—'}</p>
+  </div>
+))}
                   </div>
                 </section>
               );

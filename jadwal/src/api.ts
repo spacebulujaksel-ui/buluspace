@@ -5,7 +5,6 @@ export interface ScheduleEntry {
   branch: string | null;
   start_time: string;
   end_time: string;
-  room_number: number | null;
   status: string;
   therapist: string | null;
   services: string[];

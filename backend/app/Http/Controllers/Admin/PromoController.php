@@ -40,7 +40,7 @@ class PromoController extends Controller
             'promo_code' => 'nullable|string|max:30',
             'bg_gradient' => 'nullable|string|max:120',
             'accent_color' => 'nullable|string|max:20',
-            'image' => 'nullable|image|mimes:jpeg,png,webp|max:4096',
+            'image' => 'nullable|image|mimes:jpeg,png,webp|max:10240',
             'is_active' => 'nullable|boolean',
             'sort_order' => 'nullable|integer',
         ];

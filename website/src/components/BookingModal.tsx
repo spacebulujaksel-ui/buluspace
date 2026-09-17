@@ -1,0 +1,990 @@
+import React, { useState, useEffect, useRef } from "react";
+import {
+  X,
+  Calendar,
+  Clock,
+  Check,
+  Sparkles,
+  MessageCircle,
+  ShieldCheck,
+  Tag,
+  User,
+  Phone,
+  Mail,
+  AlertCircle,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useData } from "../hooks/useData";
+import { api } from "../lib/api";
+import { STATUS_MAP } from "../lib/booking";
+import { Therapist, WaxService, SavedBooking } from "../types";
+
+interface BookingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialTherapistId?: string;
+  initialPromoCode?: string;
+  initialServiceIds?: string[];
+  initialCustomNote?: string;
+  onBookingSuccess: (booking: SavedBooking) => void;
+}
+
+export const BookingModal: React.FC<BookingModalProps> = ({
+  isOpen,
+  onClose,
+  initialTherapistId = "any",
+  initialPromoCode = "",
+  initialServiceIds = [],
+  initialCustomNote = "",
+  onBookingSuccess,
+}) => {
+  const { therapists: THERAPISTS, services: SERVICES } = useData();
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedServices, setSelectedServices] =
+    useState<string[]>(initialServiceIds);
+  const [therapistId, setTherapistId] = useState<string>(initialTherapistId);
+  const [customTherapistRequest, setCustomTherapistRequest] =
+    useState<string>(initialCustomNote);
+  const [clientName, setClientName] = useState<string>("");
+  const [clientPhone, setClientPhone] = useState<string>("");
+  const [clientEmail, setClientEmail] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const [timeSlot, setTimeSlot] = useState<string>("13:30");
+  const [roomType, setRoomType] = useState<"private-deluxe" | "vip-suite">(
+    "private-deluxe",
+  );
+  const [location, setLocation] = useState<string>(
+    "Jakarta Barat — Jl. Raya Kb. Jeruk No.8, Kb. Jeruk, Jakarta Barat 11530",
+  );
+  const [promoCode, setPromoCode] = useState<string>(initialPromoCode);
+  const [promoApplied, setPromoApplied] = useState<boolean>(!!initialPromoCode);
+  const [discountPercent, setDiscountPercent] = useState<number>(
+    initialPromoCode ? 30 : 0,
+  );
+  const [specialNotes, setSpecialNotes] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [bookedSlots, setBookedSlots] = useState<
+    { therapist_id: number; start_time: string; end_time: string; room_number: number }[]
+  >([]);
+  const [rooms, setRooms] = useState<Record<string, number>>({});
+  const [blocked, setBlocked] = useState<{ room_number: number; start_time: string; end_time: string }[]>([]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [viewMonth, setViewMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
+  // Sync props when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSubmitting(false);
+      setErrorMessage("");
+      if (initialTherapistId) setTherapistId(initialTherapistId);
+      if (initialPromoCode) {
+        setPromoCode(initialPromoCode);
+        setPromoApplied(true);
+        setDiscountPercent(30);
+      }
+      if (initialServiceIds && initialServiceIds.length > 0) {
+        setSelectedServices(initialServiceIds);
+      }
+      if (initialCustomNote) {
+        setCustomTherapistRequest(initialCustomNote);
+      }
+
+      // Default date to tomorrow or today
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      setDate(`${yyyy}-${mm}-${dd}`);
+    }
+  }, [
+    isOpen,
+    initialTherapistId,
+    initialPromoCode,
+    initialServiceIds,
+    initialCustomNote,
+  ]);
+
+  useEffect(() => {
+    if (!isDatePickerOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        datePickerRef.current &&
+        !datePickerRef.current.contains(e.target as Node)
+      ) {
+        setIsDatePickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDatePickerOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const branch = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
+    api
+      .get<{ booked: { therapist_id: number; start_time: string; end_time: string; room_number: number }[]; rooms: Record<string, number>; blocked: { room_number: number; start_time: string; end_time: string }[] }>(
+        `/availability?date=${date}&location=${encodeURIComponent(branch)}`,
+      )
+      .then((r) => {
+        setBookedSlots(r.booked);
+        setRooms(r.rooms ?? {});
+        setBlocked(r.blocked ?? []);
+      })
+      .catch(() => setBookedSlots([]));
+  }, [isOpen, date, location]);
+
+  if (!isOpen) return null;
+
+  const timeSlots = [
+    "10:00 WIB",
+    "10:05 WIB",
+    "10:10 WIB",
+    "10:15 WIB",
+    "10:20 WIB",
+    "10:25 WIB",
+    "10:30 WIB",
+    "10:35 WIB",
+    "10:40 WIB",
+    "10:45 WIB",
+    "10:50 WIB",
+    "10:55 WIB",
+    "11:00 WIB",
+    "11:05 WIB",
+    "11:10 WIB",
+    "11:15 WIB",
+    "11:20 WIB",
+    "11:25 WIB",
+    "11:30 WIB",
+    "11:35 WIB",
+    "11:40 WIB",
+    "11:45 WIB",
+    "11:50 WIB",
+    "11:55 WIB",
+    "12:00 WIB",
+    "12:05 WIB",
+    "12:10 WIB",
+    "12:15 WIB",
+    "12:20 WIB",
+    "12:25 WIB",
+    "12:30 WIB",
+    "12:35 WIB",
+    "12:40 WIB",
+    "12:45 WIB",
+    "12:50 WIB",
+    "12:55 WIB",
+    "13:00 WIB",
+    "13:05 WIB",
+    "13:10 WIB",
+    "13:15 WIB",
+    "13:20 WIB",
+    "13:25 WIB",
+    "13:30 WIB",
+    "13:35 WIB",
+    "13:40 WIB",
+    "13:45 WIB",
+    "13:50 WIB",
+    "13:55 WIB",
+    "14:00 WIB",
+    "14:05 WIB",
+    "14:10 WIB",
+    "14:15 WIB",
+    "14:20 WIB",
+    "14:25 WIB",
+    "14:30 WIB",
+    "14:35 WIB",
+    "14:40 WIB",
+    "14:45 WIB",
+    "14:50 WIB",
+    "14:55 WIB",
+    "15:00 WIB",
+    "15:05 WIB",
+    "15:10 WIB",
+    "15:15 WIB",
+    "15:20 WIB",
+    "15:25 WIB",
+    "15:30 WIB",
+    "15:35 WIB",
+    "15:40 WIB",
+    "15:45 WIB",
+    "15:50 WIB",
+    "15:55 WIB",
+    "16:00 WIB",
+    "16:05 WIB",
+    "16:10 WIB",
+    "16:15 WIB",
+    "16:20 WIB",
+    "16:25 WIB",
+    "16:30 WIB",
+    "16:35 WIB",
+    "16:40 WIB",
+    "16:45 WIB",
+    "16:50 WIB",
+    "16:55 WIB",
+    "17:00 WIB",
+    "17:05 WIB",
+    "17:10 WIB",
+    "17:15 WIB",
+    "17:20 WIB",
+    "17:25 WIB",
+    "17:30 WIB",
+    "17:35 WIB",
+    "17:40 WIB",
+    "17:45 WIB",
+    "17:50 WIB",
+    "17:55 WIB",
+    "18:00 WIB",
+    "18:05 WIB",
+    "18:10 WIB",
+    "18:15 WIB",
+    "18:20 WIB",
+    "18:25 WIB",
+    "18:30 WIB",
+    "18:35 WIB",
+    "18:40 WIB",
+    "18:45 WIB",
+    "18:50 WIB",
+    "18:55 WIB",
+    "19:00 WIB",
+  ];
+
+  const quickCriteriaTags = [
+    "First-Timer (Mohon ekstra sabar)",
+    "Kulit Super Sensitif",
+    "Silent Session (Tanpa obrolan)",
+    "Terapis Wanita yang Teliti",
+    "Ingin Konsultasi Dulu",
+    "Tarikan Cepat & Cekatan",
+  ];
+
+  const handleToggleService = (id: string) => {
+    if (selectedServices.includes(id)) {
+      if (selectedServices.length === 1) {
+        // keep at least 1
+        return;
+      }
+      setSelectedServices(selectedServices.filter((s) => s !== id));
+    } else {
+      setSelectedServices([...selectedServices, id]);
+    }
+  };
+
+  const handleApplyPromo = () => {
+    const cleaned = promoCode.trim().toUpperCase();
+    if (cleaned === "FIRSTBULU30" || cleaned === "FIRST30") {
+      setPromoApplied(true);
+      setDiscountPercent(30);
+      setErrorMessage("");
+    } else if (cleaned === "SILKYGLOW" || cleaned === "VIPBULU") {
+      setPromoApplied(true);
+      setDiscountPercent(20);
+      setErrorMessage("");
+    } else if (cleaned === "WEEKENDCARE") {
+      setPromoApplied(true);
+      setDiscountPercent(15);
+      setErrorMessage("");
+    } else if (cleaned) {
+      // General 10% promo for custom codes
+      setPromoApplied(true);
+      setDiscountPercent(10);
+      setErrorMessage("");
+    }
+  };
+
+  const handleQuickTagClick = (tag: string) => {
+    if (customTherapistRequest.includes(tag)) {
+      setCustomTherapistRequest(
+        customTherapistRequest.replace(tag, "").replace(/,\s*,/g, ",").trim(),
+      );
+    } else {
+      setCustomTherapistRequest(
+        customTherapistRequest ? `${customTherapistRequest}, ${tag}` : tag,
+      );
+    }
+  };
+
+  // Pricing calculations
+  const selectedServiceObjs = SERVICES.filter((s) =>
+    selectedServices.includes(s.id),
+  );
+  const subtotal = selectedServiceObjs.reduce((acc, s) => acc + s.price, 0);
+  const discountAmount = promoApplied
+    ? Math.round((subtotal * discountPercent) / 100)
+    : 0;
+  const finalPrice = Math.max(0, subtotal - discountAmount);
+
+  const selectedTherapistObj = THERAPISTS.find((t) => t.id === therapistId);
+  const therapistDisplayName = selectedTherapistObj
+    ? `${selectedTherapistObj.name} (${selectedTherapistObj.role})`
+    : "Rekomendasi Terbaik Bulu Space (Auto-Assign)";
+
+  const totalMinutes = selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
+
+  const asMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const slotBusy = (slotMin: number): boolean => {
+    if (totalMinutes <= 0) return true;
+    const now = new Date();
+    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes()) {
+      return true;
+    }
+    const slotEnd = slotMin + totalMinutes;
+    const overlaps = (b: { therapist_id: number; start_time: string; end_time: string; room_number: number }) =>
+      slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time);
+    if (therapistId !== "any") {
+      const tid = Number(therapistId);
+      if (bookedSlots.some((b) => b.therapist_id === tid && overlaps(b))) return true;
+      return false;
+    }
+    const branchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
+    const capacity = rooms[branchName] ?? 0;
+    if (capacity <= 0) return true;
+    const occupied = new Set(bookedSlots.filter((b) => overlaps(b)).map((b) => b.room_number));
+    const blockedRooms = new Set(blocked.filter((b) => slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time)).map((b) => b.room_number));
+    const unavailable = new Set([...(occupied as Set<number>), ...(blockedRooms as Set<number>)]);
+    if (capacity - unavailable.size <= 0) return true;
+    return !THERAPISTS.some((t) => !bookedSlots.some((b) => b.therapist_id === Number(t.id) && overlaps(b)));
+  };
+
+  const formatRupiah = (val: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
+  const formatDateLabel = (dateStr: string) => {
+    if (!dateStr) return "Pilih tanggal";
+    const d = new Date(`${dateStr}T00:00:00`);
+    return new Intl.DateTimeFormat("id-ID", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(d);
+  };
+
+  const toDateStr = (d: Date) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const isPastDate = (dateStr: string) => {
+    const todayStr = toDateStr(new Date());
+    return dateStr < todayStr;
+  };
+
+  const calendarDays: (string | null)[] = [];
+  {
+    const firstOfMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+    const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday start
+    const daysInMonth = new Date(
+      viewMonth.getFullYear(),
+      viewMonth.getMonth() + 1,
+      0,
+    ).getDate();
+    for (let i = 0; i < startOffset; i++) calendarDays.push(null);
+    for (let d = 1; d <= daysInMonth; d++) {
+      calendarDays.push(toDateStr(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d)));
+    }
+  }
+
+  const changeMonth = (delta: number) => {
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+  };
+
+  const monthLabel = new Intl.DateTimeFormat("id-ID", {
+    month: "long",
+    year: "numeric",
+  }).format(viewMonth);
+
+  const handleFormSubmit = async () => {
+    if (!clientName.trim()) {
+      setErrorMessage("Mohon cantumkan nama lengkap Anda.");
+      return;
+    }
+    if (!clientPhone.trim()) {
+      setErrorMessage(
+        "Mohon cantumkan nomor WhatsApp Anda untuk konfirmasi jadwal.",
+      );
+      return;
+    }
+    if (!clientEmail.trim()) {
+      setErrorMessage("Mohon cantumkan email Anda untuk menerima notifikasi booking.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
+      setErrorMessage("Format email tidak valid.");
+      return;
+    }
+    if (selectedServices.length === 0) {
+      setErrorMessage("Pilih minimal 1 jenis treatment waxing.");
+      return;
+    }
+
+    setErrorMessage("");
+
+    // Resolve target therapist: "any" → auto-assign first active therapist
+    let targetTherapistId = parseInt(therapistId, 10);
+    if (!Number.isFinite(targetTherapistId)) {
+      const first = THERAPISTS[0];
+      if (!first) {
+        setErrorMessage("Belum ada terapis tersedia. Silakan coba lagi nanti.");
+        return;
+      }
+      targetTherapistId = parseInt(first.id, 10);
+    }
+
+    // Normalize location to short branch label
+    const locationLabel = location.includes("Jakarta Selatan")
+      ? "Jakarta Selatan"
+      : "Jakarta Barat";
+
+    const startTime = timeSlot.replace(" WIB", "").slice(0, 5);
+
+    setSubmitting(true);
+    try {
+      const res = await api.post<{ booking: any }>("/bookings", {
+        customer_name: clientName.trim(),
+        customer_phone: clientPhone.trim(),
+        customer_email: clientEmail.trim(),
+        therapist_id: targetTherapistId,
+        appointment_date: date,
+        start_time: startTime,
+        service_ids: selectedServices.map((id) => parseInt(id, 10)),
+        location: locationLabel,
+        room_type: roomType,
+        notes: [customTherapistRequest.trim(), specialNotes.trim()].filter(Boolean).join(" · ") || null,
+      });
+
+      const newBooking: SavedBooking = {
+        id: res.booking?.booking_code ?? `BS-${Math.floor(100000 + Math.random() * 900000)}`,
+        clientName: clientName.trim(),
+        clientPhone: clientPhone.trim(),
+        clientEmail: clientEmail.trim(),
+        selectedServices,
+        therapistId: String(res.booking?.therapist_id ?? targetTherapistId),
+        customTherapistRequest: customTherapistRequest.trim(),
+        roomType,
+        location: res.booking?.location ?? locationLabel,
+        date: res.booking?.appointment_date ?? date,
+        timeSlot: res.booking ? `${res.booking.start_time.slice(0, 5)} WIB` : timeSlot,
+        promoCode: promoApplied ? promoCode : "",
+        specialNotes: specialNotes.trim(),
+        createdAt: new Date().toISOString(),
+        totalPrice: Number(res.booking?.total_price ?? subtotal),
+        discountAmount,
+        finalPrice: Number(res.booking?.total_price ?? finalPrice),
+        therapistName: res.booking?.therapist?.name ?? selectedTherapistObj?.nickname ?? "Rekomendasi Bulu Space",
+        serviceNames: selectedServiceObjs.map((s) => s.name),
+        status: res.booking?.status
+          ? STATUS_MAP[res.booking.status as keyof typeof STATUS_MAP] ?? "Menunggu WhatsApp"
+          : "Menunggu WhatsApp",
+      };
+
+      onBookingSuccess(newBooking);
+    } catch (e) {
+      setErrorMessage(
+        e instanceof Error ? e.message : "Gagal membuat booking. Coba lagi.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl max-w-3xl w-full border border-slate-200 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        {/* Modal Header */}
+        <div className="bg-slate-900 text-white px-6 py-5 flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-3">
+            <img
+              src="/asset/img/Bulu Space_Logo Icon-03.png"
+              alt="BuluSpace"
+              className="w-8 h-auto"
+            />
+            <div>
+              <h3 className="text-lg font-bold tracking-tight text-white font-['Poppins']">
+                Reservasi & Request Terapis
+              </h3>
+              <p className="text-xs text-slate-400">
+                Studio Bulu Space — Higienis Medis & Tanpa Nyeri Berlebih
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Tutup form booking"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-7 flex-1 text-slate-800">
+          {errorMessage && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* Section 1: Layanan Waxing */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-bold text-slate-900 flex items-center gap-2 font-['Poppins']">
+                <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[11px] flex items-center justify-center">
+                  1
+                </span>
+                <span>Pilih Treatment Waxing</span>
+              </label>
+              <span className="text-xs text-slate-500">
+                {selectedServices.length} layanan dipilih
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">
+              {SERVICES.map((srv) => {
+                const checked = selectedServices.includes(srv.id);
+                return (
+                  <div
+                    key={srv.id}
+                    onClick={() => handleToggleService(srv.id)}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex items-start justify-between gap-2 ${
+                      checked
+                        ? "bg-pink-50 border-pink-300 ring-1 ring-pink-300"
+                        : "bg-white border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-slate-900">
+                        {srv.name}
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        {srv.waxType}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-bold font-mono text-slate-900">
+                        {formatRupiah(srv.price)}
+                      </p>
+                      <div
+                        className={`w-4 h-4 mt-1 ml-auto rounded flex items-center justify-center border ${
+                          checked
+                            ? "bg-pink-400 border-pink-400 text-slate-950"
+                            : "border-slate-300"
+                        }`}
+                      >
+                        {checked && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Section 2: FITUR REQUEST TERAPIS */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-50/70 via-slate-50 to-white border border-pink-200/80 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-bold text-slate-900 flex items-center gap-2 font-['Poppins']">
+                <span className="w-5 h-5 rounded-full bg-pink-400 text-slate-950 text-[11px] font-bold flex items-center justify-center">
+                  2
+                </span>
+                <span>Fitur Request Terapis Bulu Space</span>
+              </label>
+              <span className="text-[11px] font-medium text-pink-700 bg-pink-100 px-2 py-0.5 rounded-full">
+                Bebas Pilih & Tanpa Biaya Tambahan
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-4">
+              Pilih terapis favorit Anda atau biarkan tim kami menugaskan
+              terapis senior terbaik yang sesuai.
+            </p>
+
+            {/* Therapist Cards Picker */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Option: Any / Best Recommendation */}
+              <div
+                onClick={() => setTherapistId("any")}
+                className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
+                  therapistId === "any"
+                    ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                    : "bg-white border-slate-200 hover:border-slate-300 text-slate-800"
+                }`}
+              >
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                    therapistId === "any"
+                      ? "bg-slate-800 text-pink-300"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold">
+                    Rekomendasi Sistem Bulu Space
+                  </p>
+                  <p
+                    className={`text-[11px] ${therapistId === "any" ? "text-slate-300" : "text-slate-500"}`}
+                  >
+                    Terapis senior terbaik yang paling siap di jam Anda
+                  </p>
+                </div>
+              </div>
+
+              {/* Specific Therapists */}
+              {THERAPISTS.map((t) => {
+                const isSelected = therapistId === t.id;
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => setTherapistId(t.id)}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
+                      isSelected
+                        ? "bg-pink-100/80 border-pink-400 text-slate-900 shadow-xs ring-1 ring-pink-400"
+                        : "bg-white border-slate-200 hover:border-slate-300 text-slate-800"
+                    }`}
+                  >
+                    <img
+                      src={t.avatar}
+                      alt={t.name}
+                      className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="space-y-0.5 overflow-hidden">
+                      <p className="text-xs font-bold truncate">
+                        {t.nickname}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {t.role}
+                      </p>
+                      <p className="text-[10px] text-pink-700 font-medium truncate">
+                        {t.temperament}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Custom Request Criteria Tags & Notes */}
+            <div className="mt-4 pt-4 border-t border-pink-200/60">
+              <label className="block text-xs font-semibold text-slate-800 mb-1.5">
+                Kriteria Khusus untuk Sesi Waxing Anda (Opsional):
+              </label>
+
+              {/* Quick Tag Pills */}
+              <div className="flex flex-wrap gap-1.5 mb-2.5">
+                {quickCriteriaTags.map((tag, idx) => {
+                  const isTagged = customTherapistRequest.includes(tag);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleQuickTagClick(tag)}
+                      className={`text-[11px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        isTagged
+                          ? "bg-pink-200 text-pink-900 border-pink-400 font-semibold"
+                          : "bg-white text-slate-600 border-slate-300 hover:bg-slate-100"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <textarea
+                value={customTherapistRequest}
+                onChange={(e) => setCustomTherapistRequest(e.target.value)}
+                placeholder="Contoh: Saya baru pertama kali waxing jadi tolong terapis yang ekstra sabar dan lembut, atau ingin suasana hening tanpa banyak mengobrol..."
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+                rows={2}
+              />
+            </div>
+          </div>
+
+          {/* Section 3: Jadwal, Lokasi, Jam & Tipe Ruangan */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Tanggal Treatment
+              </label>
+              <div ref={datePickerRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsDatePickerOpen((o) => !o)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white text-left flex items-center justify-between gap-2"
+                >
+                  <span>{formatDateLabel(date)}</span>
+                  <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                </button>
+
+                {isDatePickerOpen && (
+                  <div className="absolute left-0 top-full mt-1.5 z-20 bg-white border border-slate-200 rounded-xl shadow-lg p-3 w-64 xs:w-72">
+                    {/* Month nav */}
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        type="button"
+                        onClick={() => changeMonth(-1)}
+                        className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
+                        aria-label="Bulan sebelumnya"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <span className="text-xs font-semibold text-slate-800 capitalize">
+                        {monthLabel}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => changeMonth(1)}
+                        className="p-1 rounded-lg hover:bg-slate-100 text-slate-500"
+                        aria-label="Bulan berikutnya"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Weekday headers (Monday first) */}
+                    <div className="grid grid-cols-7 text-center text-[10px] font-medium text-slate-400 mb-1">
+                      {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d) => (
+                        <span key={d} className="py-1">
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Days */}
+                    <div className="grid grid-cols-7 gap-0.5">
+                      {calendarDays.map((dayStr, idx) => {
+                        if (!dayStr) return <span key={`empty-${idx}`} />;
+                        const isSelected = dayStr === date;
+                        const isPast = isPastDate(dayStr);
+                        const isToday = dayStr === toDateStr(new Date());
+                        return (
+                          <button
+                            key={dayStr}
+                            type="button"
+                            disabled={isPast}
+                            onClick={() => {
+                              setDate(dayStr);
+                              setIsDatePickerOpen(false);
+                            }}
+                            className={`h-8 w-full rounded-lg text-[11px] flex items-center justify-center transition-colors ${
+                              isSelected
+                                ? "bg-neutral-900 text-white font-semibold"
+                                : isPast
+                                  ? "text-slate-300 cursor-not-allowed"
+                                  : "text-slate-700 hover:bg-pink-50"
+                            } ${!isSelected && isToday ? "ring-1 ring-pink-300 text-pink-600 font-medium" : ""}`}
+                          >
+                            {Number(dayStr.slice(8))}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Jam Sesi Kedatangan
+              </label>
+              <select
+                value={timeSlot}
+                onChange={(e) => setTimeSlot(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+              >
+                {timeSlots.map((slot) => {
+                  const busy = slotBusy(asMinutes(slot.slice(0, 5)));
+                  return (
+                    <option key={slot} value={slot} disabled={busy}>
+                      {slot}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Lokasi Studio
+              </label>
+              <select
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+              >
+                <option value="Jakarta Barat — Jl. Raya Kb. Jeruk No.8, Kb. Jeruk, Jakarta Barat 11530">
+                  Jakarta Barat
+                </option>
+                <option value="Jakarta Selatan — Jl. H. Syahrin No.3c 6, Gandaria Utara, Kebayoran Baru, Jakarta Selatan 12140">
+                  Jakarta Selatan
+                </option>
+              </select>
+            </div>
+          </div>
+
+          {/* Section 4: Data Pelanggan & Kode Promo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Nama Lengkap <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <User className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Misal: Dian Sastrowardoyo"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Nomor WhatsApp <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="tel"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  placeholder="Misal: 081234567890"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Email untuk Notifikasi <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="email"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                  placeholder="Misal: dian@gmail.com"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Konfirmasi booking, instruksi pembayaran & notifikasi dikirim ke email ini.
+              </p>
+            </div>
+
+            {/* Temporarily hidden - promo code input field */}
+            {/* <div>
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Kode Voucher Promo
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => {
+                    setPromoCode(e.target.value.toUpperCase());
+                    setPromoApplied(false);
+                  }}
+                  placeholder="Contoh: FIRSTBULU30"
+                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 uppercase font-mono focus:outline-none focus:ring-2 focus:ring-pink-300"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyPromo}
+                  className="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-700"
+                >
+                  Terapkan
+                </button>
+              </div>
+              {promoApplied && (
+                <p className="text-[11px] text-emerald-600 font-semibold mt-1">
+                  ✓ Voucher aktif! Potongan {discountPercent}% diterapkan.
+                </p>
+              )}
+            </div> */}
+          </div>
+
+          {/* Price Breakdown */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2 text-xs">
+            <div className="flex justify-between text-slate-600">
+              <span>Subtotal ({selectedServices.length} Treatment):</span>
+              <span className="font-mono">{formatRupiah(subtotal)}</span>
+            </div>
+            {/* Temporarily hidden - discount display */}
+            {/* {promoApplied && (
+              <div className="flex justify-between text-pink-600 font-semibold">
+                <span>Diskon Promo ({discountPercent}%):</span>
+                <span className="font-mono">
+                  -{formatRupiah(discountAmount)}
+                </span>
+              </div>
+            )} */}
+            <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-sm font-bold text-slate-900">
+              <span>Total Estimasi:</span>
+              <span className="text-base text-slate-900 font-mono">
+                {formatRupiah(finalPrice)}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              *Pembayaran dilakukan di kasir studio saat kedatangan (Cashless:
+              QRIS, Debit, CC).
+            </p>
+          </div>
+        </div>
+
+        {/* Modal Footer Actions */}
+        <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-col gap-3 shrink-0">
+          {errorMessage && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold"
+            >
+              Batal
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleFormSubmit()}
+              disabled={submitting}
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-700/20 disabled:opacity-60"
+            >
+              <MessageCircle className="w-4 h-4 fill-white" />
+              <span>{submitting ? "Mengirim..." : "Simpan & Konfirmasi"}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -1,0 +1,6 @@
+{
+  "name": "Bulu Space — Premium Waxing Studio",
+  "description": "Website resmi Bulu Space, studio waxing premium dengan banner promo interaktif, layanan profesional, fitur request terapis personal, dan higienitas tanpa rasa sakit.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

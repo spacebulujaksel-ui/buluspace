@@ -1,0 +1,26 @@
+# Dependencies & build artifacts
+node_modules/
+vendor/
+dist/
+build/
+
+# Environment & secrets
+.env
+.env.local
+.env.backup
+.env.production
+*.local
+
+# Laravel runtime
+/storage/*.key
+/storage/logs/
+/public/storage
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log
+
+# Unrelated directories (not part of BuluSpace apps)
+/src/
+/assets-buluspace/

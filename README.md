@@ -1,6 +1,6 @@
 # BuluSpace
 
-Premium waxing studio — booking & admin system. 3 aplikasi:
+Premium waxing studio — booking & admin system.
 
 | Folder | Isi | Stack |
 |---|---|---|
@@ -9,87 +9,132 @@ Premium waxing studio — booking & admin system. 3 aplikasi:
 | `website/` | Situs publik customer | React 19 + Vite + Tailwind |
 | `jadwal/` | Halaman jadwal terapis (public, tanpa login) | React 19 + Vite + Tailwind |
 
-## Struktur singkat
-
-- **`backend/routes/api.php`** — semua endpoint `/api/*`
-- **`backend/app/Http/Controllers`** — `Api/` (publik) & `Admin/` (token admin per cabang)
-- **`admin/src/pages`** — Dashboard, Bookings, Jadwal, Therapists, Services, Promos, Reviews
-- **`website/src`** — situs customer (booking, promo, lacak booking)
-- **`jadwal/src/App.tsx`** — board jadwal terapis (warna: Barat=biru, Selatan=pink)
-
-## Menjalankan lokal
-
-1. **Backend** (terminal 1):
-   ```sh
-   cd backend
-   cp .env.example .env   # isi DB MySQL `bulu_space`
-   composer install
-   php artisan key:generate
-   php artisan migrate --seed
-   php -S 127.0.0.1:8000 -t public
-   ```
-2. **Situs customer** (terminal 2): `cd website && npm install && npm run dev` (port 3000)
-3. **Admin** (terminal 3): `cd admin && npm install && npm run dev` (port 5173)
-4. **Jadwal terapis** (terminal 4): `cd jadwal && npm install && npm run dev`
-   - Atur `VITE_API_URL`, opsional `VITE_GOOGLE_CALENDAR_SRC` di `.env`
-
 Login admin demo: `admin@buluspace.com` / `admin123` (Jakarta Barat), `citraut@gmail.com` / `citra221` (Jakarta Selatan).
 
-## Deploy Hostinger (shared hosting)
+---
 
-### Asumsi
-- Domain mis. `buluspace.com` → static (website) via `public_html`
-- Subdomain `api.buluspace.com` → Laravel API
-- Subdomain `admin.buluspace.com` → build admin
-- Subdomain `jadwal.buluspace.com` → build jadwal
-- (Atau semua di satu domain dengan folder `/customer`, `/admin`, `/jadwal`.)
+## Jalankan lokal
 
-### Backend (api subdomain)
-1. Pilih **PHP 8.3** di panel Hostinger.
-2. Upload isi `backend/` ke folder subdomain (mis. `api.buluspace.com/`), **kecuali** `vendor/`.
-3. Set folder web root ke `.../backend/public` (atau taruh `public` sebagai `document root`).
-4. SSH / File Manager, lalu:
-   ```sh
-   composer install --no-dev --optimize-autoloader
-   cp .env.example .env        # isi sesuai akun, lihat di bawah
-   php artisan key:generate
-   php artisan migrate --force
-   php artisan storage:link
-   php artisan config:cache
-   ```
-5. **`.env` produksi**:
-   ```
-   APP_ENV=production
-   APP_URL=https://api.buluspace.com
-   DB_CONNECTION=mysql
-   DB_HOST=localhost
-   DB_DATABASE=<nama db hostinger>
-   DB_USERNAME=<user db>
-   DB_PASSWORD=<pass db>
-   MAIL_MAILER=smtp
-   MAIL_HOST=smtp.hostinger.com
-   MAIL_PORT=465
-   MAIL_USERNAME=no-reply@buluspace.com
-   MAIL_PASSWORD=<pass email>
-   MAIL_ENCRYPTION=ssl
-   MAIL_FROM_ADDRESS=no-reply@buluspace.com
-   MAIL_FROM_NAME="BuluSpace"
-   ```
-
-### Frontend (website / admin / jadwal)
-Build dengan `VITE_API_URL` menunjuk API produksi:
 ```sh
-cd website && npm install && VITE_API_URL=https://api.buluspace.com/api npm run build
-cd admin && npm install && VITE_API_URL=https://api.buluspace.com/api npm run build
-cd jadwal && npm install && VITE_API_URL=https://api.buluspace.com/api npm run build
+# Backend
+cd backend && cp .env.example .env && composer install && php artisan key:generate && php artisan migrate --seed && php -S 127.0.0.1:8000 -t public
+
+# Website (port 3000)
+cd website && npm install && npm run dev
+
+# Admin (port 5173)
+cd admin && npm install && npm run dev
+
+# Jadwal terapis (port 5175)
+cd jadwal && npm install && npm run dev
 ```
-Upload isi folder `dist/` masing-masing ke folder/ subdomain tujuan.
 
-### Perawatan
-- **Promo image upload** tersimpan di `storage/app/public/promos` (pasti `storage:link` aktif).
-- **Email** dikirim sinkron saat event (booking baru→admin, konfirmasi→customer, completed→terima kasih). Format tanggal jatuh tempo pembayaran H-1.
-- Backups & SSL: gunakan panel Hostinger (auto SSL di subdomain).
+---
 
-## Tips CLI akses (dev)
-- Akses admin: `admin/src/pages/Dashboard.tsx`, `Bookings.tsx`.
-- Public endpoint jadwal: `GET /api/schedule-board?date=YYYY-MM-DD`.
+## Deploy ke Hostinger (`buluspace.com`)
+
+### 1. Siapkan di hPanel Hostinger
+
+1. **Buatan subdomain** (Domain → Subdomains → Create):
+
+   | Subdomain | Folder docroot |
+   |---|---|
+   | `api.buluspace.com` | Pilih `/home/<user>/domains/buluspace.com/api` |
+   | `admin.buluspace.com` | Pilih `/home/<user>/domains/buluspace.com/admin` |
+   | `jadwal.buluspace.com` | Pilih `/home/<user>/domains/buluspace.com/jadwal` |
+   | `buluspace.com` (www) | Pilih `/home/<user>/domains/buluspace.com` |
+
+2. **PHP versi 8.3** → PHP Configuration → pilih PHP 8.3.
+3. **MySQL** → Database → buat database + user (catat nama db, user, password).
+4. **SSL** → Auto SSL aktifkan di tiap subdomain.
+5. **SSH** → Aktifkan di hPanel (untuk jalankan artisan + composer).
+
+### 2. Deploy Backend (`api.buluspace.com`)
+
+SSH ke server, lalu:
+
+```sh
+cd /home/<user>/domains/buluspace.com/api   # folder subdomain
+git clone https://github.com/spacebulujaksel-ui/buluspace.git .
+cd backend                                   # clone result ada folder backend
+composer install --no-dev --optimize-autoloader
+cp .env.example .env
+
+# Generate APP_KEY
+php artisan key:generate
+```
+
+Edit `.env` (isi dengan data Hostinger):
+
+```ini
+APP_NAME=BuluSpace
+APP_ENV=production
+APP_KEY=<auto-generated>
+APP_DEBUG=false
+APP_URL=https://api.buluspace.com
+APP_LOCALE=id
+APP_FALLBACK_LOCALE=id
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=u<user>_buluspace      # nama db dari hPanel
+DB_USERNAME=u<user>_<dbuser>       # user db dari hPanel
+DB_PASSWORD=<password>
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_USERNAME=no-reply@buluspace.com
+MAIL_PASSWORD=<password email Hostinger>
+MAIL_ENCRYPTION=ssl
+MAIL_FROM_ADDRESS=no-reply@buluspace.com
+MAIL_FROM_NAME="BuluSpace"
+```
+
+Lalu jalankan:
+
+```sh
+php artisan migrate --seed --force
+php artisan storage:link
+chmod -R 775 storage bootstrap/cache
+```
+
+### 3. Deploy Frontend (admin / website / jadwal)
+
+**Build** (dari lokal atau langsung di server):
+
+```sh
+cd admin   && npm ci && VITE_API_URL=https://api.buluspace.com/api npm run build
+cd website && npm ci && VITE_API_URL=https://api.buluspace.com/api npm run build
+cd jadwal  && npm ci && VITE_API_URL=https://api.buluspace.com/api npm run build
+```
+
+**Upload** isi tiap folder `dist/` ke docroot masing-masing subdomain:
+
+- `admin/dist/` → `admin.buluspace.com`
+- `website/dist/` → `buluspace.com`
+- `jadwal/dist/` → `jadwal.buluspace.com`
+
+> `.htaccess` SPA-fallback sudah ada di `public/` tiap app → otomatis masuk ke `dist/` saat build, jadi deep link admin (`/bookings`, dll) tidak 404.
+
+### 4. Verifikasi
+
+| URL | Yang harus terlihat |
+|---|---|
+| `https://api.buluspace.com/api/branches` | JSON 2 cabang |
+| `https://buluspace.com` | Situs customer |
+| `https://admin.buluspace.com` | Login admin panel |
+| `https://jadwal.buluspace.com` | Board jadwal terapis |
+
+### 5. Catatan Penting
+
+- **Data awal**: `migrate --seed` membuat data DEMO (6 user, layanan, terapis, promo) + 2 admin aktif. Booking kosong — siap menerima pesanan pertama.
+- **Promo upload**: gambar disimpan di `storage/app/public/promos`. Pastikan `php artisan storage:link` jalan (symlink ke `public/storage`).
+- **Email**: sudah konfigurasi SMTP Hostinger; fitur Mailable diaktifkan setelah deploy (sementara log ke file).
+- **Backup**: gunakan backup bawaan Hostinger (hPanel → Backup).
+- **SSL**: auto set via Hostinger; pastikan tiap subdomain aktif (hati kuning → hijau).

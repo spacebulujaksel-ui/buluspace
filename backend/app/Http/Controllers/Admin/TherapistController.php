@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Therapist;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TherapistController extends Controller
 {
@@ -16,7 +17,7 @@ class TherapistController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => ['required', 'string', 'max:100', Rule::unique('therapists', 'name')],
             'phone' => 'nullable|string|max:20',
             'specialty' => 'nullable|string|max:255',
             'experience_years' => 'nullable|integer|min:0',
@@ -30,7 +31,7 @@ class TherapistController extends Controller
     public function update(Request $request, int $id)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => ['required', 'string', 'max:100', Rule::unique('therapists', 'name')->ignore($id)],
             'phone' => 'nullable|string|max:20',
             'specialty' => 'nullable|string|max:255',
             'experience_years' => 'nullable|integer|min:0',

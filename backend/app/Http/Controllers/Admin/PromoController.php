@@ -7,6 +7,7 @@ use App\Models\Promo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PromoController extends Controller
 {
@@ -31,7 +32,7 @@ class PromoController extends Controller
     {
         return [
             'tag' => 'required|string|max:50',
-            'title' => 'required|string|max:150',
+            'title' => ['required', 'string', 'max:150', Rule::unique('promos', 'title')],
             'highlight_text' => 'nullable|string|max:150',
             'description' => 'nullable|string',
             'discount_badge' => 'nullable|string|max:50',
@@ -68,7 +69,9 @@ class PromoController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $validated = $request->validate($this->validationRules());
+        $rules = $this->validationRules();
+        $rules['title'] = ['required', 'string', 'max:150', Rule::unique('promos', 'title')->ignore($id)];
+        $validated = $request->validate($rules);
         unset($validated['image']);
         $promo = Promo::findOrFail($id);
 

@@ -1,33 +1,108 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Tambah foto baru di sini, contoh:
-//   { title: "Nama", description: "Keterangan", image: "/asset/img/nama-file.jpg" }
+interface Facility {
+  title: string;
+  description: string;
+  images: string[];
+}
+
+// Tambah foto baru di sini — beberapa foto per kartu:
+//   { title: "Nama", description: "Keterangan", images: ["/asset/img/a.jpg", "/asset/img/b.jpg"] }
 // Jangan lupa taruh dulu file gambarnya di folder website/public/asset/img/
-const facilities = [
+const facilities: Facility[] = [
   {
     title: "Lobby & Resepsionis",
     description: "Ruang tunggu nyaman dengan suasana tenang",
-    image: "/asset/img/resepsionis.jpg",
+    images: ["/asset/img/resepsionis.jpg"],
   },
   {
     title: "Kamar Treatment",
     description: "Ruangan privat & steril untuk kenyamanan maksimal",
-    image: "/asset/img/kamar.jpg",
+    images: ["/asset/img/kamar.jpg"],
   },
   {
     title: "Sterilization Station",
     description: "Standar kebersihan tinggi dengan peralatan steril",
-    image: "/asset/img/steril.jpg",
+    images: ["/asset/img/steril.jpg"],
   },
   {
     title: "100% natural sugar",
     description: "Menggunakan 100% gula alami untuk hasil terbaik",
-    image: "/asset/img/premium.jpg",
+    images: ["/asset/img/premium.jpg"],
   },
 ];
 
 const AUTO_SLIDE_MS = 3500;
+
+function FacilityCard({ facility }: { facility: Facility }) {
+  const [photo, setPhoto] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+
+  const prev = () => setPhoto((i) => (i - 1 + facility.images.length) % facility.images.length);
+  const next = () => setPhoto((i) => (i + 1) % facility.images.length);
+
+  return (
+    <div className="rounded-xl border border-neutral-200 overflow-hidden bg-white shadow-xs hover:shadow-lg transition-shadow h-full flex flex-col">
+      {facility.images.length === 1 ? (
+        <div className="aspect-[4/3] bg-neutral-200 overflow-hidden">
+          <img src={facility.images[0]} alt={facility.title} className="w-full h-full object-cover" />
+        </div>
+      ) : (
+        <div
+          className="relative aspect-[4/3] bg-neutral-200 overflow-hidden"
+          onTouchStart={(e) => {
+            touchStartX.current = e.touches[0].clientX;
+          }}
+          onTouchMove={(e) => {
+            if (touchStartX.current == null) return;
+            const dx = e.touches[0].clientX - touchStartX.current;
+            if (Math.abs(dx) > 40) {
+              if (dx < 0) next();
+              else prev();
+              touchStartX.current = null;
+            }
+          }}
+          onTouchEnd={() => {
+            touchStartX.current = null;
+          }}
+        >
+          <div
+            className="flex h-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${photo * 100}%)` }}
+          >
+            {facility.images.map((src, i) => (
+              <img key={i} src={src} alt={`${facility.title} ${i + 1}`} className="w-full h-full shrink-0 object-cover" />
+            ))}
+          </div>
+          <span className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-semibold rounded px-1.5 py-0.5">
+            {photo + 1}/{facility.images.length}
+          </span>
+        </div>
+      )}
+
+      <div className="p-5 flex-1">
+        <h3 className="text-base font-semibold text-neutral-900">{facility.title}</h3>
+        <p className="mt-1.5 text-sm text-neutral-500 leading-relaxed">{facility.description}</p>
+
+        {facility.images.length > 1 && (
+          <div className="mt-3 flex items-center gap-1.5">
+            {facility.images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setPhoto(i)}
+                aria-label={`Foto ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === photo ? "w-4 bg-neutral-900" : "w-1.5 bg-neutral-300 hover:bg-neutral-400"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export const FacilityShowcase: React.FC = () => {
   const [perView, setPerView] = useState(() => (typeof window === "undefined" ? 2 : window.innerWidth >= 640 ? 2 : 1));
@@ -56,18 +131,6 @@ export const FacilityShowcase: React.FC = () => {
   const goNext = () => setIndex((i) => (i + 1) % pages);
   const goPrev = () => setIndex((i) => (i - 1 + pages) % pages);
 
-  const renderCard = (facility: (typeof facilities)[number]) => (
-    <div className="rounded-xl border border-neutral-200 overflow-hidden bg-white shadow-xs hover:shadow-lg transition-shadow h-full flex flex-col">
-      <div className="aspect-[4/3] bg-neutral-200 overflow-hidden">
-        <img src={facility.image} alt={facility.title} className="w-full h-full object-cover" />
-      </div>
-      <div className="p-5 flex-1">
-        <h3 className="text-base font-semibold text-neutral-900">{facility.title}</h3>
-        <p className="mt-1.5 text-sm text-neutral-500 leading-relaxed">{facility.description}</p>
-      </div>
-    </div>
-  );
-
   return (
     <section id="fasilitas" className="py-16 sm:py-20 bg-white scroll-mt-16">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
@@ -84,7 +147,7 @@ export const FacilityShowcase: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {facilities.map((facility) => (
               <div key={facility.title} className="h-full">
-                {renderCard(facility)}
+                <FacilityCard facility={facility} />
               </div>
             ))}
           </div>
@@ -105,7 +168,7 @@ export const FacilityShowcase: React.FC = () => {
                     className="shrink-0 px-2.5"
                     style={{ width: `${100 / perView}%` }}
                   >
-                    {renderCard(facility)}
+                    <FacilityCard facility={facility} />
                   </div>
                 ))}
               </div>

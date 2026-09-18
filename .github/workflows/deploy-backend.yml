@@ -36,4 +36,4 @@ jobs:
       - name: Composer install and migrate
         run: |
           ssh -p "${{ secrets.SSH_PORT }}" -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "cd '${{ secrets.DEPLOY_PATH }}' && composer install --no-dev --optimize-autoloader --no-interaction && php artisan migrate --force && php artisan optimize:clear"
+            "cd '${{ secrets.DEPLOY_PATH }}' && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts && php artisan migrate --force && php artisan optimize:clear"

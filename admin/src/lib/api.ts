@@ -48,12 +48,16 @@ export const api = {
       body,
     }).then((r) => handle<T>(r)),
 
-  putForm: <T>(path: string, body: FormData) =>
-    fetch(`${API_BASE}${path}`, {
-      method: 'PUT',
+  putForm: <T>(path: string, body: FormData) => {
+    const fd = new FormData();
+    body.forEach((v, k) => fd.append(k, v));
+    fd.append('_method', 'PUT');
+    return fetch(`${API_BASE}${path}`, {
+      method: 'POST',
       headers: { Authorization: `Bearer ${token()}` },
-      body,
-    }).then((r) => handle<T>(r)),
+      body: fd,
+    }).then((r) => handle<T>(r));
+  },
 
   put: <T>(path: string, body: unknown) =>
     fetch(`${API_BASE}${path}`, {

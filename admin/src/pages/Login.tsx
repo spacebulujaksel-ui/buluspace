@@ -86,7 +86,7 @@ export default function Login() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-neutral-500 bg-neutral-50 border border-neutral-200 rounded-full px-2.5 py-1">
-                      <DoorOpen className="w-3 h-3" /> {b.rooms_count} kamar
+                      <DoorOpen className="w-3 h-3" /> {b.rooms_count} kapasitas
                     </div>
                   </div>
                 </button>
@@ -112,7 +112,7 @@ export default function Login() {
 
             <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-100 text-xs text-neutral-600">
               Masuk sebagai admin <strong>{selectedBranch.name}</strong>
-              <span className="block text-[11px] text-neutral-400">{selectedBranch.rooms_count} kamar</span>
+              <span className="block text-[11px] text-neutral-400">{selectedBranch.rooms_count} kapasitas</span>
             </div>
 
             <div>

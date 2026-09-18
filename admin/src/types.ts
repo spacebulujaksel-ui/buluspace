@@ -24,7 +24,6 @@ export interface Therapist {
   status: ActiveStatus;
   specialty?: string;
   experience_years?: number | null;
-  room_number?: number | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -66,8 +65,6 @@ export interface Appointment {
   customer_phone: string;
   customer_email?: string | null;
   location?: string | null;
-  room_type?: string | null;
-  room_number?: number | null;
   notes?: string | null;
   cancel_reason?: string | null;
   total_price: string | number;

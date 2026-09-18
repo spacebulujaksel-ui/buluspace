@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Search, Filter, Eye, X, Check, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { formatRupiah, formatDate, formatDateTime } from '../data/helpers';
-import { useAuth } from '../hooks/useAuth';
 import { Appointment } from '../types';
 
 const STATUS_OPTIONS = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
@@ -16,7 +15,6 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function Bookings() {
-  const { user } = useAuth();
   const [bookings, setBookings] = useState<Appointment[]>([]);
   const [filter, setFilter] = useState<string>('All');
   const [search, setSearch] = useState('');
@@ -59,19 +57,6 @@ export default function Bookings() {
       load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal mengubah status.');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const updateRoom = async (id: number, roomNumber: number) => {
-    setUpdating(true);
-    try {
-      await api.put(`/admin/bookings/${id}/room`, { room_number: roomNumber });
-      setSelected((s) => (s && s.id === id ? { ...s, room_number: roomNumber } : s));
-      load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal mengubah ruang.');
     } finally {
       setUpdating(false);
     }
@@ -145,7 +130,7 @@ export default function Bookings() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
-                  {['Kode', 'Klien', 'Terapis', 'Jam', 'Layanan', 'Tanggal', 'Ruang', 'Status', 'Total', 'Aksi'].map((h) => (
+                  {['Kode', 'Klien', 'Terapis', 'Jam', 'Layanan', 'Tanggal', 'Status', 'Total', 'Aksi'].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
                       {h}
                     </th>
@@ -184,15 +169,6 @@ export default function Bookings() {
                       )}
                     </td>
                     <td className="px-4 py-3.5 text-[13px] text-neutral-500">{formatDate(apt.appointment_date)}</td>
-                    <td className="px-4 py-3.5">
-                      {apt.room_number ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-pink-50 border border-pink-200 text-[11px] font-medium text-pink-700">
-                          Ruang {apt.room_number}
-                        </span>
-                      ) : (
-                        <span className="text-[12px] text-neutral-300">—</span>
-                      )}
-                    </td>
                     <td className="px-4 py-3.5">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${STATUS_STYLES[apt.status] ?? 'bg-neutral-100 text-neutral-500'}`}
@@ -262,41 +238,6 @@ export default function Bookings() {
                 <p className="text-sm font-medium text-neutral-900">{selected.therapist?.name ?? '—'}</p>
                 {selected.location && (
                   <p className="text-[11px] text-neutral-500 mt-1">Lokasi: {selected.location}</p>
-                )}
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[11px] text-neutral-400">Ruang</p>
-                  <span className="text-[10px] text-neutral-400">
-                    Cabang {selected.location} · {user?.branch?.rooms_count ?? 0} kamar
-                  </span>
-                </div>
-                {selected.room_number ? (
-                  <p className="text-sm font-medium text-neutral-900">
-                    Ruang {selected.room_number}
-                    <span className="ml-2 text-[11px] text-neutral-400">({selected.room_type ?? 'Umum'})</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-neutral-400">Belum ada ruang</p>
-                )}
-                {!['Cancelled', 'Completed'].includes(selected.status) && (user?.branch?.rooms_count ?? 0) > 0 && (
-                  <div className="mt-2 pt-2 border-t border-neutral-100 flex items-center gap-2">
-                    <label className="text-[11px] text-neutral-400">Pindah ke:</label>
-                    <select
-                      value={selected.room_number ?? ''}
-                      onChange={(e) => e.target.value && updateRoom(selected.id, Number(e.target.value))}
-                      disabled={updating}
-                      className="px-2 py-1 text-xs rounded-lg border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-pink-300"
-                    >
-                      <option value="">— pilih ruang —</option>
-                      {Array.from({ length: user?.branch?.rooms_count ?? 0 }, (_, i) => i + 1).map((r) => (
-                        <option key={r} value={r}>
-                          Ruang {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 )}
               </div>
 

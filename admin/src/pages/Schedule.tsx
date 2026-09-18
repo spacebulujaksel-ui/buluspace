@@ -82,23 +82,23 @@ export default function Schedule() {
     }
   };
 
-  const rooms = data?.rooms_count ?? 0;
+  const capacity = data?.rooms_count ?? 0;
 
-  const cellBooking = (room: number, start: number, end: number) =>
-    data?.bookings.find((b) => {
-      if (b.room_number !== room) return false;
+  const slotBookings = (start: number, end: number) =>
+    (data?.bookings ?? []).filter((b) => {
       const bs = toMin(b.start_time);
       const be = toMin(b.end_time);
       return start < be && end > bs;
     });
 
-  const cellBlocked = (room: number, start: number, end: number) =>
-    data?.blocked.find((b) => {
-      if (b.room_number !== room) return false;
-      const bs = toMin(b.start_time);
-      const be = toMin(b.end_time);
-      return start < be && end > bs;
-    });
+  const slotBlockedRooms = (start: number, end: number) =>
+    data?.blocked
+      .filter((b) => {
+        const bs = toMin(b.start_time);
+        const be = toMin(b.end_time);
+        return start < be && end > bs;
+      })
+      .map((b) => b.room_number) ?? [];
 
   return (
     <div className="space-y-4">
@@ -122,8 +122,12 @@ export default function Schedule() {
         <div className="flex items-center gap-3 text-[11px]">
           <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-300" /> Kosong</span>
           <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-pink-100 border border-pink-300" /> Terisi</span>
-          <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-neutral-100 border border-neutral-300" /> Diblokir</span>
+          <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-300" /> Penuh</span>
+          <span className="inline-flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-neutral-100 border border-neutral-300" /> Diblokir/Tutup</span>
         </div>
+        {capacity > 0 && (
+          <span className="text-[11px] text-neutral-400">Kapasitas {capacity} ruang</span>
+        )}
       </div>
 
       {/* Block form */}
@@ -131,7 +135,7 @@ export default function Schedule() {
         <div>
           <label className="block text-[11px] font-semibold text-neutral-600 mb-1">Ruang</label>
           <select value={blockRoom} onChange={(e) => setBlockRoom(Number(e.target.value))} className="px-2.5 py-1.5 text-sm rounded-lg border border-neutral-200 bg-white">
-            {Array.from({ length: rooms }, (_, i) => i + 1).map((r) => (
+            {Array.from({ length: capacity }, (_, i) => i + 1).map((r) => (
               <option key={r} value={r}>Ruang {r}</option>
             ))}
           </select>
@@ -170,50 +174,78 @@ export default function Schedule() {
       <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden overflow-x-auto">
         {loading ? (
           <div className="text-center py-16 text-sm text-neutral-400">Memuat jadwal...</div>
-        ) : !data || rooms === 0 ? (
+        ) : !data ? (
           <div className="text-center py-16 text-sm text-neutral-400">Tidak ada data jadwal.</div>
         ) : (
           <table className="min-w-full text-left">
             <thead>
               <tr className="border-b border-neutral-200">
                 <th className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400 w-24">Jam</th>
-                {Array.from({ length: rooms }, (_, i) => i + 1).map((r) => (
-                  <th key={r} className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400 min-w-44">
-                    Ruang {r}
-                  </th>
-                ))}
+                <th className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">Ketersediaan</th>
               </tr>
             </thead>
             <tbody>
               {slotRows.map((slot, idx) => {
+                const bookings = slotBookings(slot.start, slot.end);
+                const blockedRooms = slotBlockedRooms(slot.start, slot.end);
+                const uniqueBlocked = Array.from(new Set(blockedRooms));
+                const available = capacity - uniqueBlocked.length;
+                const isClosed = capacity > 0 && available <= 0;
+                const isFull = capacity > 0 && bookings.length >= available;
                 return (
-                  <tr key={idx} className="border-b border-neutral-50 last:border-0">
-                    <td className="px-4 py-2 text-[11px] text-neutral-400 font-mono whitespace-nowrap align-top pt-3">
+                  <tr key={idx} className="border-b border-neutral-50 last:border-0 align-top">
+                    <td className="px-4 py-2 text-[11px] text-neutral-400 font-mono whitespace-nowrap pt-3">
                       {toLabel(slot.start)} – {toLabel(slot.end)}
                     </td>
-                    {Array.from({ length: rooms }, (_, i) => i + 1).map((room) => {
-                      const booking = cellBooking(room, slot.start, slot.end);
-                      const blocked = cellBlocked(room, slot.start, slot.end);
-                      if (blocked) {
-                        return (
-                          <td key={room} className="px-3 py-2 bg-neutral-100/70">
-                            <span className="text-[11px] text-neutral-400 flex items-center gap-1">
-                              <Ban className="w-3 h-3" /> Diblokir
-                            </span>
-                          </td>
-                        );
-                      }
-                      if (booking) {
-                        return (
-                          <td key={room} className="px-3 py-2 bg-pink-50/80">
-                            <p className="text-[11px] font-semibold text-pink-800 font-mono">{booking.booking_code}</p>
-                            <p className="text-[11px] text-neutral-700">{booking.customer_name}</p>
-                            <p className="text-[10px] text-neutral-500">{booking.therapist?.name ?? '—'} · {booking.start_time.slice(0, 5)}–{booking.end_time.slice(0, 5)}</p>
-                          </td>
-                        );
-                      }
-                      return <td key={room} className="px-3 py-2 bg-emerald-50/50" />;
-                    })}
+                    <td
+                      className={`px-4 py-2 ${
+                        isClosed
+                          ? 'bg-neutral-100/70'
+                          : isFull
+                            ? 'bg-red-50'
+                            : bookings.length > 0
+                              ? 'bg-pink-50/60'
+                              : 'bg-emerald-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isClosed && (
+                          <span className="text-[11px] font-semibold text-neutral-500 flex items-center gap-1">
+                            <Ban className="w-3 h-3" /> Ditutup
+                          </span>
+                        )}
+                        {uniqueBlocked.map((r) => (
+                          <span key={r} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-neutral-200/80 text-[10px] font-medium text-neutral-600">
+                            <Ban className="w-3 h-3" /> Ruang {r} diblokir
+                          </span>
+                        ))}
+                        {isFull && !isClosed && (
+                          <span className="text-[11px] font-semibold text-red-700">Penuh ({bookings.length}/{available})</span>
+                        )}
+                        {bookings.length > 0 && (isClosed || uniqueBlocked.length === 0 || isFull) && (
+                          <span className="text-[11px] text-neutral-400">{bookings.length} sesi</span>
+                        )}
+                      </div>
+                      {bookings.length > 0 && (
+                        <div className="mt-1.5 space-y-1">
+                          {bookings.map((b) => (
+                            <div key={b.id} className="rounded-lg bg-white border border-neutral-200 px-2.5 py-1.5">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-[11px] font-semibold text-neutral-800 font-mono">{b.booking_code}</p>
+                                <p className="text-[10px] text-neutral-400">{b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}</p>
+                              </div>
+                              <p className="text-[11px] text-neutral-600">{b.customer_name}</p>
+                              <p className="text-[10px] text-neutral-500">{b.therapist?.name ?? '—'}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {bookings.length === 0 && !isClosed && (
+                        <span className="text-[11px] text-emerald-700">
+                          {isFull ? 'Penuh' : uniqueBlocked.length > 0 ? `Tersedia ${available} ruang` : 'Kosong'}
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 );
               })}

@@ -27,7 +27,7 @@ export function Header({ title, user, onOpenSidebar, onLogout }: HeaderProps) {
         {user?.branch && (
           <span className="hidden md:inline-flex items-center gap-1.5 text-[11px] text-neutral-500 bg-neutral-50 border border-neutral-200 rounded-full px-2.5 py-1">
             <MapPin className="w-3 h-3 text-pink-500" />
-            {user.branch.name} · {user.branch.rooms_count} kamar
+            {user.branch.name} · {user.branch.rooms_count} kapasitas
           </span>
         )}
         <div className="hidden sm:block text-right">

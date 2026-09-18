@@ -81,7 +81,7 @@ class PublicController extends Controller
             $query->where('location', $validated['location']);
         }
 
-        $booked = $query->get(['therapist_id', 'start_time', 'end_time', 'room_number']);
+        $booked = $query->get(['therapist_id', 'start_time', 'end_time']);
 
         $rooms = Branch::orderBy('sort_order')->pluck('rooms_count', 'name');
 

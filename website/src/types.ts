@@ -50,7 +50,6 @@ export interface BookingFormData {
   selectedServices: string[];
   therapistId: string; // 'any' or specific therapist ID
   customTherapistRequest: string; // e.g., "Minta yang sabar karena saya first-timer"
-  roomType: 'private-deluxe' | 'vip-suite';
   location: string;
   date: string;
   timeSlot: string;

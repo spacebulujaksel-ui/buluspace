@@ -10,7 +10,7 @@ class Therapist extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'phone', 'photo', 'specialty', 'experience_years', 'room_number', 'status'];
+    protected $fillable = ['name', 'phone', 'photo', 'specialty', 'experience_years', 'status'];
 
     public function appointments(): HasMany
     {

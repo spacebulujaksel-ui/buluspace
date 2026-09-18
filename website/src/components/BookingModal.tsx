@@ -52,9 +52,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [clientEmail, setClientEmail] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [timeSlot, setTimeSlot] = useState<string>("13:30");
-  const [roomType, setRoomType] = useState<"private-deluxe" | "vip-suite">(
-    "private-deluxe",
-  );
   const [location, setLocation] = useState<string>(
     "Jakarta Barat — Jl. Raya Kb. Jeruk No.8, Kb. Jeruk, Jakarta Barat 11530",
   );
@@ -66,7 +63,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [specialNotes, setSpecialNotes] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [bookedSlots, setBookedSlots] = useState<
-    { therapist_id: number; start_time: string; end_time: string; room_number: number }[]
+    { therapist_id: number; start_time: string; end_time: string }[]
   >([]);
   const [rooms, setRooms] = useState<Record<string, number>>({});
   const [blocked, setBlocked] = useState<{ room_number: number; start_time: string; end_time: string }[]>([]);
@@ -128,7 +125,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (!isOpen) return;
     const branch = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
     api
-      .get<{ booked: { therapist_id: number; start_time: string; end_time: string; room_number: number }[]; rooms: Record<string, number>; blocked: { room_number: number; start_time: string; end_time: string }[] }>(
+      .get<{ booked: { therapist_id: number; start_time: string; end_time: string }[]; rooms: Record<string, number>; blocked: { room_number: number; start_time: string; end_time: string }[] }>(
         `/availability?date=${date}&location=${encodeURIComponent(branch)}`,
       )
       .then((r) => {
@@ -337,21 +334,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       return true;
     }
     const slotEnd = slotMin + totalMinutes;
-    const overlaps = (b: { therapist_id: number; start_time: string; end_time: string; room_number: number }) =>
+    const overlaps = (b: { therapist_id: number; start_time: string; end_time: string }) =>
       slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time);
-    if (therapistId !== "any") {
-      const tid = Number(therapistId);
-      if (bookedSlots.some((b) => b.therapist_id === tid && overlaps(b))) return true;
-      return false;
-    }
     const branchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
     const capacity = rooms[branchName] ?? 0;
     if (capacity <= 0) return true;
-    const occupied = new Set(bookedSlots.filter((b) => overlaps(b)).map((b) => b.room_number));
-    const blockedRooms = new Set(blocked.filter((b) => slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time)).map((b) => b.room_number));
-    const unavailable = new Set([...(occupied as Set<number>), ...(blockedRooms as Set<number>)]);
-    if (capacity - unavailable.size <= 0) return true;
-    return !THERAPISTS.some((t) => !bookedSlots.some((b) => b.therapist_id === Number(t.id) && overlaps(b)));
+    const blockedRooms = new Set(
+      blocked
+        .filter((b) => slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time))
+        .map((b) => b.room_number),
+    );
+    const available = capacity - blockedRooms.size;
+    if (available <= 0) return true;
+    const overlapping = bookedSlots.filter((b) => overlaps(b)).length;
+    if (overlapping >= available) return true;
+    if (therapistId !== "any") {
+      const tid = Number(therapistId);
+      if (bookedSlots.some((b) => b.therapist_id === tid && overlaps(b))) return true;
+    }
+    return false;
+  };
+
+  const slotState = (slotMin: number): "available" | "full" | "past" => {
+    const now = new Date();
+    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes()) {
+      return "past";
+    }
+    return slotBusy(slotMin) ? "full" : "available";
   };
 
   const formatRupiah = (val: number) => {
@@ -435,17 +444,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     setErrorMessage("");
 
-    // Resolve target therapist: "any" → auto-assign first active therapist
-    let targetTherapistId = parseInt(therapistId, 10);
-    if (!Number.isFinite(targetTherapistId)) {
-      const first = THERAPISTS[0];
-      if (!first) {
-        setErrorMessage("Belum ada terapis tersedia. Silakan coba lagi nanti.");
-        return;
-      }
-      targetTherapistId = parseInt(first.id, 10);
-    }
-
     // Normalize location to short branch label
     const locationLabel = location.includes("Jakarta Selatan")
       ? "Jakarta Selatan"
@@ -459,12 +457,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         customer_name: clientName.trim(),
         customer_phone: clientPhone.trim(),
         customer_email: clientEmail.trim(),
-        therapist_id: targetTherapistId,
+        therapist_id: therapistId === "any" ? null : Number(therapistId),
         appointment_date: date,
         start_time: startTime,
         service_ids: selectedServices.map((id) => parseInt(id, 10)),
         location: locationLabel,
-        room_type: roomType,
         notes: [customTherapistRequest.trim(), specialNotes.trim()].filter(Boolean).join(" · ") || null,
       });
 
@@ -474,9 +471,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         clientPhone: clientPhone.trim(),
         clientEmail: clientEmail.trim(),
         selectedServices,
-        therapistId: String(res.booking?.therapist_id ?? targetTherapistId),
+        therapistId: String(res.booking?.therapist_id ?? (therapistId === "any" ? "" : therapistId)),
         customTherapistRequest: customTherapistRequest.trim(),
-        roomType,
         location: res.booking?.location ?? locationLabel,
         date: res.booking?.appointment_date ?? date,
         timeSlot: res.booking ? `${res.booking.start_time.slice(0, 5)} WIB` : timeSlot,
@@ -720,7 +716,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           </div>
 
-          {/* Section 3: Jadwal, Lokasi, Jam & Tipe Ruangan */}
+          {/* Section 3: Jadwal, Lokasi & Jam */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1.5">
@@ -805,23 +801,39 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                Jam Sesi Kedatangan
+              <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                <span>Jam Sesi Kedatangan</span>
+                <span className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Tersedia</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Penuh</span>
+                </span>
               </label>
-              <select
-                value={timeSlot}
-                onChange={(e) => setTimeSlot(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
-              >
+              <div className="max-h-44 overflow-y-auto pr-1 grid grid-cols-4 xs:grid-cols-5 gap-1.5 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">
                 {timeSlots.map((slot) => {
-                  const busy = slotBusy(asMinutes(slot.slice(0, 5)));
+                  const min = asMinutes(slot.slice(0, 5));
+                  const state = slotState(min);
+                  const isSelected = timeSlot === slot;
                   return (
-                    <option key={slot} value={slot} disabled={busy}>
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => setTimeSlot(slot)}
+                      disabled={state !== "available"}
+                      className={`px-1.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+                        isSelected && state === "available"
+                          ? "bg-slate-900 text-white"
+                          : state === "past"
+                            ? "bg-neutral-100 text-neutral-300 cursor-not-allowed"
+                            : state === "full"
+                              ? "bg-rose-50 text-rose-400 border border-rose-200 cursor-not-allowed"
+                              : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
                       {slot}
-                    </option>
+                    </button>
                   );
                 })}
-              </select>
+              </div>
             </div>
 
             <div className="sm:col-span-2">

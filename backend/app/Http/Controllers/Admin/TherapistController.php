@@ -20,7 +20,6 @@ class TherapistController extends Controller
             'phone' => 'nullable|string|max:20',
             'specialty' => 'nullable|string|max:255',
             'experience_years' => 'nullable|integer|min:0',
-            'room_number' => 'nullable|integer|min:1',
             'status' => 'required|in:Active,Inactive',
         ]);
 
@@ -35,7 +34,6 @@ class TherapistController extends Controller
             'phone' => 'nullable|string|max:20',
             'specialty' => 'nullable|string|max:255',
             'experience_years' => 'nullable|integer|min:0',
-            'room_number' => 'nullable|integer|min:1',
             'status' => 'required|in:Active,Inactive',
         ]);
 

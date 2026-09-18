@@ -22,8 +22,6 @@ export interface ServerBooking {
   end_time: string;
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled' | 'Rejected';
   location?: string | null;
-  room_type?: string | null;
-  room_number?: number | null;
   notes?: string | null;
   cancel_reason?: string | null;
   total_price: number | string;
@@ -58,7 +56,6 @@ export const appointmentToSavedBooking = (apt: ServerBooking): SavedBooking => (
   selectedServices: (apt.details ?? []).map((d) => String(d.service_id)),
   therapistId: String(apt.therapist_id),
   customTherapistRequest: apt.notes ?? '',
-  roomType: (apt.room_type as SavedBooking['roomType']) ?? 'private-deluxe',
   location: apt.location ?? null,
   date: formatDate(apt.appointment_date),
   timeSlot: `${apt.start_time.slice(0, 5)} – ${apt.end_time.slice(0, 5)} WIB`,

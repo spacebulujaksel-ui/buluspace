@@ -2,14 +2,12 @@ import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { Therapist, ActiveStatus } from '../types';
-import { useAuth } from '../hooks/useAuth';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 
-const EMPTY: Therapist = { id: 0, name: '', phone: '', photo: '', status: 'Active', specialty: '', experience_years: 0, room_number: null };
+const EMPTY: Therapist = { id: 0, name: '', phone: '', photo: '', status: 'Active', specialty: '', experience_years: 0 };
 
 export default function Therapists() {
-  const { user } = useAuth();
   const [data, setData] = useState<Therapist[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Therapist | null>(null);
@@ -103,7 +101,7 @@ export default function Therapists() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
-                  {['Nama', 'Telepon', 'Spesialisasi', 'Ruang', 'Status', 'Aksi'].map((h) => (
+                  {['Nama', 'Telepon', 'Spesialisasi', 'Status', 'Aksi'].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
                       {h}
                     </th>
@@ -123,15 +121,6 @@ export default function Therapists() {
                     </td>
                     <td className="px-4 py-3.5 text-[13px] text-neutral-600 font-mono">{t.phone}</td>
                     <td className="px-4 py-3.5 text-[13px] text-neutral-600">{t.specialty ?? '—'}</td>
-                    <td className="px-4 py-3.5">
-                      {t.room_number ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-pink-50 border border-pink-200 text-[11px] font-medium text-pink-700">
-                          Ruang {t.room_number}
-                        </span>
-                      ) : (
-                        <span className="text-[12px] text-neutral-300">—</span>
-                      )}
-                    </td>
                     <td className="px-4 py-3.5">
                       <button
                         onClick={() => toggleStatus(t)}
@@ -207,20 +196,6 @@ export default function Therapists() {
               placeholder="contoh: Brazilian Expert"
               className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
             />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Ruang</label>
-            <select
-              value={form.room_number ?? ''}
-              onChange={(e) => setForm({ ...form, room_number: e.target.value ? Number(e.target.value) : null })}
-              className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
-            >
-              <option value="">— Pilih Ruang —</option>
-              {Array.from({ length: user?.branch?.rooms_count ?? 0 }, (_, i) => i + 1).map((r) => (
-                <option key={r} value={r}>Ruang {r}</option>
-              ))}
-            </select>
-            <p className="text-[10px] text-neutral-400 mt-1">Keterangan ruang {user?.branch?.name ?? ''}</p>
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Status</label>

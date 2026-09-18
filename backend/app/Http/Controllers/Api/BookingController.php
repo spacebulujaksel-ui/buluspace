@@ -20,20 +20,14 @@ class BookingController extends Controller
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'required|email|max:150',
-            'therapist_id' => 'required|exists:therapists,id',
+            'therapist_id' => 'nullable|exists:therapists,id',
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'service_ids' => 'required|array|min:1',
             'service_ids.*' => 'exists:services,id',
             'location' => 'nullable|string|max:150',
-            'room_type' => 'nullable|string|max:30',
             'notes' => 'nullable|string',
         ]);
-
-        $therapist = Therapist::findOrFail($validated['therapist_id']);
-        if ($therapist->status !== 'Active') {
-            return response()->json(['message' => 'Terapis sedang tidak aktif. Silakan pilih terapis lain.'], 422);
-        }
 
         $services = Service::whereIn('id', $validated['service_ids'])->where('status', 'Active')->get();
         if ($services->count() !== count($validated['service_ids'])) {
@@ -46,75 +40,93 @@ class BookingController extends Controller
         $start = Carbon::parse($validated['appointment_date'].' '.$validated['start_time']);
         $end = $start->copy()->addMinutes($totalMinutes);
 
-        // Conflict check: therapist has overlapping non-cancelled appointment
-        $conflict = Appointment::where('therapist_id', $therapist->id)
-            ->whereDate('appointment_date', $validated['appointment_date'])
-            ->whereIn('status', ['Pending', 'Confirmed'])
-            ->get()
-            ->first(function (Appointment $apt) use ($start, $end) {
-                $aptStart = Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->start_time);
-                $aptEnd = Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->end_time);
-                return $start->lt($aptEnd) && $end->gt($aptStart);
-            });
-
-        if ($conflict) {
-            return response()->json([
-                'message' => 'Slot jam tersebut baru saja terambil untuk terapis ini. Silakan pilih jam lain.',
-                'conflict' => true,
-            ], 409);
-        }
-
-        // Room capacity check per branch (location)
+        // Guardian: branch capacity = rooms_count minus distinct rooms blocked in this window.
         $branch = $validated['location']
             ? Branch::where('name', $validated['location'])->first()
             : null;
 
-        $roomNumber = null;
-
         if ($branch) {
+            $overlaps = fn (Appointment $apt) => $start->lt(Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->end_time))
+                && $end->gt(Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->start_time));
+
             $dayBookings = Appointment::where('location', $branch->name)
                 ->whereDate('appointment_date', $validated['appointment_date'])
                 ->whereIn('status', ['Pending', 'Confirmed'])
                 ->get();
 
-            $overlapsWindow = fn (Appointment $apt) => $start->lt(Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->end_time))
-                && $end->gt(Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->start_time));
+            $blockedRoomsCount = BlockedSlot::where('branch_id', $branch->id)
+                ->whereDate('date', $validated['appointment_date'])
+                ->get()
+                ->filter(fn (BlockedSlot $b) => $start->lt(Carbon::parse($b->date.' '.$b->end_time))
+                    && $end->gt(Carbon::parse($b->date.' '.$b->start_time)))
+                ->pluck('room_number')
+                ->unique()
+                ->count();
 
-            if ($dayBookings->filter($overlapsWindow)->count() >= $branch->rooms_count) {
+            $available = $branch->rooms_count - $blockedRoomsCount;
+
+            if ($available <= 0) {
                 return response()->json([
-                    'message' => 'Semua kamar di cabang '.$branch->name.' sudah penuh pada jam tersebut. Silakan pilih jam lain.',
+                    'message' => 'Semua ruang di cabang '.$branch->name.' sedang ditutup pada jam tersebut. Silakan pilih jam lain.',
                     'full' => true,
                 ], 422);
             }
 
-            // Blocked slots for the date (per room)
-            $blocks = BlockedSlot::where('branch_id', $branch->id)
-                ->whereDate('date', $validated['appointment_date'])
-                ->get();
+            if ($dayBookings->filter($overlaps)->count() >= $available) {
+                return response()->json([
+                    'message' => 'Seluruh ruang di cabang '.$branch->name.' sudah penuh pada jam tersebut. Silakan pilih jam lain.',
+                    'full' => true,
+                ], 422);
+            }
+        }
 
-            $isBlocked = fn (int $room) => $blocks->contains(fn (BlockedSlot $b) => $b->room_number === $room
-                && $start->lt(Carbon::parse($b->date.' '.$b->end_time))
-                && $end->gt(Carbon::parse($b->date.' '.$b->start_time)));
+        // Resolve therapist: specific pick or auto-assign first free active one.
+        if (!empty($validated['therapist_id'])) {
+            $therapist = Therapist::findOrFail($validated['therapist_id']);
 
-            // Auto-assign first free room (skip booked & blocked)
-            $allBlocked = true;
-            for ($room = 1; $room <= $branch->rooms_count; $room++) {
-                $taken = $dayBookings->first(fn (Appointment $apt) => $apt->room_number === $room && $overlapsWindow($apt));
-                if ($isBlocked($room)) {
-                    continue;
-                }
-                $allBlocked = false;
-                if (!$taken) {
-                    $roomNumber = $room;
-                    break;
-                }
+            if ($therapist->status !== 'Active') {
+                return response()->json(['message' => 'Terapis sedang tidak aktif. Silakan pilih terapis lain.'], 422);
             }
 
-            if (!$roomNumber) {
-                $message = $allBlocked
-                    ? 'Jam tersebut sedang ditutup di cabang '.$branch->name.'. Silakan pilih jam lain.'
-                    : 'Tidak ada ruang kosong pada jam tersebut di cabang '.$branch->name.'.';
-                return response()->json(['message' => $message, 'full' => true], 422);
+            $conflict = Appointment::where('therapist_id', $therapist->id)
+                ->whereDate('appointment_date', $validated['appointment_date'])
+                ->whereIn('status', ['Pending', 'Confirmed'])
+                ->get()
+                ->first(function (Appointment $apt) use ($start, $end) {
+                    $aptStart = Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->start_time);
+                    $aptEnd = Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->end_time);
+                    return $start->lt($aptEnd) && $end->gt($aptStart);
+                });
+
+            if ($conflict) {
+                return response()->json([
+                    'message' => 'Slot jam tersebut baru saja terambil untuk terapis ini. Silakan pilih jam lain.',
+                    'conflict' => true,
+                ], 409);
+            }
+        } else {
+            $therapist = Therapist::where('status', 'Active')
+                ->orderBy('id')
+                ->get()
+                ->first(function (Therapist $t) use ($start, $end) {
+                    $busy = Appointment::where('therapist_id', $t->id)
+                        ->whereDate('appointment_date', $start->toDateString())
+                        ->whereIn('status', ['Pending', 'Confirmed'])
+                        ->get()
+                        ->first(function (Appointment $apt) use ($start, $end) {
+                            $aptStart = Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->start_time);
+                            $aptEnd = Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->end_time);
+                            return $start->lt($aptEnd) && $end->gt($aptStart);
+                        });
+
+                    return $busy === null;
+                });
+
+            if (!$therapist) {
+                return response()->json([
+                    'message' => 'Semua terapis sedang terisi pada jam tersebut. Silakan pilih jam lain.',
+                    'full' => true,
+                ], 422);
             }
         }
 
@@ -132,8 +144,6 @@ class BookingController extends Controller
             'customer_phone' => $validated['customer_phone'],
             'customer_email' => $validated['customer_email'],
             'location' => $validated['location'] ?? null,
-            'room_type' => $validated['room_type'] ?? null,
-            'room_number' => $roomNumber,
             'notes' => $validated['notes'] ?? null,
             'total_price' => $totalPrice,
         ]);

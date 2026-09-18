@@ -368,6 +368,25 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return slotBusy(slotMin) ? "full" : "available";
   };
 
+  const selectedBranchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
+  const branchTherapists = THERAPISTS.filter((t) => t.branch === selectedBranchName);
+
+  const selectedSlotMin = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
+  const selectedWindowEnd = selectedSlotMin + totalMinutes;
+  const therapistBusy = (tid: number): boolean => {
+    if (totalMinutes <= 0) return true;
+    return bookedSlots.some(
+      (b) => b.therapist_id === tid && selectedSlotMin < asMinutes(b.end_time) && selectedWindowEnd > asMinutes(b.start_time),
+    );
+  };
+
+  useEffect(() => {
+    if (therapistId !== "any" && therapistBusy(Number(therapistId))) {
+      setTherapistId("any");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [therapistId, timeSlot, totalMinutes, bookedSlots]);
+
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -655,39 +674,49 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </div>
               </div>
 
-              {/* Specific Therapists */}
-              {THERAPISTS.map((t) => {
-                const isSelected = therapistId === t.id;
-                return (
-                  <div
-                    key={t.id}
-                    onClick={() => setTherapistId(t.id)}
-                    className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
-                      isSelected
-                        ? "bg-pink-100/80 border-pink-400 text-slate-900 shadow-xs ring-1 ring-pink-400"
-                        : "bg-white border-slate-200 hover:border-slate-300 text-slate-800"
-                    }`}
-                  >
-                    <img
-                      src={t.avatar}
-                      alt={t.name}
-                      className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="space-y-0.5 overflow-hidden">
-                      <p className="text-xs font-bold truncate">
-                        {t.nickname}
-                      </p>
-                      <p className="text-[11px] text-slate-500 truncate">
-                        {t.role}
-                      </p>
-                      <p className="text-[10px] text-pink-700 font-medium truncate">
-                        {t.temperament}
-                      </p>
+              {/* Specific Therapists (per cabang yang dipilih) */}
+              {branchTherapists.length === 0 ? (
+                <p className="sm:col-span-2 text-[11px] text-slate-500 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
+                  Belum ada terapis aktif di {selectedBranchName} saat ini.
+                </p>
+              ) : (
+                branchTherapists.map((t) => {
+                  const isSelected = therapistId === t.id;
+                  const busy = therapistBusy(Number(t.id));
+                  return (
+                    <div
+                      key={t.id}
+                      onClick={() => {
+                        if (busy) return;
+                        setTherapistId(t.id);
+                      }}
+                      className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${
+                        busy
+                          ? "opacity-40 cursor-not-allowed bg-neutral-50 border-slate-200"
+                          : isSelected
+                            ? "bg-pink-100/80 border-pink-400 text-slate-900 shadow-xs ring-1 ring-pink-400 cursor-pointer"
+                            : "bg-white border-slate-200 hover:border-slate-300 text-slate-800 cursor-pointer"
+                      }`}
+                      title={busy ? `${t.nickname} sedang sibuk di jam tersebut` : t.name}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-pink-100 border border-pink-200 flex items-center justify-center text-pink-600 text-xs font-bold shrink-0">
+                        {t.name[0]}
+                      </div>
+                      <div className="space-y-0.5 overflow-hidden">
+                        <p className="text-xs font-bold truncate">
+                          {t.nickname}
+                        </p>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {t.role}
+                        </p>
+                        <p className="text-[10px] text-pink-500 truncate" aria-label="Rating bintang 5">
+                          ★★★★★
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
 
             {/* Custom Request Criteria Tags & Notes */}

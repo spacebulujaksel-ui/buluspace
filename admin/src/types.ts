@@ -20,7 +20,6 @@ export interface Therapist {
   id: number;
   name: string;
   phone: string;
-  photo: string;
   status: ActiveStatus;
   specialty?: string;
   experience_years?: number | null;

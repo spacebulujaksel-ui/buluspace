@@ -5,7 +5,7 @@ import { Therapist, ActiveStatus } from '../types';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 
-const EMPTY: Therapist = { id: 0, name: '', phone: '', photo: '', status: 'Active', specialty: '', experience_years: 0 };
+const EMPTY: Therapist = { id: 0, name: '', phone: '', status: 'Active', specialty: '', experience_years: 0 };
 
 export default function Therapists() {
   const [data, setData] = useState<Therapist[]>([]);

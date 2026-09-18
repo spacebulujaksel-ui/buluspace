@@ -19,7 +19,7 @@ class PublicController extends Controller
 
     public function therapists()
     {
-        return Therapist::where('status', 'Active')->get();
+        return Therapist::where('status', 'Active')->with('branch')->get();
     }
 
     public function reviews()

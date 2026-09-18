@@ -29,6 +29,7 @@ export interface Therapist {
   availableToday: boolean;
   nextAvailableSlot: string;
   isPopular?: boolean;
+  branch?: string;
 }
 
 export interface WaxService {

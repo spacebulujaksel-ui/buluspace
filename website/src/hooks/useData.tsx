@@ -45,9 +45,9 @@ function mapTherapist(t: Record<string, any>): Therapist {
     nickname: t.name.split(' ')[0],
     role: t.specialty ?? 'Aesthetician',
     experienceYears: t.experience_years ?? 0,
-    rating: 4.9,
+    rating: 5,
     totalTreatments: 0,
-    avatar: t.photo,
+    avatar: '',
     bio: t.specialty ?? '',
     specialties: [],
     preferredWax: '',
@@ -55,6 +55,7 @@ function mapTherapist(t: Record<string, any>): Therapist {
     availableToday: true,
     nextAvailableSlot: '',
     isPopular: false,
+    branch: t.branch?.name ?? 'Jakarta Barat',
   };
 }
 

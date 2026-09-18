@@ -118,10 +118,10 @@ class BookingController extends Controller
                 ], 409);
             }
         } else {
-            $therapist = Therapist::where('status', 'Active')
-                ->orderBy('id')
+            $candidates = Therapist::where('status', 'Active')
+                ->when($branch, fn ($q) => $q->where('branch_id', $branch->id))
                 ->get()
-                ->first(function (Therapist $t) use ($start, $end) {
+                ->filter(function (Therapist $t) use ($start, $end) {
                     $busy = Appointment::where('therapist_id', $t->id)
                         ->whereDate('appointment_date', $start->toDateString())
                         ->whereIn('status', ['Pending', 'Confirmed'])
@@ -133,11 +133,16 @@ class BookingController extends Controller
                         });
 
                     return $busy === null;
-                });
+                })
+                ->values();
+
+            $therapist = $candidates->isNotEmpty() ? $candidates->random() : null;
 
             if (!$therapist) {
+                $scope = $branch ? ' di cabang '.$branch->name : '';
+
                 return response()->json([
-                    'message' => 'Semua terapis sedang terisi pada jam tersebut. Silakan pilih jam lain.',
+                    'message' => 'Tidak ada terapis tersedia'.$scope.' pada jam tersebut. Silakan pilih jam lain.',
                     'full' => true,
                 ], 422);
             }

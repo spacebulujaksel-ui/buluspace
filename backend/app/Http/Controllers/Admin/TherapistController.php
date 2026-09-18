@@ -9,9 +9,9 @@ use Illuminate\Validation\Rule;
 
 class TherapistController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(['therapists' => Therapist::orderByDesc('id')->get()]);
+        return response()->json(['therapists' => Therapist::where('branch_id', $request->user()->branch_id)->orderByDesc('id')->get()]);
     }
 
     public function store(Request $request)
@@ -24,6 +24,7 @@ class TherapistController extends Controller
             'status' => 'required|in:Active,Inactive',
         ]);
 
+        $validated['branch_id'] = $request->user()->branch_id;
         $therapist = Therapist::create($validated);
         return response()->json(['message' => 'Terapis ditambahkan.', 'therapist' => $therapist], 201);
     }

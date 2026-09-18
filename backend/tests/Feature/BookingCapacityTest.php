@@ -19,9 +19,9 @@ class BookingCapacityTest extends TestCase
     {
         parent::setUp();
 
-        Branch::create(['name' => $this->branch, 'rooms_count' => 2, 'sort_order' => 1]);
+        $branch = Branch::create(['name' => $this->branch, 'rooms_count' => 2, 'sort_order' => 1]);
         foreach (['Ayu', 'Bella', 'Cinta', 'Dewi'] as $name) {
-            Therapist::create(['name' => $name, 'phone' => '08'.$name, 'specialty' => null, 'experience_years' => 0, 'status' => 'Active']);
+            Therapist::create(['name' => $name, 'phone' => '08'.$name, 'specialty' => null, 'experience_years' => 0, 'status' => 'Active', 'branch_id' => $branch->id]);
         }
 
         $this->service = Service::create(['name' => 'Brazilian', 'description' => null, 'price' => 200000, 'duration_minutes' => 60, 'category' => 'intimate', 'status' => 'Active']);
@@ -154,5 +154,30 @@ class BookingCapacityTest extends TestCase
         $payload['appointment_date'] = now()->format('Y-m-d');
 
         $this->postJson('/api/bookings', $payload)->assertCreated();
+    }
+
+    public function test_auto_assign_only_picks_therapist_from_selected_branch(): void
+    {
+        $barat = Branch::where('name', 'Jakarta Barat')->first()->id;
+        $selatan = Branch::create(['name' => 'Jakarta Selatan', 'rooms_count' => 3, 'sort_order' => 2])->id;
+        Therapist::create(['name' => 'Ira', 'phone' => '08', 'specialty' => null, 'experience_years' => 0, 'status' => 'Active', 'branch_id' => $selatan]);
+
+        $res = $this->postJson('/api/bookings', $this->payload('14:30', null));
+
+        $res->assertCreated();
+        $assigned = Therapist::find($res->json('booking.therapist_id'));
+        $this->assertSame($barat, $assigned->branch_id);
+        $this->assertSame('Active', $assigned->status);
+    }
+
+    public function test_public_therapists_include_branch_and_no_photo(): void
+    {
+        $res = $this->getJson('/api/therapists');
+
+        $res->assertOk();
+        $first = collect($res->json())->first();
+        $this->assertArrayHasKey('branch_id', $first);
+        $this->assertSame('Jakarta Barat', $first['branch']['name']);
+        $this->assertArrayNotHasKey('photo', $first);
     }
 }

@@ -1,0 +1,101 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Service;
+use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
+
+class SyncServices extends Command
+{
+    protected $signature = 'app:sync-services {--dry-run : Tampilkan rencana tanpa mengubah data}';
+
+    protected $description = 'Sinkronkan daftar layanan sesuai roster resmi (update durasi/kategori/deskripsi, harga dipertahankan).';
+
+    private const ROSTER = [
+        ['name' => 'Forehead', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus area dahi'],
+        ['name' => 'Eyebrows', 'category' => 'face', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Merapikan bentuk alis. Untuk pertama kali bisa ±30 menit'],
+        ['name' => 'Chin', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus area dagu'],
+        ['name' => 'Upper Lip', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus area atas bibir'],
+        ['name' => 'Underarms', 'category' => 'arms', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu ketiak sepenuhnya'],
+        ['name' => 'Half Arms', 'category' => 'arms', 'duration_minutes' => 15, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing lengan bawah'],
+        ['name' => 'Full Arms', 'category' => 'arms', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing lengan menyeluruh dari bahu hingga pergelangan'],
+        ['name' => 'Chest', 'category' => 'upper', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu area dada'],
+        ['name' => 'Stomach', 'category' => 'upper', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu area perut'],
+        ['name' => 'Full Front', 'category' => 'upper', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area dada & perut'],
+        ['name' => 'Full Back', 'category' => 'upper', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu area punggung'],
+        ['name' => 'Half Legs', 'category' => 'legs', 'duration_minutes' => 15, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area lutut hingga ujung kaki'],
+        ['name' => 'Full Legs', 'category' => 'legs', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area paha hingga ujung kaki'],
+        ['name' => 'Basic Bikini', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Merapikan bulu area bikini line'],
+        ['name' => 'Brazilian', 'category' => 'intimate', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing area intim menyeluruh'],
+        ['name' => 'Buttocks', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu area bokong'],
+        ['name' => 'Clean Girl', 'category' => 'package', 'duration_minutes' => 45, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Eyebrows + Upper Lip + Forehead'],
+        ['name' => 'Feel Smooth', 'category' => 'package', 'duration_minutes' => 60, 'wax_type' => 'Organic Soft Honey', 'description' => 'Full Legs + Full Arms'],
+        ['name' => 'Bali Ready', 'category' => 'package', 'duration_minutes' => 45, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Underarms + Half Legs + Brazilian'],
+    ];
+
+    private function normalize(string $value): string
+    {
+        return strtolower(preg_replace('/\s+/', ' ', trim($value)));
+    }
+
+    public function handle(): int
+    {
+        $dry = (bool) $this->option('dry-run');
+
+        $this->info($dry ? 'MODE DRY-RUN (tidak ada data yang diubah).' : 'Menerapkan sinkronisasi layanan...');
+
+        $seeded = collect();
+        foreach (self::ROSTER as $service) {
+            $normalized = $this->normalize($service['name']);
+            $existing = Service::all()->first(fn (Service $s) => $this->normalize($s->name) === $normalized);
+
+            if ($existing) {
+                $this->line(sprintf('  %s: "%s" → kategori %s, durasi %d menit (harga %s dipertahankan)',
+                    $dry ? '[rencana] update' : 'update', $service['name'], strtoupper($service['category']), $service['duration_minutes'],
+                    number_format((float) $existing->price, 0, ',', '.')));
+                if (!$dry) {
+                    $existing->update([
+                        'name' => $service['name'],
+                        'category' => $service['category'],
+                        'duration_minutes' => $service['duration_minutes'],
+                        'description' => $service['description'],
+                        'wax_type' => $service['wax_type'],
+                        'status' => 'Active',
+                    ]);
+                }
+            } else {
+                $this->line(sprintf('  %s: "%s" → tambah layanan baru harga Rp0 (diisi via admin)', $dry ? '[rencana] create' : 'create', $service['name']));
+                if (!$dry) {
+                    Service::create([
+                        'name' => $service['name'],
+                        'category' => $service['category'],
+                        'duration_minutes' => $service['duration_minutes'],
+                        'description' => $service['description'],
+                        'wax_type' => $service['wax_type'],
+                        'price' => 0,
+                        'status' => 'Active',
+                    ]);
+                }
+            }
+
+            $seeded->push($normalized);
+        }
+
+        $inactive = Service::where('status', 'Active')->get()->filter(
+            fn (Service $s) => !$seeded->contains($this->normalize($s->name))
+        );
+
+        if ($inactive->isNotEmpty()) {
+            $this->warn('Layanan lama yang dinonaktifkan:');
+            foreach ($inactive as $s) {
+                $this->line(sprintf('  %s: "%s" (id %d)', $dry ? '[rencana] inactive' : 'inactive', $s->name, $s->id));
+                if (!$dry) {
+                    $s->update(['status' => 'Inactive']);
+                }
+            }
+        }
+
+        return 0;
+    }
+}

@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Models\Therapist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class BookingController extends Controller
 {
@@ -35,6 +36,11 @@ class BookingController extends Controller
         $services = Service::whereIn('id', $validated['service_ids'])->where('status', 'Active')->get();
         if ($services->count() !== count($validated['service_ids'])) {
             return response()->json(['message' => 'Terdapat layanan yang tidak valid.'], 422);
+        }
+
+        $combinationError = $this->combinationErrorMessage($services->values());
+        if ($combinationError) {
+            return response()->json(['message' => $combinationError], 422);
         }
 
         $maleSurcharge = $validated['customer_gender'] === 'Pria'
@@ -232,6 +238,38 @@ class BookingController extends Controller
         $appointment->save();
 
         return response()->json(['message' => 'Booking berhasil dibatalkan.', 'booking' => $appointment]);
+    }
+
+    private function combinationErrorMessage(Collection $services): ?string
+    {
+        if ($services->count() < 2) {
+            return null;
+        }
+
+        $full = collect(['Full Legs', 'Full Arms', 'Full Front', 'Full Back']);
+        $names = $services->pluck('name');
+
+        if ($names->contains('Brazilian')) {
+            $bad = $services->first(fn (Service $s) => $s->category === 'package' || $full->contains($s->name));
+
+            return $bad ? "Brazilian tidak bisa digabung dengan {$bad->name}." : null;
+        }
+
+        if ($names->contains('Feel Smooth')) {
+            $bad = $services->first(fn (Service $s) => $s->name !== 'Feel Smooth'
+                && ((int) $s->duration_minutes < 10 || (int) $s->duration_minutes > 15));
+
+            return $bad ? 'Feel Smooth hanya bisa digabung dengan treatment 10–15 menit.' : null;
+        }
+
+        $fullIn = $names->intersect($full);
+        if ($fullIn->isNotEmpty()) {
+            return "{$fullIn->first()} hanya bisa dipilih sendiri.";
+        }
+
+        $pkg = $services->first(fn (Service $s) => $s->category === 'package');
+
+        return $pkg ? "{$pkg->name} hanya bisa dipilih sendiri." : null;
     }
 
     private function generateCode(): string

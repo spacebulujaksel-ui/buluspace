@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Check, Plus } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Check, Plus, AlertCircle } from 'lucide-react';
 import { useData } from '../hooks/useData';
+import { combinationError } from '../lib/combination';
+import { WaxService } from '../types';
 
 interface ServicesMenuProps {
   selectedServiceIds: string[];
@@ -15,20 +17,46 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
 }) => {
   const { services: SERVICES } = useData();
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [comboMsg, setComboMsg] = useState('');
+  const comboMsgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const categories = [
     { id: 'all', label: 'Semua' },
-    { id: 'face', label: 'Wajah & Alis' },
-    { id: 'arms', label: 'Lengan & Ketiak' },
-    { id: 'upper', label: 'Dada, Perut & Punggung' },
-    { id: 'legs', label: 'Kaki' },
-    { id: 'intimate', label: 'Intim' },
-    { id: 'package', label: 'Paket' },
+    { id: 'face', label: 'FACE' },
+    { id: 'arms', label: 'ARMS' },
+    { id: 'upper', label: 'UPPER' },
+    { id: 'legs', label: 'LEGS' },
+    { id: 'intimate', label: 'INTIMATE' },
+    { id: 'package', label: 'PACKAGES' },
   ];
 
   const filteredServices = SERVICES.filter((s) =>
     activeCategory === 'all' ? true : s.category === activeCategory
   );
+
+  const showComboMsg = (msg: string) => {
+    setComboMsg(msg);
+    if (comboMsgTimer.current) clearTimeout(comboMsgTimer.current);
+    comboMsgTimer.current = setTimeout(() => setComboMsg(''), 3000);
+  };
+
+  const handleToggle = (service: WaxService) => {
+    if (selectedServiceIds.includes(service.id)) {
+      onToggleService(service.id);
+      return;
+    }
+    const candidate = SERVICES.filter(
+      (s) => selectedServiceIds.includes(s.id) || s.id === service.id,
+    );
+    const err = combinationError(
+      candidate.map((s) => ({ name: s.name, category: s.category, duration: s.durationMinutes })),
+    );
+    if (err) {
+      showComboMsg(err);
+      return;
+    }
+    onToggleService(service.id);
+  };
 
   const formatRupiah = (val: number) =>
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
@@ -69,6 +97,12 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
               </button>
             ))}
           </div>
+
+          {comboMsg && (
+            <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {comboMsg}
+            </p>
+          )}
         </div>
 
         {/* Grid */}
@@ -100,10 +134,14 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
                   </div>
 
                   <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">{service.description}</p>
+
+                  <p className="mt-1.5 text-[11px] font-medium text-pink-600">
+                    {service.durationMinutes} menit
+                  </p>
                 </div>
 
                 <button
-                  onClick={() => onToggleService(service.id)}
+                  onClick={() => handleToggle(service)}
                   className={`mt-4 w-full py-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors ${
                     isSelected
                       ? 'bg-pink-500 text-white hover:bg-pink-400'

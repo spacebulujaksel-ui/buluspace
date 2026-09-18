@@ -7,12 +7,12 @@ import { Button } from '../components/Button';
 import { formatRupiah } from '../data/helpers';
 
 const CATEGORIES: Record<string, string> = {
-  face: 'Wajah',
-  arms: 'Lengan',
-  upper: 'Badan',
-  legs: 'Kaki',
-  intimate: 'Intim',
-  package: 'Paket',
+  face: 'FACE',
+  arms: 'ARMS',
+  upper: 'UPPER',
+  legs: 'LEGS',
+  intimate: 'INTIMATE',
+  package: 'PACKAGES',
 };
 
 const EMPTY: Service = {
@@ -236,12 +236,12 @@ export default function Services() {
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
               >
-                <option value="face">Wajah</option>
-                <option value="arms">Lengan</option>
-                <option value="upper">Badan</option>
-                <option value="legs">Kaki</option>
-                <option value="intimate">Intim</option>
-                <option value="package">Paket</option>
+                <option value="face">FACE</option>
+                <option value="arms">ARMS</option>
+                <option value="upper">UPPER</option>
+                <option value="legs">LEGS</option>
+                <option value="intimate">INTIMATE</option>
+                <option value="package">PACKAGES</option>
               </select>
             </div>
             <div>

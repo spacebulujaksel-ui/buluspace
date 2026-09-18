@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useData } from "../hooks/useData";
 import { api } from "../lib/api";
+import { combinationError } from "../lib/combination";
 import { STATUS_MAP } from "../lib/booking";
 import { Therapist, WaxService, SavedBooking } from "../types";
 
@@ -296,9 +297,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         return;
       }
       setSelectedServices(selectedServices.filter((s) => s !== id));
-    } else {
-      setSelectedServices([...selectedServices, id]);
+      return;
     }
+    const candidate = SERVICES.filter((s) => selectedServices.includes(s.id) || s.id === id);
+    const err = combinationError(
+      candidate.map((s) => ({ name: s.name, category: s.category, duration: s.durationMinutes })),
+    );
+    if (err) {
+      setErrorMessage(err);
+      return;
+    }
+    setSelectedServices([...selectedServices, id]);
   };
 
   const handleApplyPromo = () => {

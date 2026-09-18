@@ -30,7 +30,7 @@ class ScheduleController extends Controller
         $blocked = BlockedSlot::where('branch_id', $branch->id)
             ->whereDate('date', $date)
             ->orderBy('start_time')
-            ->get(['id', 'room_number', 'start_time', 'end_time']);
+            ->get(['id', 'room_number', 'start_time', 'end_time', 'note']);
 
         return response()->json([
             'branch' => $branch,
@@ -47,6 +47,7 @@ class ScheduleController extends Controller
             'room_number' => 'required|integer|min:1',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'note' => 'nullable|string|max:255',
         ]);
 
         $branch = $request->user()->branch;
@@ -76,6 +77,7 @@ class ScheduleController extends Controller
             'date' => $validated['date'],
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
+            'note' => $validated['note'] ?? null,
         ]);
 
         return response()->json(['message' => "Ruang {$room} diblokir.", 'blocked' => $blocked], 201);

@@ -8,6 +8,7 @@ interface Blocked {
   room_number: number;
   start_time: string;
   end_time: string;
+  note?: string | null;
 }
 
 interface ScheduleData {
@@ -44,6 +45,7 @@ export default function Schedule() {
   const [blockStart, setBlockStart] = useState('12:00');
   const [blockEnd, setBlockEnd] = useState('13:00');
   const [blockRoom, setBlockRoom] = useState(1);
+  const [blockNote, setBlockNote] = useState('');
   const [savingBlock, setSavingBlock] = useState(false);
   const [blockError, setBlockError] = useState('');
 
@@ -64,7 +66,8 @@ export default function Schedule() {
     setSavingBlock(true);
     setBlockError('');
     try {
-      await api.post('/admin/schedule/block', { date, room_number: blockRoom, start_time: blockStart, end_time: blockEnd });
+      await api.post('/admin/schedule/block', { date, room_number: blockRoom, start_time: blockStart, end_time: blockEnd, note: blockNote });
+      setBlockNote('');
       load();
     } catch (err) {
       setBlockError(err instanceof Error ? err.message : 'Gagal memblokir jam.');
@@ -99,6 +102,13 @@ export default function Schedule() {
         return start < be && end > bs;
       })
       .map((b) => b.room_number) ?? [];
+
+  const slotBlockNote = (start: number, end: number, room: number) =>
+    data?.blocked.find((b) => {
+      const bs = toMin(b.start_time);
+      const be = toMin(b.end_time);
+      return b.room_number === room && start < be && end > bs;
+    })?.note ?? '';
 
   return (
     <div className="space-y-4">
@@ -148,6 +158,17 @@ export default function Schedule() {
           <label className="block text-[11px] font-semibold text-neutral-600 mb-1">Sampai</label>
           <input type="time" value={blockEnd} onChange={(e) => setBlockEnd(e.target.value)} className="px-2.5 py-1.5 text-sm rounded-lg border border-neutral-200" />
         </div>
+        <div className="flex-1 min-w-40">
+          <label className="block text-[11px] font-semibold text-neutral-600 mb-1">Catatan (opsional)</label>
+          <input
+            type="text"
+            value={blockNote}
+            onChange={(e) => setBlockNote(e.target.value)}
+            maxLength={255}
+            placeholder="mis. Ruang diperbaiki"
+            className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-neutral-200"
+          />
+        </div>
         <button type="submit" disabled={savingBlock} className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60">
           {savingBlock ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
           Blokir Ruang ({date})
@@ -162,6 +183,7 @@ export default function Schedule() {
             <span key={b.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-100 border border-neutral-200 text-[11px] text-neutral-600">
               <Ban className="w-3 h-3" />
               Ruang {b.room_number} · {b.start_time.slice(0, 5)} – {b.end_time.slice(0, 5)}
+              {b.note && <span className="text-neutral-400"> · {b.note}</span>}
               <button onClick={() => removeBlock(b.id)} className="text-neutral-400 hover:text-rose-600" title="Hapus blokir">
                 <Trash2 className="w-3 h-3" />
               </button>
@@ -215,8 +237,15 @@ export default function Schedule() {
                           </span>
                         )}
                         {uniqueBlocked.map((r) => (
-                          <span key={r} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-neutral-200/80 text-[10px] font-medium text-neutral-600">
-                            <Ban className="w-3 h-3" /> Ruang {r} diblokir
+                          <span key={r} className="inline-flex flex-col items-start px-2 py-0.5 rounded bg-neutral-200/80 text-[10px] font-medium text-neutral-600">
+                            <span className="inline-flex items-center gap-1">
+                              <Ban className="w-3 h-3" /> Ruang {r} diblokir
+                            </span>
+                            {slotBlockNote(slot.start, slot.end, r) && (
+                              <span className="text-[10px] font-normal text-neutral-500">
+                                {slotBlockNote(slot.start, slot.end, r)}
+                              </span>
+                            )}
                           </span>
                         ))}
                         {isFull && !isClosed && (

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BlockedSlot extends Model
 {
-    protected $fillable = ['branch_id', 'room_number', 'date', 'start_time', 'end_time'];
+    protected $fillable = ['branch_id', 'room_number', 'date', 'start_time', 'end_time', 'note'];
 
     protected $casts = [
         'room_number' => 'integer',

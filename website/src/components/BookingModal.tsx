@@ -21,6 +21,8 @@ import { api } from "../lib/api";
 import { STATUS_MAP } from "../lib/booking";
 import { Therapist, WaxService, SavedBooking } from "../types";
 
+const MALE_SURCHARGE_PER_TREATMENT = 7000;
+
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -50,6 +52,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [clientName, setClientName] = useState<string>("");
   const [clientPhone, setClientPhone] = useState<string>("");
   const [clientEmail, setClientEmail] = useState<string>("");
+  const [customerGender, setCustomerGender] = useState<"" | "Pria" | "Wanita">("");
   const [date, setDate] = useState<string>("");
   const [timeSlot, setTimeSlot] = useState<string>("13:30");
   const [location, setLocation] = useState<string>(
@@ -310,10 +313,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     selectedServices.includes(s.id),
   );
   const subtotal = selectedServiceObjs.reduce((acc, s) => acc + s.price, 0);
+  const maleSurcharge =
+    customerGender === "Pria" ? MALE_SURCHARGE_PER_TREATMENT * selectedServices.length : 0;
   const discountAmount = promoApplied
     ? Math.round((subtotal * discountPercent) / 100)
     : 0;
-  const finalPrice = Math.max(0, subtotal - discountAmount);
+  const finalPrice = Math.max(0, subtotal + maleSurcharge - discountAmount);
 
   const selectedTherapistObj = THERAPISTS.find((t) => t.id === therapistId);
   const therapistDisplayName = selectedTherapistObj
@@ -423,6 +428,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setErrorMessage("Mohon cantumkan nama lengkap Anda.");
       return;
     }
+    if (!customerGender) {
+      setErrorMessage("Silakan pilih jenis kelamin (Pria/Wanita).");
+      return;
+    }
     if (!clientPhone.trim()) {
       setErrorMessage(
         "Mohon cantumkan nomor WhatsApp Anda untuk konfirmasi jadwal.",
@@ -457,6 +466,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         customer_name: clientName.trim(),
         customer_phone: clientPhone.trim(),
         customer_email: clientEmail.trim(),
+        customer_gender: customerGender,
         therapist_id: therapistId === "any" ? null : Number(therapistId),
         appointment_date: date,
         start_time: startTime,
@@ -470,6 +480,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         clientName: clientName.trim(),
         clientPhone: clientPhone.trim(),
         clientEmail: clientEmail.trim(),
+        customerGender: customerGender as "Pria" | "Wanita",
         selectedServices,
         therapistId: String(res.booking?.therapist_id ?? (therapistId === "any" ? "" : therapistId)),
         customTherapistRequest: customTherapistRequest.trim(),
@@ -857,6 +868,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
           {/* Section 4: Data Pelanggan & Kode Promo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                Jenis Kelamin <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["Wanita", "Pria"] as const).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setCustomerGender(g)}
+                    className={`px-3 py-2.5 text-xs font-semibold rounded-xl border transition-colors ${
+                      customerGender === g
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+              {customerGender === "Pria" && (
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Khusus pria: tambahan Rp7.000 per perawatan.
+                </p>
+              )}
+            </div>
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1.5">
                 Nama Lengkap <span className="text-rose-500">*</span>
@@ -946,6 +983,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <span>Subtotal ({selectedServices.length} Treatment):</span>
               <span className="font-mono">{formatRupiah(subtotal)}</span>
             </div>
+            {maleSurcharge > 0 && (
+              <div className="flex justify-between text-rose-600 font-semibold">
+                <span>Khusus Pria (×{selectedServices.length} perawatan):</span>
+                <span className="font-mono">+{formatRupiah(maleSurcharge)}</span>
+              </div>
+            )}
             {/* Temporarily hidden - discount display */}
             {/* {promoApplied && (
               <div className="flex justify-between text-pink-600 font-semibold">

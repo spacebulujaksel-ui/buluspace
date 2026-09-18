@@ -143,6 +143,15 @@ export default function Bookings() {
                     <td className="px-4 py-3.5 text-xs text-neutral-400 font-mono">{apt.booking_code}</td>
                     <td className="px-4 py-3.5">
                       <p className="text-[13px] font-medium text-neutral-900">{apt.customer_name}</p>
+                      <span
+                        className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold mt-0.5 ${
+                          apt.customer_gender === 'Pria'
+                            ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                            : 'bg-pink-50 text-pink-700 border border-pink-200'
+                        }`}
+                      >
+                        {apt.customer_gender ?? '—'}
+                      </span>
                       <p className="text-[11px] text-neutral-400">{apt.customer_phone}</p>
                       {apt.customer_email && (
                         <p className="text-[11px] text-neutral-400">{apt.customer_email}</p>
@@ -215,6 +224,9 @@ export default function Bookings() {
                 <p className="text-[11px] text-neutral-400 mb-1">Klien</p>
                 <p className="text-sm font-medium text-neutral-900">{selected.customer_name}</p>
                 <p className="text-xs text-neutral-500">{selected.customer_phone}</p>
+                {selected.customer_gender && (
+                  <p className="text-[11px] text-neutral-500 mt-0.5">Gender: {selected.customer_gender}</p>
+                )}
                 {selected.customer_email && (
                   <p className="text-xs text-neutral-500">{selected.customer_email}</p>
                 )}
@@ -262,6 +274,16 @@ export default function Bookings() {
                     <span className="text-[13px] font-mono text-neutral-600">{formatRupiah(Number(d.price))}</span>
                   </div>
                 ))}
+                {selected.customer_gender === 'Pria' && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-xs text-rose-600 font-medium">
+                      Khusus pria (×{selected.details?.length ?? 0} perawatan)
+                    </span>
+                    <span className="text-[13px] font-mono text-rose-600">
+                      +{formatRupiah(7000 * (selected.details?.length ?? 0))}
+                    </span>
+                  </div>
+                )}
                 <div className="mt-2 pt-2 border-t border-neutral-200 flex justify-between items-center">
                   <span className="text-xs font-semibold text-neutral-500">Total</span>
                   <span className="text-sm font-bold font-mono text-neutral-900">{formatRupiah(Number(selected.total_price))}</span>

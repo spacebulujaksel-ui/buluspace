@@ -14,12 +14,15 @@ use Illuminate\Support\Carbon;
 
 class BookingController extends Controller
 {
+    private const MALE_SURCHARGE_PER_TREATMENT = 7000;
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'required|email|max:150',
+            'customer_gender' => 'required|in:Pria,Wanita',
             'therapist_id' => 'nullable|exists:therapists,id',
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
@@ -34,8 +37,12 @@ class BookingController extends Controller
             return response()->json(['message' => 'Terdapat layanan yang tidak valid.'], 422);
         }
 
+        $maleSurcharge = $validated['customer_gender'] === 'Pria'
+            ? self::MALE_SURCHARGE_PER_TREATMENT * count($validated['service_ids'])
+            : 0;
+
         $totalMinutes = $services->sum('duration_minutes');
-        $totalPrice = $services->sum(fn ($s) => (float) $s->price);
+        $totalPrice = $services->sum(fn ($s) => (float) $s->price) + $maleSurcharge;
 
         $start = Carbon::parse($validated['appointment_date'].' '.$validated['start_time']);
         $end = $start->copy()->addMinutes($totalMinutes);
@@ -143,6 +150,7 @@ class BookingController extends Controller
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
             'customer_email' => $validated['customer_email'],
+            'customer_gender' => $validated['customer_gender'],
             'location' => $validated['location'] ?? null,
             'notes' => $validated['notes'] ?? null,
             'total_price' => $totalPrice,

@@ -47,6 +47,7 @@ export interface BookingFormData {
   clientName: string;
   clientPhone: string;
   clientEmail: string;
+  customerGender: 'Pria' | 'Wanita';
   selectedServices: string[];
   therapistId: string; // 'any' or specific therapist ID
   customTherapistRequest: string; // e.g., "Minta yang sabar karena saya first-timer"

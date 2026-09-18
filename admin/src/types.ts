@@ -64,6 +64,7 @@ export interface Appointment {
   customer_name: string;
   customer_phone: string;
   customer_email?: string | null;
+  customer_gender?: string | null;
   location?: string | null;
   notes?: string | null;
   cancel_reason?: string | null;

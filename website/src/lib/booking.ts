@@ -15,6 +15,7 @@ export interface ServerBooking {
   customer_name: string;
   customer_phone: string;
   customer_email?: string | null;
+  customer_gender?: string | null;
   therapist_id: number;
   therapist?: { id: number; name: string } | null;
   appointment_date: string;
@@ -53,6 +54,7 @@ export const appointmentToSavedBooking = (apt: ServerBooking): SavedBooking => (
   clientName: apt.customer_name,
   clientPhone: apt.customer_phone,
   clientEmail: apt.customer_email ?? '',
+  customerGender: (apt.customer_gender as SavedBooking['customerGender']) ?? 'Wanita',
   selectedServices: (apt.details ?? []).map((d) => String(d.service_id)),
   therapistId: String(apt.therapist_id),
   customTherapistRequest: apt.notes ?? '',

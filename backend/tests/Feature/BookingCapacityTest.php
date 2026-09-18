@@ -27,12 +27,13 @@ class BookingCapacityTest extends TestCase
         $this->service = Service::create(['name' => 'Brazilian', 'description' => null, 'price' => 200000, 'duration_minutes' => 60, 'category' => 'intimate', 'status' => 'Active']);
     }
 
-    private function payload(string $time, ?int $therapistId = null): array
+    private function payload(string $time, ?int $therapistId = null, string $gender = 'Wanita'): array
     {
         return [
             'customer_name' => 'Test Client',
             'customer_phone' => '081234567890',
             'customer_email' => 'client@example.com',
+            'customer_gender' => $gender,
             'therapist_id' => $therapistId,
             'appointment_date' => now()->addDay()->format('Y-m-d'),
             'start_time' => $time,
@@ -108,5 +109,34 @@ class BookingCapacityTest extends TestCase
 
         // Same therapist, same slot: conflict (409)
         $this->postJson('/api/bookings', $this->payload('15:00', $therapist->id))->assertStatus(409);
+    }
+
+    public function test_male_surcharge_per_treatment_is_added(): void
+    {
+        $second = Service::create(['name' => 'Underarm', 'description' => null, 'price' => 85000, 'duration_minutes' => 30, 'category' => 'body', 'status' => 'Active']);
+
+        $payload = $this->payload('16:00', null, 'Pria');
+        $payload['service_ids'] = [$this->service->id, $second->id];
+
+        $res = $this->postJson('/api/bookings', $payload);
+        $res->assertCreated();
+
+        // 2 treatments + 2 x 7.000 surcharge
+        $this->assertSame(200000.0 + 85000.0 + 14000.0, (float) $res->json('booking.total_price'));
+        $this->assertSame('Pria', $res->json('booking.customer_gender'));
+    }
+
+    public function test_female_has_no_surcharge(): void
+    {
+        $this->postJson('/api/bookings', $this->payload('16:30', null, 'Wanita'))->assertCreated();
+
+        $apt = \App\Models\Appointment::orderByDesc('id')->first();
+        $this->assertSame(200000.0, (float) $apt->total_price);
+        $this->assertSame('Wanita', $apt->customer_gender);
+    }
+
+    public function test_gender_is_required(): void
+    {
+        $this->postJson('/api/bookings', $this->payload('17:00', null, ''))->assertStatus(422);
     }
 }

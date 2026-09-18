@@ -47,6 +47,12 @@ class BookingController extends Controller
         $start = Carbon::parse($validated['appointment_date'].' '.$validated['start_time']);
         $end = $start->copy()->addMinutes($totalMinutes);
 
+        if ($start->isToday() && $start->lt(now()->copy()->addMinutes(30))) {
+            return response()->json([
+                'message' => 'Booking untuk hari ini minimal H-30 menit sebelum waktu treatment.',
+            ], 422);
+        }
+
         // Guardian: branch capacity = rooms_count minus distinct rooms blocked in this window.
         $branch = $validated['location']
             ? Branch::where('name', $validated['location'])->first()

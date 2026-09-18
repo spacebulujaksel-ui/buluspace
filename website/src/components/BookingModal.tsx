@@ -335,7 +335,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const slotBusy = (slotMin: number): boolean => {
     if (totalMinutes <= 0) return true;
     const now = new Date();
-    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes()) {
+    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes() + 30) {
       return true;
     }
     const slotEnd = slotMin + totalMinutes;
@@ -362,7 +362,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const slotState = (slotMin: number): "available" | "full" | "past" => {
     const now = new Date();
-    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes()) {
+    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes() + 30) {
       return "past";
     }
     return slotBusy(slotMin) ? "full" : "available";

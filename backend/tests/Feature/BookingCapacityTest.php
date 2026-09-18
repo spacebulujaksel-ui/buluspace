@@ -139,4 +139,20 @@ class BookingCapacityTest extends TestCase
     {
         $this->postJson('/api/bookings', $this->payload('17:00', null, ''))->assertStatus(422);
     }
+
+    public function test_booking_today_within_30_minutes_is_rejected(): void
+    {
+        $payload = $this->payload(now()->addMinutes(5)->format('H:i'));
+        $payload['appointment_date'] = now()->format('Y-m-d');
+
+        $this->postJson('/api/bookings', $payload)->assertStatus(422);
+    }
+
+    public function test_booking_today_after_30_minutes_is_accepted(): void
+    {
+        $payload = $this->payload(now()->addMinutes(40)->format('H:i'));
+        $payload['appointment_date'] = now()->format('Y-m-d');
+
+        $this->postJson('/api/bookings', $payload)->assertCreated();
+    }
 }

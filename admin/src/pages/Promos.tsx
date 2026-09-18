@@ -46,7 +46,7 @@ export default function Promos() {
 
   const openEdit = (p: Promo) => {
     setEditing(p);
-    setForm({ ...p, is_active: !!p.is_active });
+    setForm({ ...p, is_active: !!p.is_active, valid_until: p.valid_until?.slice(0, 10) ?? '' });
     setImageFile(null);
     setPreview('');
     setModalOpen(true);
@@ -59,7 +59,7 @@ export default function Promos() {
     fd.append('highlight_text', form.highlight_text ?? '');
     fd.append('description', form.description ?? '');
     fd.append('discount_badge', form.discount_badge ?? '');
-    fd.append('valid_until', form.valid_until ?? '');
+    fd.append('valid_until', form.valid_until?.slice(0, 10) ?? '');
     fd.append('cta_text', form.cta_text ?? '');
     fd.append('promo_code', form.promo_code ?? '');
     fd.append('bg_gradient', form.bg_gradient ?? '');
@@ -93,7 +93,7 @@ export default function Promos() {
     fd.append('highlight_text', p.highlight_text ?? '');
     fd.append('description', p.description ?? '');
     fd.append('discount_badge', p.discount_badge ?? '');
-    fd.append('valid_until', p.valid_until ?? '');
+    fd.append('valid_until', p.valid_until?.slice(0, 10) ?? '');
     fd.append('cta_text', p.cta_text ?? '');
     fd.append('promo_code', p.promo_code ?? '');
     fd.append('bg_gradient', p.bg_gradient ?? '');

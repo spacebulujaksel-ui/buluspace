@@ -6,7 +6,7 @@ const pillarIcons = [ShieldCheck, Sparkles, DoorClosed];
 
 export const WhyUs: React.FC = () => {
   return (
-    <section id="keunggulan" className="py-16 sm:py-24 bg-white">
+    <section id="keunggulan" className="py-16 sm:py-24 bg-white scroll-mt-16">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-xs font-medium text-pink-500 uppercase tracking-wider mb-2">Keunggulan Bulu Space</p>

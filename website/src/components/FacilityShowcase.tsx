@@ -25,7 +25,7 @@ const facilities = [
 
 export const FacilityShowcase: React.FC = () => {
   return (
-    <section className="py-16 sm:py-20 bg-white">
+    <section id="fasilitas" className="py-16 sm:py-20 bg-white scroll-mt-16">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">

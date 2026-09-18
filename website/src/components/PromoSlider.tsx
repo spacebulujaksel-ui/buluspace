@@ -56,7 +56,7 @@ export const PromoSlider: React.FC<PromoSliderProps> = ({ onClaimPromo }) => {
   return (
     <section
       id="promo"
-      className="pt-20 pb-12 sm:pt-24 sm:pb-16 bg-white"
+      className="pt-20 pb-12 sm:pt-24 sm:pb-16 bg-white scroll-mt-16"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >

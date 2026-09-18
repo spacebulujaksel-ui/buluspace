@@ -41,7 +41,7 @@ export const Testimonials: React.FC = () => {
   };
 
   return (
-    <section id="ulasan" className="py-16 sm:py-24 bg-neutral-50">
+    <section id="ulasan" className="py-16 sm:py-24 bg-neutral-50 scroll-mt-16">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-xs font-medium text-pink-500 uppercase tracking-wider mb-2">Ulasan Pelanggan</p>

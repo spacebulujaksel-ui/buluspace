@@ -24,10 +24,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = [
     { label: "Promo", href: "#promo" },
-    { label: "Layanan", href: "#layanan" },
     { label: "Keunggulan", href: "#keunggulan" },
-    { label: "Ulasan", href: "#ulasan" },
+    { label: "Layanan", href: "#layanan" },
     { label: "Outlet", href: "#lokasi-cabang" },
+    { label: "Ruangan", href: "#fasilitas" },
+    { label: "Ulasan", href: "#ulasan" },
   ];
 
   const handleNavClick = (
@@ -50,11 +51,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           : "bg-white border-b border-neutral-100"
       }`}
     >
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 flex items-center justify-between h-14 sm:h-16">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 grid grid-cols-[1fr_auto_1fr] items-center h-14 sm:h-16">
         {/* Brand */}
         <a
           href="#"
-          className="flex items-center gap-2.5 group"
+          className="flex items-center gap-2.5 group justify-self-start"
           aria-label="Bulu Space Homepage"
         >
           <img
@@ -84,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden sm:flex items-center gap-2.5">
+        <div className="hidden sm:flex items-center gap-2.5 justify-self-end">
           <button
             onClick={onOpenTrack}
             className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-1.5 text-[12px] font-medium"
@@ -116,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile */}
-        <div className="flex sm:hidden items-center gap-2">
+        <div className="flex sm:hidden items-center gap-2 justify-self-end">
           <button
             onClick={onOpenBooking}
             className="px-3 py-1.5 text-[11px] font-medium rounded-lg bg-neutral-900 text-white"

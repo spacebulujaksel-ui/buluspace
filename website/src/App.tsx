@@ -126,16 +126,18 @@ export default function App() {
       <main className="flex-1">
         <PromoSlider onClaimPromo={handleClaimPromo} />
 
+        <WhyUs />
+
         <ServicesMenu
           selectedServiceIds={selectedServiceIds}
           onToggleService={handleToggleService}
           onProceedToBooking={() => setIsBookingModalOpen(true)}
         />
 
-        <WhyUs />
+        <LocationBranches />
+
         <FacilityShowcase />
         <Testimonials />
-        <LocationBranches />
 
         {/* CTA Section */}
         <section className="py-16 sm:py-20 bg-white">

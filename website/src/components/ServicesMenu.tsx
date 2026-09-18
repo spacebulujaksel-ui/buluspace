@@ -37,7 +37,7 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
   const totalPrice = SERVICES.filter((s) => selectedServiceIds.includes(s.id)).reduce((acc, s) => acc + s.price, 0);
 
   return (
-    <section id="layanan" className="py-16 sm:py-24 bg-white">
+    <section id="layanan" className="py-16 sm:py-24 bg-white scroll-mt-16">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">

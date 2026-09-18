@@ -14,12 +14,12 @@ const facilities: Facility[] = [
   {
     title: "Lobby & Resepsionis",
     description: "Ruang tunggu nyaman dengan suasana tenang",
-    images: ["/asset/img/resepsionis.jpg"],
+    images: ["/asset/img/resepsionis.jpg", "/asset/img/lobby-1.jpg", "/asset/img/lobby-2.jpg", "/asset/img/lobby-3.jpg"],
   },
   {
     title: "Kamar Treatment",
     description: "Ruangan privat & steril untuk kenyamanan maksimal",
-    images: ["/asset/img/kamar.jpg"],
+    images: ["/asset/img/kamar.jpg", "/asset/img/kamar-2.jpg", "/asset/img/kamar-3.jpg"],
   },
   {
     title: "Sterilization Station",
@@ -29,7 +29,7 @@ const facilities: Facility[] = [
   {
     title: "100% natural sugar",
     description: "Menggunakan 100% gula alami untuk hasil terbaik",
-    images: ["/asset/img/premium.jpg"],
+    images: ["/asset/img/premium.jpg", "/asset/img/premium-2.jpg"],
   },
 ];
 

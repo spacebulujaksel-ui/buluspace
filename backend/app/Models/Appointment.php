@@ -15,7 +15,8 @@ class Appointment extends Model
     protected $fillable = [
         'booking_code', 'user_id', 'therapist_id', 'appointment_date',
         'start_time', 'end_time', 'status', 'customer_name', 'customer_phone',
-        'customer_email', 'customer_gender', 'location', 'notes', 'cancel_reason', 'total_price',
+        'customer_email', 'customer_gender', 'location', 'notes', 'cancel_reason',
+        'reminder_1_sent_at', 'reminder_2_sent_at', 'total_price',
     ];
 
     protected function casts(): array

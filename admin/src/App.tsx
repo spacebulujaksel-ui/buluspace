@@ -8,6 +8,7 @@ import Therapists from './pages/Therapists';
 import Services from './pages/Services';
 import Promos from './pages/Promos';
 import Reviews from './pages/Reviews';
+import Email from './pages/Email';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/services" element={<Services />} />
         <Route path="/promos" element={<Promos />} />
         <Route path="/reviews" element={<Reviews />} />
+        <Route path="/email" element={<Email />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

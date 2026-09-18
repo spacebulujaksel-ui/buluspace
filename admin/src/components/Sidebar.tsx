@@ -7,6 +7,7 @@ import {
   Scissors,
   Star,
   Megaphone,
+  Mail,
   X,
 } from 'lucide-react';
 
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { to: '/therapists', label: 'Terapis', icon: Users },
   { to: '/services', label: 'Layanan', icon: Scissors },
   { to: '/promos', label: 'Promo', icon: Megaphone },
+  { to: '/email', label: 'Email', icon: Mail },
   { to: '/reviews', label: 'Ulasan', icon: Star },
 ];
 

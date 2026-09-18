@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -58,7 +59,12 @@ class BookingController extends Controller
 
         $appointment->status = $validated['status'];
         $appointment->save();
+        $appointment->load(['therapist', 'details.service']);
 
-        return response()->json(['message' => 'Status booking diperbarui.', 'booking' => $appointment->load(['therapist', 'details.service'])]);
+        if ($appointment->status === 'Completed') {
+            BookingMailer::toCustomer($appointment, 'aftercare');
+        }
+
+        return response()->json(['message' => 'Status booking diperbarui.', 'booking' => $appointment]);
     }
 }

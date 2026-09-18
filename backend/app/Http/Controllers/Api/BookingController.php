@@ -9,6 +9,7 @@ use App\Models\BlockedSlot;
 use App\Models\Branch;
 use App\Models\Service;
 use App\Models\Therapist;
+use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -182,9 +183,13 @@ class BookingController extends Controller
             ]);
         }
 
+        $booking->load(['therapist', 'details.service']);
+        BookingMailer::toCustomer($booking, 'booking_confirmation');
+        BookingMailer::toAdmin($booking);
+
         return response()->json([
             'message' => 'Booking berhasil dibuat.',
-            'booking' => $booking->load(['therapist', 'services', 'details.service']),
+            'booking' => $booking,
         ], 201);
     }
 

@@ -139,6 +139,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       .catch(() => setBookedSlots([]));
   }, [isOpen, date, location]);
 
+  const selectedServiceObjs = SERVICES.filter((s) => selectedServices.includes(s.id));
+  const totalMinutes = selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
+
+  const asMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const selectedBranchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
+  const branchTherapists = THERAPISTS.filter((t) => t.branch === selectedBranchName);
+
+  const selectedSlotMin = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
+  const selectedWindowEnd = selectedSlotMin + totalMinutes;
+  const therapistBusy = (tid: number): boolean => {
+    if (totalMinutes <= 0) return true;
+    return bookedSlots.some(
+      (b) => b.therapist_id === tid && selectedSlotMin < asMinutes(b.end_time) && selectedWindowEnd > asMinutes(b.start_time),
+    );
+  };
+
+  useEffect(() => {
+    if (therapistId !== "any" && therapistBusy(Number(therapistId))) {
+      setTherapistId("any");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [therapistId, timeSlot, totalMinutes, bookedSlots]);
+
   if (!isOpen) return null;
 
   const timeSlots = [
@@ -309,9 +336,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   // Pricing calculations
-  const selectedServiceObjs = SERVICES.filter((s) =>
-    selectedServices.includes(s.id),
-  );
   const subtotal = selectedServiceObjs.reduce((acc, s) => acc + s.price, 0);
   const maleSurcharge =
     customerGender === "Pria" ? MALE_SURCHARGE_PER_TREATMENT * selectedServices.length : 0;
@@ -324,13 +348,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const therapistDisplayName = selectedTherapistObj
     ? `${selectedTherapistObj.name} (${selectedTherapistObj.role})`
     : "Rekomendasi Terbaik Bulu Space (Auto-Assign)";
-
-  const totalMinutes = selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
-
-  const asMinutes = (t: string) => {
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  };
 
   const slotBusy = (slotMin: number): boolean => {
     if (totalMinutes <= 0) return true;
@@ -367,25 +384,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
     return slotBusy(slotMin) ? "full" : "available";
   };
-
-  const selectedBranchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
-  const branchTherapists = THERAPISTS.filter((t) => t.branch === selectedBranchName);
-
-  const selectedSlotMin = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
-  const selectedWindowEnd = selectedSlotMin + totalMinutes;
-  const therapistBusy = (tid: number): boolean => {
-    if (totalMinutes <= 0) return true;
-    return bookedSlots.some(
-      (b) => b.therapist_id === tid && selectedSlotMin < asMinutes(b.end_time) && selectedWindowEnd > asMinutes(b.start_time),
-    );
-  };
-
-  useEffect(() => {
-    if (therapistId !== "any" && therapistBusy(Number(therapistId))) {
-      setTherapistId("any");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [therapistId, timeSlot, totalMinutes, bookedSlots]);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat("id-ID", {

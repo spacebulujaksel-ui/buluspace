@@ -33,7 +33,7 @@ const facilities: Facility[] = [
   },
 ];
 
-const AUTO_SLIDE_MS = 3500;
+const AUTO_SLIDE_MS = 4000;
 
 function FacilityCard({ facility }: { facility: Facility }) {
   const [photo, setPhoto] = useState(0);
@@ -52,9 +52,11 @@ function FacilityCard({ facility }: { facility: Facility }) {
         <div
           className="relative aspect-[4/3] bg-neutral-200 overflow-hidden"
           onTouchStart={(e) => {
+            e.stopPropagation();
             touchStartX.current = e.touches[0].clientX;
           }}
           onTouchMove={(e) => {
+            e.stopPropagation();
             if (touchStartX.current == null) return;
             const dx = e.touches[0].clientX - touchStartX.current;
             if (Math.abs(dx) > 40) {
@@ -63,7 +65,8 @@ function FacilityCard({ facility }: { facility: Facility }) {
               touchStartX.current = null;
             }
           }}
-          onTouchEnd={() => {
+          onTouchEnd={(e) => {
+            e.stopPropagation();
             touchStartX.current = null;
           }}
         >
@@ -108,6 +111,9 @@ export const FacilityShowcase: React.FC = () => {
   const [perView, setPerView] = useState(() => (typeof window === "undefined" ? 2 : window.innerWidth >= 640 ? 2 : 1));
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const mouseStartX = useRef<number | null>(null);
+  const dragging = useRef(false);
 
   const pages = Math.max(1, facilities.length - perView + 1);
   const isSlideable = facilities.length > perView;
@@ -156,7 +162,44 @@ export const FacilityShowcase: React.FC = () => {
             <div
               className="overflow-hidden"
               onMouseEnter={() => setPaused(true)}
-              onMouseLeave={() => setPaused(false)}
+              onMouseLeave={() => {
+                setPaused(false);
+                dragging.current = false;
+                mouseStartX.current = null;
+              }}
+              onTouchStart={(e) => {
+                touchStartX.current = e.touches[0].clientX;
+              }}
+              onTouchMove={(e) => {
+                if (touchStartX.current == null) return;
+                const dx = e.touches[0].clientX - touchStartX.current;
+                if (Math.abs(dx) > 50) {
+                  if (dx < 0) goNext();
+                  else goPrev();
+                  touchStartX.current = null;
+                }
+              }}
+              onTouchEnd={() => {
+                touchStartX.current = null;
+              }}
+              onMouseDown={(e) => {
+                dragging.current = true;
+                mouseStartX.current = e.clientX;
+              }}
+              onMouseMove={(e) => {
+                if (!dragging.current || mouseStartX.current == null) return;
+                const dx = e.clientX - mouseStartX.current;
+                if (Math.abs(dx) > 50) {
+                  if (dx < 0) goNext();
+                  else goPrev();
+                  dragging.current = false;
+                  mouseStartX.current = null;
+                }
+              }}
+              onMouseUp={() => {
+                dragging.current = false;
+                mouseStartX.current = null;
+              }}
             >
               <div
                 className="flex transition-transform duration-500 ease-out"

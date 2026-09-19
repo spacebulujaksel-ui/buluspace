@@ -624,9 +624,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <p className="text-xs font-bold text-slate-900">
                         {srv.name}
                       </p>
-                      <p className="text-[11px] text-slate-500">
-                        {srv.waxType}
-                      </p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs font-bold font-mono text-slate-900">

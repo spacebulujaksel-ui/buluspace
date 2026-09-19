@@ -104,6 +104,10 @@ class DashboardController extends Controller
                 ->whereDate('updated_at', $today)
                 ->count(),
             'recent_bookings' => Appointment::with(['therapist'])
+                ->where('location', $branchName)
+                ->orderByDesc('id')
+                ->limit(8)
+                ->get(),
             'customer_series' => [
                 'daily' => $daily,
                 'monthly' => $monthly,

@@ -40,6 +40,7 @@ export interface WaxService {
   durationMinutes: number;
   price: number;
   waxType: 'Organic Soft Honey' | 'Gentle Film Hard Wax' | 'Soothing Treatment';
+  lastOrderTime?: string | null;
   isPopular?: boolean;
   recommendedFor?: string;
 }

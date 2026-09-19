@@ -33,6 +33,7 @@ export interface Service {
   description: string;
   price: number | string;
   duration_minutes: number;
+  last_order_time?: string | null;
   image: string;
   status: ActiveStatus;
   category?: string;

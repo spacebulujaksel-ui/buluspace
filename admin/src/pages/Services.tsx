@@ -17,7 +17,7 @@ const CATEGORIES: Record<string, string> = {
 
 const EMPTY: Service = {
   id: 0, name: '', description: '', price: 0, duration_minutes: 0,
-  image: '', status: 'Active', category: 'face', wax_type: 'Gentle Film Hard Wax',
+  last_order_time: null, image: '', status: 'Active', category: 'face', wax_type: 'Gentle Film Hard Wax',
 };
 
 export default function Services() {
@@ -140,6 +140,7 @@ export default function Services() {
                         <td className="px-4 py-3.5 text-[13px] text-neutral-500 max-w-[200px] truncate">{s.description || '—'}</td>
                         <td className="px-4 py-3.5 text-[13px] font-mono font-medium text-neutral-900">{formatRupiah(Number(s.price))}</td>
                         <td className="px-4 py-3.5 text-[13px] text-neutral-600">{s.duration_minutes} mnt</td>
+                        <td className="px-4 py-3.5 text-[12px] text-neutral-500">{s.last_order_time ? String(s.last_order_time).slice(0,5)+' WIB' : '—'}</td>
                         <td className="px-4 py-3.5 text-[11px] text-neutral-400">{s.wax_type}</td>
                         <td className="px-4 py-3.5">
                           <button
@@ -228,6 +229,16 @@ export default function Services() {
                 onChange={(e) => setForm({ ...form, duration_minutes: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Jam Order Terakhir</label>
+              <input
+                type="time"
+                value={form.last_order_time ?? ''}
+                onChange={(e) => setForm({ ...form, last_order_time: e.target.value || null })}
+                className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+              />
+              <p className="text-[10px] text-neutral-400 mt-1">Opsional. Kosongkan jika tidak ada batas.</p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Kategori</label>

@@ -292,10 +292,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const handleToggleService = (id: string) => {
     if (selectedServices.includes(id)) {
-      if (selectedServices.length === 1) {
-        // keep at least 1
-        return;
-      }
       setSelectedServices(selectedServices.filter((s) => s !== id));
       return;
     }
@@ -358,6 +354,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     ? `${selectedTherapistObj.name} (${selectedTherapistObj.role})`
     : "Rekomendasi Terbaik Bulu Space (Auto-Assign)";
 
+  const bookingCutoff = (() => {
+    const withCut = selectedServiceObjs.filter((s) => s.lastOrderTime);
+    if (withCut.length === 0) return null;
+    const earliest = withCut.reduce((a, b) => (a.lastOrderTime! <= b.lastOrderTime! ? a : b));
+    return { name: earliest.name, time: earliest.lastOrderTime! };
+  })();
+  const cutoffMin = bookingCutoff ? asMinutes(bookingCutoff.time) : null;
+
+  useEffect(() => {
+    if (cutoffMin === null) return;
+    const current = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
+    if (current > cutoffMin) setTimeSlot("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cutoffMin]);
+
   const slotBusy = (slotMin: number): boolean => {
     if (totalMinutes <= 0) return true;
     const now = new Date();
@@ -389,6 +400,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const slotState = (slotMin: number): "available" | "full" | "past" => {
     const now = new Date();
     if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes() + 30) {
+      return "past";
+    }
+    if (cutoffMin !== null && slotMin > cutoffMin) {
       return "past";
     }
     return slotBusy(slotMin) ? "full" : "available";
@@ -474,6 +488,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
     if (selectedServices.length === 0) {
       setErrorMessage("Pilih minimal 1 jenis treatment waxing.");
+      return;
+    }
+    if (!timeSlot) {
+      setErrorMessage("Silakan pilih jam sesi treatment.");
       return;
     }
 
@@ -855,6 +873,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Penuh</span>
                 </span>
               </label>
+              {bookingCutoff && (
+                <p className="text-[11px] text-rose-600 mb-1.5 font-medium">
+                  {bookingCutoff.name} hanya bisa dipesan sampai pukul {bookingCutoff.time}
+                </p>
+              )}
               <div className="max-h-44 overflow-y-auto pr-1 grid grid-cols-4 xs:grid-cols-5 gap-1.5 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">
                 {timeSlots.map((slot) => {
                   const min = asMinutes(slot.slice(0, 5));

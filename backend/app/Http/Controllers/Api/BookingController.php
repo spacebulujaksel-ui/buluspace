@@ -44,6 +44,21 @@ class BookingController extends Controller
             return response()->json(['message' => $combinationError], 422);
         }
 
+        $cutoffService = $services->filter(fn (Service $s) => !empty($s->last_order_time))
+            ->sortBy('last_order_time')
+            ->first();
+
+        if ($cutoffService) {
+            $cutoffHm = substr($cutoffService->last_order_time, 0, 5);
+            $startHm = substr($validated['start_time'], 0, 5);
+
+            if ($startHm > $cutoffHm) {
+                return response()->json([
+                    'message' => $cutoffService->name.' hanya bisa dipesan sampai pukul '.$cutoffHm.'.',
+                ], 422);
+            }
+        }
+
         $maleSurcharge = $validated['customer_gender'] === 'Pria'
             ? self::MALE_SURCHARGE_PER_TREATMENT * count($validated['service_ids'])
             : 0;
@@ -233,7 +248,7 @@ class BookingController extends Controller
 
         if (!$appointment->canCancel()) {
             return response()->json([
-                'message' => 'Sudah melewati batas H-1 pembatalan. Silakan hubungi admin via WhatsApp untuk pembatalan.',
+                'message' => 'Booking tidak dapat dibatalkan karena status sudah tidak aktif.',
                 'cutoff_passed' => true,
             ], 422);
         }

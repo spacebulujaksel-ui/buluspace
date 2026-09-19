@@ -230,8 +230,7 @@ export const BookingConfirmationModal: React.FC<
               {showCancel ? (
                 <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 space-y-2.5">
                   <p className="text-[11px] font-semibold text-rose-700">
-                    Batalkan booking {booking.id}? Pembatalan hanya berlaku
-                    maksimal H-1 sebelum jadwal.
+                    Batalkan booking {booking.id}? Pembatalan bisa dilakukan kapan saja sebelum treatment selesai.
                   </p>
                   <textarea
                     value={cancelReason}

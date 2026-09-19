@@ -55,13 +55,6 @@ class Appointment extends Model
 
     public function canCancel(): bool
     {
-        if (!in_array($this->status, ['Pending', 'Confirmed'])) {
-            return false;
-        }
-
-        $start = Carbon::parse($this->appointment_date->format('Y-m-d').' '.$this->start_time);
-        $cutoff = $start->copy()->subDay();
-
-        return now()->lt($cutoff);
+        return in_array($this->status, ['Pending', 'Confirmed']);
     }
 }

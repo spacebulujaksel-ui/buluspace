@@ -9,5 +9,9 @@ class Service extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'price', 'duration_minutes', 'image', 'category', 'wax_type', 'status'];
+    protected $fillable = ['name', 'description', 'price', 'duration_minutes', 'last_order_time', 'image', 'category', 'wax_type', 'status'];
+
+    protected $casts = [
+        'last_order_time' => 'string',
+    ];
 }

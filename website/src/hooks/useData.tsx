@@ -68,6 +68,7 @@ function mapService(s: Record<string, any>): WaxService {
     durationMinutes: s.duration_minutes,
     price: Number(s.price),
     waxType: s.wax_type ?? '',
+    lastOrderTime: s.last_order_time ? String(s.last_order_time).slice(0, 5) : null,
     isPopular: false,
   };
 }

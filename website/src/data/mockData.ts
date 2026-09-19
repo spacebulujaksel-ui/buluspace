@@ -194,7 +194,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-5",
     category: "face",
     name: "Cheek",
-    description: "Membersihkan bulu halus di area pipi untuk wajah glowing.",
+    description: "Waxing bulu halus di area pipi untuk wajah glowing.",
     durationMinutes: 10,
     price: 37000,
     waxType: "Gentle Film Hard Wax",
@@ -271,8 +271,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-12",
     category: "upper",
     name: "Full Back",
-    description:
-      "Waxing bulu punggung menyeluruh dengan kenyamanan maksimal.",
+    description: "Waxing bulu punggung menyeluruh dengan kenyamanan maksimal.",
     durationMinutes: 35,
     price: 91000,
     waxType: "Gentle Film Hard Wax",
@@ -343,7 +342,8 @@ export const SERVICES: WaxService[] = [
     id: "srv-18",
     category: "package",
     name: "Clean Girl (Eyebrows + Upper Lip + Forehead)",
-    description: "Waxing wajah bersih menyeluruh untuk tampilan fresh dan rapi.",
+    description:
+      "Waxing wajah bersih menyeluruh untuk tampilan fresh dan rapi.",
     durationMinutes: 35,
     price: 107000,
     waxType: "Gentle Film Hard Wax",
@@ -451,7 +451,7 @@ export const REVIEWS: Review[] = [
     treatment: "",
     therapistName: "",
     comment:
-      "puas bngtt🥰 awalnya malu\" hehe ternyata ga sesakit itu waxing brazillia. next bakal jadi langganan ini🤍 mb\"nya ramah juga!!😍",
+      'puas bngtt🥰 awalnya malu" hehe ternyata ga sesakit itu waxing brazillia. next bakal jadi langganan ini🤍 mb"nya ramah juga!!😍',
   },
   {
     id: "rev-9",
@@ -461,7 +461,7 @@ export const REVIEWS: Review[] = [
     treatment: "",
     therapistName: "Ira",
     comment:
-      "Kalau ada bintang 10 gw kasih deh, pelayanannya ga kaleng\". Ini treatment pertama yg pastinya deg\"n tp pas diajak ngbrl sma therapisnya kak Ira rsanya rasa sakitnya hampir ga berasa sama sekali.",
+      'Kalau ada bintang 10 gw kasih deh, pelayanannya ga kaleng". Ini treatment pertama yg pastinya deg"n tp pas diajak ngbrl sma therapisnya kak Ira rsanya rasa sakitnya hampir ga berasa sama sekali.',
   },
   {
     id: "rev-10",

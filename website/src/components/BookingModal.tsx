@@ -167,6 +167,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [therapistId, timeSlot, totalMinutes, bookedSlots]);
 
+  const bookingCutoff = (() => {
+    const withCut = selectedServiceObjs.filter((s) => s.lastOrderTime);
+    if (withCut.length === 0) return null;
+    const earliest = withCut.reduce((a, b) => (a.lastOrderTime! <= b.lastOrderTime! ? a : b));
+    return { name: earliest.name, time: earliest.lastOrderTime! };
+  })();
+  const cutoffMin = bookingCutoff ? asMinutes(bookingCutoff.time) : null;
+
+  useEffect(() => {
+    if (cutoffMin === null) return;
+    const current = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
+    if (current > cutoffMin) setTimeSlot("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cutoffMin]);
+
   if (!isOpen) return null;
 
   const timeSlots = [
@@ -353,21 +368,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const therapistDisplayName = selectedTherapistObj
     ? `${selectedTherapistObj.name} (${selectedTherapistObj.role})`
     : "Rekomendasi Terbaik Bulu Space (Auto-Assign)";
-
-  const bookingCutoff = (() => {
-    const withCut = selectedServiceObjs.filter((s) => s.lastOrderTime);
-    if (withCut.length === 0) return null;
-    const earliest = withCut.reduce((a, b) => (a.lastOrderTime! <= b.lastOrderTime! ? a : b));
-    return { name: earliest.name, time: earliest.lastOrderTime! };
-  })();
-  const cutoffMin = bookingCutoff ? asMinutes(bookingCutoff.time) : null;
-
-  useEffect(() => {
-    if (cutoffMin === null) return;
-    const current = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
-    if (current > cutoffMin) setTimeSlot("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cutoffMin]);
 
   const slotBusy = (slotMin: number): boolean => {
     if (totalMinutes <= 0) return true;

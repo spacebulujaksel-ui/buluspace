@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Star, Heart, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useData } from '../hooks/useData';
+import { REVIEWS } from '../data/mockData';
 
 export const Testimonials: React.FC = () => {
-  const { reviews: REVIEWS } = useData();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const slidesToShow = 3;
@@ -93,16 +92,18 @@ export const Testimonials: React.FC = () => {
                           <p className="text-xs text-neutral-600 leading-relaxed italic">
                             "{rev.comment}"
                           </p>
-                          <div className="mt-3 pt-3 border-t border-neutral-100 flex items-center gap-1 text-[11px] text-pink-500">
-                            <Heart className="w-3 h-3 fill-pink-400 text-pink-400" />
-                            <span>Terapis: <span className="font-medium">{rev.therapistName}</span></span>
-                          </div>
+                          {rev.therapistName && (
+                            <div className="mt-3 pt-3 border-t border-neutral-100 flex items-center gap-1 text-[11px] text-pink-500">
+                              <Heart className="w-3 h-3 fill-pink-400 text-pink-400" />
+                              <span>Terapis: <span className="font-medium">{rev.therapistName}</span></span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between">
                           <div>
                             <h4 className="text-xs font-semibold text-neutral-900">{rev.clientName}</h4>
-                            <p className="text-[10px] text-neutral-400">{rev.treatment}</p>
+                            {rev.treatment && <p className="text-[10px] text-neutral-400">{rev.treatment}</p>}
                           </div>
                           <div className="flex items-center gap-0.5 text-[10px] text-emerald-600">
                             <CheckCircle className="w-3 h-3" />

@@ -141,6 +141,9 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
                   {service.category === 'intimate' && (
                     <p className="mt-1 text-[10px] text-rose-500">(pria tidak bisa memilih treatment ini)</p>
                   )}
+                  {service.name === 'Full Legs' && (
+                    <p className="mt-1 text-[10px] text-rose-500">(untuk pria: cakupan area hanya ¾ kaki)</p>
+                  )}
                 </div>
 
                 <button

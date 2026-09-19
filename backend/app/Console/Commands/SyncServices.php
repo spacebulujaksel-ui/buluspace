@@ -13,6 +13,7 @@ class SyncServices extends Command
     protected $description = 'Sinkronkan daftar layanan sesuai roster resmi (update durasi/kategori/deskripsi, harga dipertahankan).';
 
     private const ROSTER = [
+        ['name' => 'Cheek', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus di area pipi untuk wajah glowing', 'price' => 37000],
         ['name' => 'Forehead', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus area dahi'],
         ['name' => 'Eyebrows', 'category' => 'face', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Merapikan bentuk alis. Untuk pertama kali bisa ±30 menit'],
         ['name' => 'Chin', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus area dagu'],
@@ -25,7 +26,7 @@ class SyncServices extends Command
         ['name' => 'Full Front', 'category' => 'upper', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area dada & perut'],
         ['name' => 'Full Back', 'category' => 'upper', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area punggung'],
         ['name' => 'Half Legs', 'category' => 'legs', 'duration_minutes' => 15, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area lutut hingga ujung kaki'],
-        ['name' => 'Full Legs', 'category' => 'legs', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area paha hingga ujung kaki', 'last_order_time' => '18:30'],
+        ['name' => 'Full Legs', 'category' => 'legs', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area paha hingga ujung kaki. Untuk pria, cakupan area hanya ¾ kaki', 'last_order_time' => '18:30'],
         ['name' => 'Basic Bikini', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area bikini line'],
         ['name' => 'Brazilian', 'category' => 'intimate', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing area intim menyeluruh'],
         ['name' => 'Buttocks', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area bokong'],
@@ -55,7 +56,7 @@ class SyncServices extends Command
                     $dry ? '[rencana] update' : 'update', $service['name'], strtoupper($service['category']), $service['duration_minutes'],
                     number_format((float) $existing->price, 0, ',', '.')));
                 if (!$dry) {
-                    $existing->update([
+                    $updateData = [
                         'name' => $service['name'],
                         'category' => $service['category'],
                         'duration_minutes' => $service['duration_minutes'],
@@ -63,10 +64,16 @@ class SyncServices extends Command
                         'wax_type' => $service['wax_type'],
                         'last_order_time' => $service['last_order_time'] ?? $existing->last_order_time,
                         'status' => 'Active',
-                    ]);
+                    ];
+                    if ((float) $existing->price === 0.0 && isset($service['price'])) {
+                        $updateData['price'] = $service['price'];
+                    }
+                    $existing->update($updateData);
                 }
             } else {
-                $this->line(sprintf('  %s: "%s" → tambah layanan baru harga Rp0 (diisi via admin)', $dry ? '[rencana] create' : 'create', $service['name']));
+                $this->line(sprintf('  %s: "%s" → tambah layanan baru harga Rp%s (diisi via admin jika 0)',
+                    $dry ? '[rencana] create' : 'create', $service['name'],
+                    number_format((float) ($service['price'] ?? 0), 0, ',', '.')));
                 if (!$dry) {
                     Service::create([
                         'name' => $service['name'],
@@ -75,7 +82,7 @@ class SyncServices extends Command
                         'description' => $service['description'],
                         'wax_type' => $service['wax_type'],
                         'last_order_time' => $service['last_order_time'] ?? null,
-                        'price' => 0,
+                        'price' => $service['price'] ?? 0,
                         'status' => 'Active',
                     ]);
                 }

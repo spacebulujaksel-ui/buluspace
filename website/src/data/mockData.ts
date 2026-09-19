@@ -194,7 +194,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-5",
     category: "face",
     name: "Cheek",
-    description: "Waxing bulu halus di area pipi untuk wajah glowing.",
+    description: "Membersihkan bulu halus di area pipi untuk wajah glowing.",
     durationMinutes: 10,
     price: 37000,
     waxType: "Gentle Film Hard Wax",
@@ -296,7 +296,7 @@ export const SERVICES: WaxService[] = [
     category: "legs",
     name: "Full Legs",
     description:
-      "Waxing paha hingga pergelangan kaki, kulit halus seperti sutra.",
+      "Waxing paha hingga pergelangan kaki, kulit halus seperti sutra. Untuk pria, cakupan area hanya ¾ kaki.",
     durationMinutes: 45,
     price: 96000,
     waxType: "Organic Soft Honey",

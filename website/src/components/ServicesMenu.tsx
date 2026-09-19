@@ -161,7 +161,7 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
 
         {/* Floating Tray */}
         {selectedCount > 0 && (
-          <div className="fixed bottom-5 left-5 right-5 sm:left-auto sm:right-8 z-40 max-w-md w-full bg-white border border-neutral-200 shadow-lg rounded-xl p-4 flex items-center justify-between gap-4">
+          <div className="fixed left-4 right-4 bottom-20 sm:left-auto sm:right-6 sm:bottom-6 sm:w-96 z-50 bg-white border border-neutral-200 shadow-lg rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] text-neutral-400">
                 <span className="font-semibold text-neutral-700">{selectedCount}</span> layanan terpilih

@@ -55,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand */}
         <a
           href="#"
-          className="flex items-center gap-2.5 group justify-self-start"
+          className="flex items-center gap-2.5 group justify-self-start col-start-1"
           aria-label="Bulu Space Homepage"
         >
           <img
@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-neutral-500">
+        <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-neutral-500 col-start-2">
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -85,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden sm:flex items-center gap-2.5 justify-self-end">
+        <div className="hidden sm:flex items-center gap-2.5 justify-self-end col-start-3">
           <button
             onClick={onOpenTrack}
             className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-1.5 text-[12px] font-medium"
@@ -117,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile */}
-        <div className="flex sm:hidden items-center gap-2 justify-self-end">
+        <div className="flex sm:hidden items-center gap-2 justify-self-end col-start-3">
           <button
             onClick={onOpenBooking}
             className="px-3 py-1.5 text-[11px] font-medium rounded-lg bg-neutral-900 text-white"

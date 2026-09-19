@@ -5,7 +5,7 @@ import { Therapist, ActiveStatus } from '../types';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 
-const EMPTY: Therapist = { id: 0, name: '', phone: '', status: 'Active', specialty: '', experience_years: 0 };
+const EMPTY: Therapist = { id: 0, name: '', status: 'Active', experience_years: 0 };
 
 export default function Therapists() {
   const [data, setData] = useState<Therapist[]>([]);
@@ -41,7 +41,7 @@ export default function Therapists() {
   };
 
   const handleSave = async () => {
-    if (!form.name.trim() || !form.phone.trim()) return;
+    if (!form.name.trim()) return;
     setError('');
     try {
       if (editing) {
@@ -101,7 +101,7 @@ export default function Therapists() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
-                  {['Nama', 'Telepon', 'Spesialisasi', 'Status', 'Aksi'].map((h) => (
+                  {['Nama', 'Status', 'Aksi'].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
                       {h}
                     </th>
@@ -119,23 +119,31 @@ export default function Therapists() {
                         <span className="text-[13px] font-medium text-neutral-900">{t.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 text-[13px] text-neutral-600 font-mono">{t.phone}</td>
-                    <td className="px-4 py-3.5 text-[13px] text-neutral-600">{t.specialty ?? '—'}</td>
                     <td className="px-4 py-3.5">
-                      <button
-                        onClick={() => toggleStatus(t)}
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer transition-colors ${
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
                           t.status === 'Active'
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                            : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-neutral-100 text-neutral-500'
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-50" />
                         {t.status}
-                      </button>
+                      </span>
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleStatus(t)}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                            t.status === 'Active'
+                              ? 'text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100'
+                              : 'text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100'
+                          }`}
+                          title={t.status === 'Active' ? 'Nonaktifkan terapis (contoh: cuti)' : 'Aktifkan terapis'}
+                        >
+                          {t.status === 'Active' ? 'Nonaktifkan' : 'Aktifkan'}
+                        </button>
                         <button
                           onClick={() => openEdit(t)}
                           className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
@@ -174,26 +182,6 @@ export default function Therapists() {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Nama terapis"
-              className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Telepon *</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="08xxxxxxxxxx"
-              className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Spesialisasi</label>
-            <input
-              type="text"
-              value={form.specialty ?? ''}
-              onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-              placeholder="contoh: Brazilian Expert"
               className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
             />
           </div>

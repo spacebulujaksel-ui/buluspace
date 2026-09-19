@@ -175,13 +175,25 @@ export default function Bookings() {
                       {formatRupiah(Number(apt.total_price))}
                     </td>
                     <td className="px-4 py-3.5">
-                      <button
-                        onClick={() => setSelected(apt)}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
-                        title="Lihat detail"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {apt.status === 'Confirmed' && (
+                          <button
+                            onClick={() => updateStatus(apt.id, 'Completed')}
+                            disabled={updating}
+                            className="px-2 py-1 rounded-lg text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                            title="Tandai selesai"
+                          >
+                            Selesai
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setSelected(apt)}
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                          title="Lihat detail"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

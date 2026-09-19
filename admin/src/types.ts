@@ -19,9 +19,7 @@ export interface AdminUser {
 export interface Therapist {
   id: number;
   name: string;
-  phone: string;
   status: ActiveStatus;
-  specialty?: string;
   experience_years?: number | null;
   created_at?: string;
   updated_at?: string;

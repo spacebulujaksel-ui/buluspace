@@ -19,6 +19,7 @@ const PLACEHOLDERS = [
 export default function Email() {
   const [templates, setTemplates] = useState<Record<string, { subject: string; body: string }>>({});
   const [adminEmail, setAdminEmail] = useState('');
+  const [brandLogoUrl, setBrandLogoUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -27,10 +28,11 @@ export default function Email() {
   const load = () => {
     setLoading(true);
     api
-      .get<{ templates: Record<string, { subject: string; body: string }>; admin_email: string }>('/admin/email-settings')
+      .get<{ templates: Record<string, { subject: string; body: string }>; admin_email: string; brand_logo_url: string }>('/admin/email-settings')
       .then((r) => {
         setTemplates(r.templates ?? {});
         setAdminEmail(r.admin_email ?? '');
+        setBrandLogoUrl(r.brand_logo_url ?? '');
       })
       .catch((e) => setError(e instanceof Error ? e.message : 'Gagal memuat pengaturan.'))
       .finally(() => setLoading(false));
@@ -45,7 +47,7 @@ export default function Email() {
     setError('');
     setSaved(false);
     try {
-      await api.put('/admin/email-settings', { templates, admin_email: adminEmail });
+      await api.put('/admin/email-settings', { templates, admin_email: adminEmail, brand_logo_url: brandLogoUrl });
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menyimpan.');
@@ -86,6 +88,17 @@ export default function Email() {
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 className="w-full max-w-md px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-neutral-800 mb-1.5">URL Logo (tampil di bagian atas email)</label>
+              <input
+                type="url"
+                value={brandLogoUrl}
+                onChange={(e) => setBrandLogoUrl(e.target.value)}
+                placeholder="https://.../logo-bulu.png (kosongkan jika tidak ingin logo)"
+                className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300"
               />
             </div>
 

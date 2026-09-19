@@ -70,6 +70,7 @@ class EmailSettingsTest extends TestCase
             $this->assertDatabaseHas('email_settings', ['type' => $type]);
         }
         $this->assertSame('spacebulujaksel@gmail.com', EmailSetting::where('type', 'admin_email')->value('body'));
+        $this->assertStringContainsString('logo-bulu.png', EmailSetting::where('type', 'brand_logo_url')->value('body'));
     }
 
     public function test_email_settings_can_be_updated(): void

@@ -76,6 +76,28 @@ class BookingMailer
             $text = str_replace('{{'.$key.'}}', (string) ($value ?? ''), $text);
         }
 
-        return nl2br(e($text));
+        return self::wrap(nl2br(e($text)));
+    }
+
+    private static function wrap(string $bodyHtml): string
+    {
+        $logo = EmailSetting::where('type', 'brand_logo_url')->value('body');
+        $logoHtml = '';
+
+        if ($logo) {
+            $logoUrl = e(trim($logo));
+            $logoHtml = '<div style="padding-bottom:14px;">'
+                .'<img src="'.$logoUrl.'" alt="Bulu Space" style="height:44px;width:auto;max-width:180px;"/>'
+                .'</div>'
+                .'<div style="height:3px;background:#F472B6;border-radius:2px;margin-bottom:20px;"></div>';
+        }
+
+        return '<div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:14px;line-height:1.6;">'
+            .'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:28px 24px;">'
+            .$logoHtml
+            .$bodyHtml
+            .'<p style="margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;">'
+            .'Dikirim otomatis oleh Bulu Space — balas email ini hanya jika diperlukan.</p>'
+            .'</td></tr></table></div>';
     }
 }

@@ -141,6 +141,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   }, [isOpen, date, location]);
 
   const selectedServiceObjs = SERVICES.filter((s) => selectedServices.includes(s.id));
+  const hasIntimate = selectedServiceObjs.some((s) => s.category === "intimate");
   const totalMinutes = selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
 
   const asMinutes = (t: string) => {
@@ -312,8 +313,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
     const service = SERVICES.find((s) => s.id === id);
     if (service?.category === "intimate" && customerGender === "Pria") {
-      setErrorMessage("Layanan intimate hanya untuk wanita.");
-      return;
+      setCustomerGender("Wanita");
     }
     const candidate = SERVICES.filter((s) => selectedServices.includes(s.id) || s.id === id);
     const err = combinationError(
@@ -642,7 +642,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         {srv.name}
                       </p>
                       {srv.category === "intimate" && (
-                        <p className="text-[10px] text-rose-500">*pria tidak boleh intimate</p>
+                        <p className="text-[10px] text-rose-500">(pria tidak bisa memilih treatment ini)</p>
                       )}
                     </div>
                     <div className="text-right shrink-0">
@@ -949,21 +949,32 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 Jenis Kelamin <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {(["Wanita", "Pria"] as const).map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => selectGender(g)}
-                    className={`px-3 py-2.5 text-xs font-semibold rounded-xl border transition-colors ${
-                      customerGender === g
-                        ? "bg-slate-900 text-white border-slate-900"
-                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
-                    }`}
-                  >
-                    {g}
-                  </button>
-                ))}
+                {(["Wanita", "Pria"] as const).map((g) => {
+                  const disabled = g === "Pria" && hasIntimate;
+                  return (
+                    <button
+                      key={g}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => selectGender(g)}
+                      className={`px-3 py-2.5 text-xs font-semibold rounded-xl border transition-colors ${
+                        disabled
+                          ? "bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed"
+                          : customerGender === g
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  );
+                })}
               </div>
+              {hasIntimate && (
+                <p className="text-[10px] text-rose-500 mt-1">
+                  (pria tidak bisa memilih treatment ini)
+                </p>
+              )}
               {customerGender === "Pria" && (
                 <p className="text-[10px] text-slate-400 mt-1">
                   Khusus pria: tambahan Rp7.000 per perawatan.

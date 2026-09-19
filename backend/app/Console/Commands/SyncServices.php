@@ -25,7 +25,7 @@ class SyncServices extends Command
         ['name' => 'Full Front', 'category' => 'upper', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area dada & perut'],
         ['name' => 'Full Back', 'category' => 'upper', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu area punggung'],
         ['name' => 'Half Legs', 'category' => 'legs', 'duration_minutes' => 15, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area lutut hingga ujung kaki'],
-        ['name' => 'Full Legs', 'category' => 'legs', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area paha hingga ujung kaki', 'last_order_time' => '17:30'],
+        ['name' => 'Full Legs', 'category' => 'legs', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing area paha hingga ujung kaki', 'last_order_time' => '18:30'],
         ['name' => 'Basic Bikini', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Merapikan bulu area bikini line'],
         ['name' => 'Brazilian', 'category' => 'intimate', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing area intim menyeluruh'],
         ['name' => 'Buttocks', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu area bokong'],

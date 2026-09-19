@@ -139,7 +139,7 @@ export const ServicesMenu: React.FC<ServicesMenuProps> = ({
                     {service.durationMinutes} menit
                   </p>
                   {service.category === 'intimate' && (
-                    <p className="mt-1 text-[10px] text-rose-500">*pria tidak boleh intimate</p>
+                    <p className="mt-1 text-[10px] text-rose-500">(pria tidak bisa memilih treatment ini)</p>
                   )}
                 </div>
 

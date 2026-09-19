@@ -113,16 +113,17 @@ class BookingCapacityTest extends TestCase
 
     public function test_male_surcharge_per_treatment_is_added(): void
     {
+        $first = Service::create(['name' => 'Forehead', 'description' => null, 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'status' => 'Active']);
         $second = Service::create(['name' => 'Underarm', 'description' => null, 'price' => 85000, 'duration_minutes' => 30, 'category' => 'body', 'status' => 'Active']);
 
         $payload = $this->payload('16:00', null, 'Pria');
-        $payload['service_ids'] = [$this->service->id, $second->id];
+        $payload['service_ids'] = [$first->id, $second->id];
 
         $res = $this->postJson('/api/bookings', $payload);
         $res->assertCreated();
 
         // 2 treatments + 2 x 7.000 surcharge
-        $this->assertSame(200000.0 + 85000.0 + 14000.0, (float) $res->json('booking.total_price'));
+        $this->assertSame(37000.0 + 85000.0 + 14000.0, (float) $res->json('booking.total_price'));
         $this->assertSame('Pria', $res->json('booking.customer_gender'));
     }
 

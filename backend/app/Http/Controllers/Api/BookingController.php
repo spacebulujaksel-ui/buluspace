@@ -44,6 +44,10 @@ class BookingController extends Controller
             return response()->json(['message' => $combinationError], 422);
         }
 
+        if ($validated['customer_gender'] === 'Pria' && $services->contains(fn (Service $s) => $s->category === 'intimate')) {
+            return response()->json(['message' => 'Layanan intimate hanya untuk wanita.'], 422);
+        }
+
         $cutoffService = $services->filter(fn (Service $s) => !empty($s->last_order_time))
             ->sortBy('last_order_time')
             ->first();

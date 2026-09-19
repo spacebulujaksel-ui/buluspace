@@ -310,6 +310,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setSelectedServices(selectedServices.filter((s) => s !== id));
       return;
     }
+    const service = SERVICES.find((s) => s.id === id);
+    if (service?.category === "intimate" && customerGender === "Pria") {
+      setErrorMessage("Layanan intimate hanya untuk wanita.");
+      return;
+    }
     const candidate = SERVICES.filter((s) => selectedServices.includes(s.id) || s.id === id);
     const err = combinationError(
       candidate.map((s) => ({ name: s.name, category: s.category, duration: s.durationMinutes })),
@@ -319,6 +324,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       return;
     }
     setSelectedServices([...selectedServices, id]);
+  };
+
+  const selectGender = (g: "Pria" | "Wanita") => {
+    setCustomerGender(g);
+    if (g === "Pria") {
+      const intimateIds = SERVICES.filter((s) => s.category === "intimate").map((s) => s.id);
+      const remaining = selectedServices.filter((id) => !intimateIds.includes(id));
+      if (remaining.length !== selectedServices.length) {
+        setSelectedServices(remaining);
+        setErrorMessage("Layanan intimate dihapus karena hanya untuk wanita.");
+      }
+    }
   };
 
   const handleApplyPromo = () => {
@@ -624,6 +641,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       <p className="text-xs font-bold text-slate-900">
                         {srv.name}
                       </p>
+                      {srv.category === "intimate" && (
+                        <p className="text-[10px] text-rose-500">*pria tidak boleh intimate</p>
+                      )}
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs font-bold font-mono text-slate-900">
@@ -933,7 +953,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <button
                     key={g}
                     type="button"
-                    onClick={() => setCustomerGender(g)}
+                    onClick={() => selectGender(g)}
                     className={`px-3 py-2.5 text-xs font-semibold rounded-xl border transition-colors ${
                       customerGender === g
                         ? "bg-slate-900 text-white border-slate-900"

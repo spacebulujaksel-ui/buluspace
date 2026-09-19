@@ -39,13 +39,13 @@ class BookingCombinationTest extends TestCase
         ];
     }
 
-    private function payload(array $serviceIds): array
+    private function payload(array $serviceIds, string $gender = 'Wanita'): array
     {
         return [
             'customer_name' => 'Test',
             'customer_phone' => '081234567890',
             'customer_email' => 'test@example.com',
-            'customer_gender' => 'Wanita',
+            'customer_gender' => $gender,
             'therapist_id' => null,
             'appointment_date' => now()->addDay()->format('Y-m-d'),
             'start_time' => '13:00',
@@ -104,5 +104,18 @@ class BookingCombinationTest extends TestCase
     public function test_normal_singles_can_combine_freely(): void
     {
         $this->postJson('/api/bookings', $this->payload($this->ids(['forehead', 'underarms'])))->assertCreated();
+    }
+
+    public function test_male_cannot_book_intimate_services(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian']), 'Pria'));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('Layanan intimate hanya untuk wanita.', $res->json('message'));
+    }
+
+    public function test_female_can_book_intimate_services(): void
+    {
+        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian']), 'Wanita'))->assertCreated();
     }
 }

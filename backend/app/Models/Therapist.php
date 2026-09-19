@@ -32,4 +32,12 @@ class Therapist extends Model
     {
         return $this->hasMany(TherapistLeave::class);
     }
+
+    public function isOnLeaveOn($date): bool
+    {
+        return $this->leaves()
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->exists();
+    }
 }

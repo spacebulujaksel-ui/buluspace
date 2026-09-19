@@ -56,6 +56,7 @@ function mapTherapist(t: Record<string, any>): Therapist {
     nextAvailableSlot: '',
     isPopular: false,
     branch: t.branch?.name ?? 'Jakarta Barat',
+    onLeave: !!t.on_leave,
   };
 }
 
@@ -106,7 +107,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setData((prev) => ({
         promos: promos.status === 'fulfilled' ? promos.value.filter((p) => p.is_active !== false).map(mapPromo) : prev.promos,
         services: services.status === 'fulfilled' ? services.value.filter((s) => s.status === 'Active').map(mapService) : prev.services,
-        therapists: therapists.status === 'fulfilled' ? therapists.value.filter((t) => t.status === 'Active').map(mapTherapist) : prev.therapists,
+        therapists: therapists.status === 'fulfilled' ? therapists.value.filter((t) => t.status === 'Active' || t.on_leave).map(mapTherapist) : prev.therapists,
         reviews: reviews.status === 'fulfilled' && reviews.value.length > 0 ? reviews.value.map(mapReview) : prev.reviews,
         ready: true,
       }));

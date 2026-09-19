@@ -71,6 +71,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   >([]);
   const [rooms, setRooms] = useState<Record<string, number>>({});
   const [blocked, setBlocked] = useState<{ room_number: number; start_time: string; end_time: string }[]>([]);
+  const [onLeaveIds, setOnLeaveIds] = useState<number[]>([]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState(() => {
     const now = new Date();
@@ -129,13 +130,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (!isOpen) return;
     const branch = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
     api
-      .get<{ booked: { therapist_id: number; start_time: string; end_time: string }[]; rooms: Record<string, number>; blocked: { room_number: number; start_time: string; end_time: string }[] }>(
+      .get<{ booked: { therapist_id: number; start_time: string; end_time: string }[]; rooms: Record<string, number>; blocked: { room_number: number; start_time: string; end_time: string }[]; on_leave_ids: number[] }>(
         `/availability?date=${date}&location=${encodeURIComponent(branch)}`,
       )
       .then((r) => {
         setBookedSlots(r.booked);
         setRooms(r.rooms ?? {});
         setBlocked(r.blocked ?? []);
+        setOnLeaveIds(r.on_leave_ids ?? []);
       })
       .catch(() => setBookedSlots([]));
   }, [isOpen, date, location]);
@@ -162,11 +164,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   useEffect(() => {
-    if (therapistId !== "any" && therapistBusy(Number(therapistId))) {
+    if (therapistId !== "any" && (therapistBusy(Number(therapistId)) || onLeaveIds.includes(Number(therapistId)))) {
       setTherapistId("any");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [therapistId, timeSlot, totalMinutes, bookedSlots]);
+  }, [therapistId, timeSlot, totalMinutes, bookedSlots, onLeaveIds]);
 
   const bookingCutoff = (() => {
     const withCut = selectedServiceObjs.filter((s) => s.lastOrderTime);
@@ -725,21 +727,23 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 branchTherapists.map((t) => {
                   const isSelected = therapistId === t.id;
                   const busy = therapistBusy(Number(t.id));
+                  const onLeave = onLeaveIds.includes(Number(t.id));
+                  const disabled = busy || onLeave;
                   return (
                     <div
                       key={t.id}
                       onClick={() => {
-                        if (busy) return;
+                        if (disabled) return;
                         setTherapistId(t.id);
                       }}
                       className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${
-                        busy
+                        disabled
                           ? "opacity-40 cursor-not-allowed bg-neutral-50 border-slate-200"
                           : isSelected
                             ? "bg-pink-100/80 border-pink-400 text-slate-900 shadow-xs ring-1 ring-pink-400 cursor-pointer"
                             : "bg-white border-slate-200 hover:border-slate-300 text-slate-800 cursor-pointer"
                       }`}
-                      title={busy ? `${t.nickname} sedang sibuk di jam tersebut` : t.name}
+                      title={onLeave ? `${t.nickname} sedang cuti pada tanggal ini` : busy ? `${t.nickname} sedang sibuk di jam tersebut` : t.name}
                     >
                       <div className="w-10 h-10 rounded-full bg-pink-100 border border-pink-200 flex items-center justify-center text-pink-600 text-xs font-bold shrink-0">
                         {t.name[0]}

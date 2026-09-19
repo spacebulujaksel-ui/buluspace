@@ -19,7 +19,21 @@ class PublicController extends Controller
 
     public function therapists()
     {
-        return Therapist::where('status', 'Active')->with('branch')->get();
+        $onLeaveToday = \App\Models\TherapistLeave::whereDate('start_date', '<=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->pluck('therapist_id');
+
+        $therapists = Therapist::where('status', 'Active')
+            ->orWhereIn('id', $onLeaveToday)
+            ->with('branch')
+            ->get()
+            ->map(function (Therapist $t) use ($onLeaveToday) {
+                $t->setAttribute('on_leave', $onLeaveToday->contains($t->id));
+
+                return $t;
+            });
+
+        return $therapists;
     }
 
     public function reviews()
@@ -94,6 +108,11 @@ class PublicController extends Controller
                 ->get(['room_number', 'start_time', 'end_time']);
         }
 
-        return response()->json(['booked' => $booked, 'rooms' => $rooms, 'blocked' => $blocked]);
+        $onLeaveIds = \App\Models\TherapistLeave::whereDate('start_date', '<=', $validated['date'])
+            ->whereDate('end_date', '>=', $validated['date'])
+            ->distinct()
+            ->pluck('therapist_id');
+
+        return response()->json(['booked' => $booked, 'rooms' => $rooms, 'blocked' => $blocked, 'on_leave_ids' => $onLeaveIds->values()]);
     }
 }

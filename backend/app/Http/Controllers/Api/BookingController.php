@@ -9,6 +9,7 @@ use App\Models\BlockedSlot;
 use App\Models\Branch;
 use App\Models\Service;
 use App\Models\Therapist;
+use App\Models\TherapistLeave;
 use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -120,11 +121,20 @@ class BookingController extends Controller
         }
 
         // Resolve therapist: specific pick or auto-assign first free active one.
+        $leaveIds = TherapistLeave::whereDate('start_date', '<=', $validated['appointment_date'])
+            ->whereDate('end_date', '>=', $validated['appointment_date'])
+            ->pluck('therapist_id')
+            ->all();
+
         if (!empty($validated['therapist_id'])) {
             $therapist = Therapist::findOrFail($validated['therapist_id']);
 
             if ($therapist->status !== 'Active') {
                 return response()->json(['message' => 'Terapis sedang tidak aktif. Silakan pilih terapis lain.'], 422);
+            }
+
+            if (in_array($therapist->id, $leaveIds, true)) {
+                return response()->json(['message' => 'Terapis sedang cuti pada tanggal tersebut. Silakan pilih terapis lain.'], 422);
             }
 
             $conflict = Appointment::where('therapist_id', $therapist->id)
@@ -147,7 +157,10 @@ class BookingController extends Controller
             $candidates = Therapist::where('status', 'Active')
                 ->when($branch, fn ($q) => $q->where('branch_id', $branch->id))
                 ->get()
-                ->filter(function (Therapist $t) use ($start, $end) {
+                ->filter(function (Therapist $t) use ($start, $end, $leaveIds) {
+                    if (in_array($t->id, $leaveIds, true)) {
+                        return false;
+                    }
                     $busy = Appointment::where('therapist_id', $t->id)
                         ->whereDate('appointment_date', $start->toDateString())
                         ->whereIn('status', ['Pending', 'Confirmed'])

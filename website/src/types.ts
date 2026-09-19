@@ -30,6 +30,7 @@ export interface Therapist {
   nextAvailableSlot: string;
   isPopular?: boolean;
   branch?: string;
+  onLeave?: boolean;
 }
 
 export interface WaxService {

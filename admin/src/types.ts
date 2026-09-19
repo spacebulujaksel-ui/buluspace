@@ -16,11 +16,18 @@ export interface AdminUser {
   branch?: Branch | null;
 }
 
+export interface TherapistLeave {
+  id: number;
+  start_date: string;
+  end_date: string;
+}
+
 export interface Therapist {
   id: number;
   name: string;
   status: ActiveStatus;
   experience_years?: number | null;
+  leaves?: TherapistLeave[];
   created_at?: string;
   updated_at?: string;
 }

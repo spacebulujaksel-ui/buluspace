@@ -294,7 +294,7 @@ export default function Bookings() {
               <div className="pt-2 border-t border-neutral-200">
                 <p className="text-[11px] text-neutral-400 mb-2">Ubah Status</p>
                 <div className="flex flex-wrap gap-2">
-                  {['Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'].map((s) => (
+                  {['Confirmed', 'Completed', 'Cancelled', 'Rejected'].map((s) => (
                     <button
                       key={s}
                       onClick={() => updateStatus(selected.id, s)}

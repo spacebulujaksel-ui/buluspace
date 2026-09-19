@@ -27,4 +27,9 @@ class Therapist extends Model
     {
         return $this->hasMany(Schedule::class);
     }
+
+    public function leaves(): HasMany
+    {
+        return $this->hasMany(TherapistLeave::class);
+    }
 }

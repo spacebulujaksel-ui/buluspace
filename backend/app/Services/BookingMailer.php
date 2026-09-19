@@ -8,7 +8,17 @@ use Illuminate\Support\Facades\Mail;
 
 class BookingMailer
 {
-    public const ADMIN_WA = '6281285356113';
+    public const ADMIN_WA = '6285691717248';
+
+    private const WA_BY_BRANCH = [
+        'Jakarta Barat' => '6285691717248',
+        'Jakarta Selatan' => '6285811331147',
+    ];
+
+    private static function waForBranch(?string $branch): string
+    {
+        return self::WA_BY_BRANCH[$branch] ?? self::ADMIN_WA;
+    }
 
     public static function toCustomer(Appointment $appointment, string $type): void
     {
@@ -64,7 +74,7 @@ class BookingMailer
             'therapist' => $appointment->therapist?->name ?? 'Menunggu penugasan',
             'services' => $services ?: '-',
             'total' => 'Rp '.number_format((float) $appointment->total_price, 0, ',', '.'),
-            'admin_wa' => self::ADMIN_WA,
+            'admin_wa' => self::waForBranch($appointment->location),
         ] + ($full ? [] : []);
     }
 

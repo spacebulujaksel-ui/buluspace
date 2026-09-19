@@ -6,7 +6,7 @@ import {
   MessageCircle,
   ArrowUpRight,
 } from "lucide-react";
-import { buildWaLink, ADMIN_WA_NUMBER } from "../lib/wa";
+import { buildWaLink, WA_JAKBAR, WA_JAKSEL } from "../lib/wa";
 
 export const Footer: React.FC = () => {
   const socialLinks = [
@@ -21,9 +21,14 @@ export const Footer: React.FC = () => {
       href: "https://tiktok.com/@bulu.space",
     },
     {
-      name: "WhatsApp",
-      handle: "+62 812-3456-7890",
-      href: `https://wa.me/${ADMIN_WA_NUMBER}`,
+      name: "Admin Jakarta Barat",
+      handle: "+62 856-9171-7248",
+      href: `https://wa.me/${WA_JAKBAR}`,
+    },
+    {
+      name: "Admin Jakarta Selatan",
+      handle: "+62 858-1133-1147",
+      href: `https://wa.me/${WA_JAKSEL}`,
     },
   ];
 
@@ -47,17 +52,26 @@ export const Footer: React.FC = () => {
               Studio waxing profesional dengan terapis bersertifikasi resmi,
               higienitas medis 100%, dan kenyamanan bilik privat.
             </p>
-            <a
-              href={buildWaLink(
-                "Halo Admin Bulu Space, saya mau konsultasi layanan waxing",
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-xs font-medium transition-colors"
-            >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-              Chat WhatsApp (10.00–19.00)
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={buildWaLink("Halo Admin Bulu Space Jakarta Barat, saya mau konsultasi layanan waxing", "Jakarta Barat")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-xs font-medium transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                WhatsApp Jakarta Barat
+              </a>
+              <a
+                href={buildWaLink("Halo Admin Bulu Space Jakarta Selatan, saya mau konsultasi layanan waxing", "Jakarta Selatan")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-xs font-medium transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                WhatsApp Jakarta Selatan
+              </a>
+            </div>
           </div>
 
           {/* Social */}

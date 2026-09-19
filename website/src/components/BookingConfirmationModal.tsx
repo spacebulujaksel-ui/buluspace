@@ -51,8 +51,9 @@ export const BookingConfirmationModal: React.FC<
   };
 
   const handleSendWA = () => {
-    const waMessage = `Halo Bulu Space, saya sudah membuat reservasi di website dengan Kode Booking *${booking.id}* atas nama *${booking.clientName}*. Mohon konfirmasi kedatangan saya pada ${booking.date} jam ${booking.timeSlot} di ${booking.location ?? "Jakarta Barat"}. Terima kasih!`;
-    window.open(buildWaLink(waMessage), "_blank");
+    const branch = booking.location ?? "Jakarta Barat";
+    const waMessage = `Halo Admin Bulu Space ${branch}, saya sudah membuat reservasi di website dengan Kode Booking *${booking.id}* atas nama *${booking.clientName}*. Mohon konfirmasi kedatangan saya pada ${booking.date} jam ${booking.timeSlot} di ${branch}. Terima kasih!`;
+    window.open(buildWaLink(waMessage, branch), "_blank");
   };
 
   const handleCancelBooking = async () => {

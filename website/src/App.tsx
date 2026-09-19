@@ -159,13 +159,22 @@ export default function App() {
                   Reservasi Sekarang
                 </button>
                 <a
-                  href={buildWaLink("Halo Bulu Space, saya ingin tanya jadwal dan terapis")}
+                  href={buildWaLink("Halo Admin Bulu Space Jakarta Barat, saya ingin tanya jadwal dan terapis", "Jakarta Barat")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-3 rounded-lg border border-neutral-700 text-neutral-200 text-sm font-medium hover:bg-neutral-800 transition-colors flex items-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Konsultasi via WhatsApp
+                  Jakarta Barat
+                </a>
+                <a
+                  href={buildWaLink("Halo Admin Bulu Space Jakarta Selatan, saya ingin tanya jadwal dan terapis", "Jakarta Selatan")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 rounded-lg border border-neutral-700 text-neutral-200 text-sm font-medium hover:bg-neutral-800 transition-colors flex items-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Jakarta Selatan
                 </a>
               </div>
             </div>

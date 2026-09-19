@@ -50,7 +50,7 @@ export const Testimonials: React.FC = () => {
           <div className="mt-3 flex flex-col items-center gap-1">
             <div className="flex items-center gap-2">
               <span className="text-xl font-semibold text-neutral-900">⭐️ 4.5</span>
-              <span className="text-sm text-neutral-500">({REVIEWS.length} ulasan)</span>
+              <span className="text-sm text-neutral-500">(200+ ulasan)</span>
             </div>
             <p className="text-xs text-neutral-400">berdasarkan ulasan google maps</p>
           </div>

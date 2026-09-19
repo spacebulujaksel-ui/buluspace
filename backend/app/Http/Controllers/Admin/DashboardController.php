@@ -83,7 +83,6 @@ class DashboardController extends Controller
         return response()->json([
             'stats' => [
                 'total_bookings' => $bookings->count(),
-                'pending_count' => $bookings->where('status', 'Pending')->count(),
                 'active_therapists' => Therapist::where('status', 'Active')->count(),
                 'total_services' => Service::count(),
                 'total_reviews' => Review::whereHas('appointment', fn ($q) => $q->where('location', $branchName))->count(),
@@ -105,17 +104,6 @@ class DashboardController extends Controller
                 ->whereDate('updated_at', $today)
                 ->count(),
             'recent_bookings' => Appointment::with(['therapist'])
-                ->where('location', $branchName)
-                ->orderByDesc('id')
-                ->limit(8)
-                ->get(),
-            'pending_bookings' => Appointment::with(['therapist', 'details.service'])
-                ->where('location', $branchName)
-                ->where('status', 'Pending')
-                ->orderBy('appointment_date')
-                ->orderBy('start_time')
-                ->limit(5)
-                ->get(),
             'customer_series' => [
                 'daily' => $daily,
                 'monthly' => $monthly,

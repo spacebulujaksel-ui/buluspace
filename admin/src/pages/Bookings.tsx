@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Search, Filter, Eye, X, Check, AlertCircle } from 'lucide-react';
+import { Search, Filter, Eye, X, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { formatRupiah, formatDate, formatDateTime } from '../data/helpers';
 import { Appointment } from '../types';
 
-const STATUS_OPTIONS = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
+const STATUS_OPTIONS = ['All', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
 
 const STATUS_STYLES: Record<string, string> = {
-  Pending: 'bg-amber-50 text-amber-700',
   Confirmed: 'bg-emerald-50 text-emerald-700',
   Completed: 'bg-sky-50 text-sky-700',
   Cancelled: 'bg-rose-50 text-rose-700',
@@ -62,21 +61,7 @@ export default function Bookings() {
     }
   };
 
-  const rejectBooking = async (id: number) => {
-    setError('');
-    setUpdating(true);
-    try {
-      await api.put(`/admin/bookings/${id}/status`, { status: 'Rejected' });
-      setSelected((s) => (s && s.id === id ? { ...s, status: 'Rejected' as const } : s));
-      load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal menolak booking.');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  return (
+    return (
     <div className="space-y-4">
       {error && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
@@ -303,31 +288,6 @@ export default function Bookings() {
                     {selected.status === 'Rejected' ? 'Alasan Penolakan' : 'Alasan Pembatalan'}
                   </p>
                   <p className="text-[13px] text-rose-700 italic">{selected.cancel_reason}</p>
-                </div>
-              )}
-
-              {selected.status === 'Pending' && (
-                <div className="pt-2 border-t border-neutral-200">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => updateStatus(selected.id, 'Confirmed')}
-                      disabled={updating}
-                      className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-60"
-                    >
-                      <Check className="w-4 h-4" />
-                      Konfirmasi
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (window.confirm('Yakin menolak booking ini?')) rejectBooking(selected.id);
-                      }}
-                      disabled={updating}
-                      className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-60"
-                    >
-                      <X className="w-4 h-4" />
-                      Tolak
-                    </button>
-                  </div>
                 </div>
               )}
 

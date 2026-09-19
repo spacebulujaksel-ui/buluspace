@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
-import { Users, TrendingUp, Clock, AlertCircle, Check, X, UserPlus, Trash2, Loader2, BarChart3 } from 'lucide-react';
+import { Users, TrendingUp, Clock, AlertCircle, UserPlus, Trash2, Loader2, BarChart3, X } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { api } from '../lib/api';
 import { formatDate } from '../data/helpers';
@@ -16,7 +16,6 @@ const CHART_META: Record<ChartView, { title: string; hint: string }> = {
 interface DashboardData {
   stats: {
     total_bookings: number;
-    pending_count: number;
     active_therapists: number;
     total_services: number;
     total_reviews: number;
@@ -29,7 +28,6 @@ interface DashboardData {
   status_breakdown: Record<string, number>;
   cancellations_today: number;
   recent_bookings: BookingRow[];
-  pending_bookings: BookingRow[];
   customer_series: {
     daily: { label: number; value: number }[];
     monthly: { label: string; value: number }[];
@@ -50,7 +48,6 @@ interface BookingRow {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  Pending: 'bg-amber-50 text-amber-700',
   Confirmed: 'bg-emerald-50 text-emerald-700',
   Completed: 'bg-sky-50 text-sky-700',
   Cancelled: 'bg-rose-50 text-rose-700',
@@ -66,7 +63,6 @@ const todayStr = () => {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
-  const [updating, setUpdating] = useState(false);
 
   const [walkinOpen, setWalkinOpen] = useState(false);
   const [walkinDate, setWalkinDate] = useState(todayStr());
@@ -83,31 +79,6 @@ export default function Dashboard() {
   };
 
   useEffect(load, []);
-
-  const quickConfirm = async (id: number) => {
-    setUpdating(true);
-    try {
-      await api.put(`/admin/bookings/${id}/status`, { status: 'Confirmed' });
-      load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal mengonfirmasi booking.');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const quickReject = async (id: number, code: string) => {
-    if (!window.confirm(`Yakin menolak booking ${code}?`)) return;
-    setUpdating(true);
-    try {
-      await api.put(`/admin/bookings/${id}/status`, { status: 'Rejected' });
-      load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Gagal menolak booking.');
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   const addWalkin = async () => {
     if (!walkinName.trim()) return;
@@ -282,66 +253,6 @@ export default function Dashboard() {
           );
         })()}
       </div>
-
-      {/* Pending quick actions */}
-      {data.pending_bookings.length > 0 && (
-        <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
-            <div>
-              <h3 className="text-sm font-semibold text-neutral-900">Menunggu Konfirmasi</h3>
-              <p className="text-[11px] text-neutral-400 mt-0.5">{data.stats.pending_count} booking perlu dikonfirmasi</p>
-            </div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
-              <Clock className="w-3 h-3" /> Pending
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-neutral-100">
-                  {['Kode', 'Klien', 'Terapis', 'Tanggal', 'Total', 'Aksi'].map((h) => (
-                    <th key={h} className="px-5 py-2.5 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.pending_bookings.map((apt) => (
-                  <tr key={apt.id} className="border-b border-neutral-50 last:border-0">
-                    <td className="px-5 py-3.5 text-xs text-neutral-400 font-mono">{apt.booking_code}</td>
-                    <td className="px-5 py-3.5">
-                      <p className="text-[13px] font-medium text-neutral-900">{apt.customer_name}</p>
-                      <p className="text-[11px] text-neutral-400">{apt.customer_phone}</p>
-                    </td>
-                    <td className="px-5 py-3.5 text-[13px] text-neutral-700">{apt.therapist?.name ?? 'â€”'}</td>
-                    <td className="px-5 py-3.5 text-[13px] text-neutral-500">{formatDate(apt.appointment_date)}</td>
-                    <td className="px-5 py-3.5 text-[13px] font-medium text-neutral-900 font-mono">{formatRupiah(Number(apt.total_price))}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => quickConfirm(apt.id)}
-                          disabled={updating}
-                          title="Konfirmasi"
-                          className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 disabled:opacity-50"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => quickReject(apt.id, apt.booking_code)}
-                          disabled={updating}
-                          title="Tolak"
-                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* Recent Bookings */}
       <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">

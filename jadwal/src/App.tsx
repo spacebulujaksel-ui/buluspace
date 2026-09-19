@@ -26,7 +26,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [locFilter, setLocFilter] = useState<'all' | 'Jakarta Barat' | 'Jakarta Selatan'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'Confirmed' | 'Completed'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Confirmed' | 'Completed' | 'Cancelled'>('all');
 
   const load = (d: string) => {
     setLoading(true);
@@ -121,6 +121,7 @@ export default function App() {
             <option value="all">Semua</option>
             <option value="Confirmed">Belum Selesai</option>
             <option value="Completed">Selesai</option>
+            <option value="Cancelled">Batal</option>
           </select>
           <span className="text-[11px] text-neutral-400">Menampilkan booking yang sudah di-acc admin</span>
         </div>
@@ -149,12 +150,22 @@ export default function App() {
                   </div>
                   <div className="divide-y divide-neutral-100">
                     {entries.map((e) => (
-  <div key={e.id} className={`px-4 py-3 border-l-4 ${style.card}`}>
+  <div key={e.id} className={`px-4 py-3 border-l-4 ${style.card} ${(e.status === 'Cancelled' || e.status === 'Rejected') ? 'bg-red-50' : ''}`}>
     <p className="text-sm font-mono font-semibold">
       {e.start_time.slice(0, 5)} – {e.end_time.slice(0, 5)}
     </p>
     <p className="mt-1 text-[13px] font-medium text-neutral-900">{e.therapist ?? '—'}</p>
     <p className="text-[12px] text-neutral-500">{e.services.join(', ') || '—'}</p>
+    {(e.status === 'Cancelled' || e.status === 'Rejected') && (
+      <span className="mt-1 inline-block px-2 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-semibold">
+        Batal
+      </span>
+    )}
+    {e.status === 'Completed' && (
+      <span className="mt-1 inline-block px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-semibold">
+        Selesai
+      </span>
+    )}
   </div>
 ))}
                   </div>

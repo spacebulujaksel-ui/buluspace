@@ -51,7 +51,7 @@ class PublicController extends Controller
 
         $board = Appointment::with(['therapist:id,name', 'details.service:id,name'])
             ->whereDate('appointment_date', $validated['date'])
-            ->whereIn('status', ['Confirmed', 'Completed'])
+            ->whereIn('status', ['Confirmed', 'Completed', 'Cancelled', 'Rejected'])
             ->orderBy('start_time')
             ->get()
             ->map(fn (Appointment $apt) => [

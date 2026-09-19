@@ -179,7 +179,7 @@ class BookingController extends Controller
             'appointment_date' => $validated['appointment_date'],
             'start_time' => $validated['start_time'],
             'end_time' => $end->format('H:i'),
-            'status' => 'Pending',
+            'status' => 'Confirmed',
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
             'customer_email' => $validated['customer_email'],

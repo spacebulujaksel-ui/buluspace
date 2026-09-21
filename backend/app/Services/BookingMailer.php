@@ -99,7 +99,7 @@ class BookingMailer
             $logoHtml = '<div style="padding-bottom:14px;">'
                 .'<img src="'.$logoUrl.'" alt="Bulu Space" style="height:44px;width:auto;max-width:180px;"/>'
                 .'</div>'
-                .'<div style="height:3px;background:#F472B6;border-radius:2px;margin-bottom:20px;"></div>';
+                .'<div style="height:3px;background:#FAC9D2;border-radius:2px;margin-bottom:20px;"></div>';
         }
 
         return '<div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:14px;line-height:1.6;">'

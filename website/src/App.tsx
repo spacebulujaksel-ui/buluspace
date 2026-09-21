@@ -15,7 +15,8 @@ import { SavedBooking } from './types';
 import { appointmentToSavedBooking, ServerBooking } from './lib/booking';
 import { api } from './lib/api';
 import { buildWaLink } from './lib/wa';
-import { Calendar, MessageCircle } from 'lucide-react';
+import { Calendar, MessageCircle, HelpCircle } from 'lucide-react';
+import { FaqModal } from './components/FaqModal';
 
 export default function App() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState<boolean>(false);
@@ -25,6 +26,7 @@ export default function App() {
   const [latestBooking, setLatestBooking] = useState<SavedBooking | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState<boolean>(false);
   const [savedBookings, setSavedBookings] = useState<SavedBooking[]>([]);
+  const [isFaqOpen, setIsFaqOpen] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -197,27 +199,21 @@ export default function App() {
         </button>
       )}
 
-      <Footer />
+      <Footer onOpenFaq={() => setIsFaqOpen(true)} />
 
-      {/* Floating WhatsApp Button */}
-      <a
-        href={buildWaLink("Halo Bulu Space! Saya mau tanya jadwal dan booking untuk treatment waxing")}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 group"
-        aria-label="Chat WhatsApp dengan Bulu Space"
+      {/* Floating FAQ Button */}
+      <button
+        onClick={() => setIsFaqOpen(true)}
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-neutral-900 hover:bg-neutral-800 text-pink-400 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 group"
+        aria-label="Buka FAQ dan Bantuan"
       >
-        {/* WhatsApp Icon */}
-        <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 fill-white" />
-        
-        {/* Pulse Animation */}
-        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-20"></span>
-        
+        <HelpCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+
         {/* Tooltip (Desktop Only) */}
         <span className="absolute right-16 bg-neutral-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none hidden sm:block">
-          Chat dengan Kami
+          FAQ & Bantuan
         </span>
-      </a>
+      </button>
 
       <BookingModal
         isOpen={isBookingModalOpen}
@@ -242,6 +238,8 @@ export default function App() {
         onClose={() => setIsTrackOpen(false)}
         onBookingCancelled={handleBookingCancelled}
       />
+
+      <FaqModal isOpen={isFaqOpen} onClose={() => setIsFaqOpen(false)} />
       </div>
     </DataProvider>
   );

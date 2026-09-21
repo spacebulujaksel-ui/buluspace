@@ -8,7 +8,11 @@ import {
 } from "lucide-react";
 import { buildWaLink, WA_JAKBAR, WA_JAKSEL } from "../lib/wa";
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onOpenFaq?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
   const socialLinks = [
     {
       name: "Instagram",
@@ -166,6 +170,14 @@ export const Footer: React.FC = () => {
             >
               Harga
             </a>
+            {onOpenFaq && (
+              <button
+                onClick={onOpenFaq}
+                className="hover:text-neutral-300 transition-colors cursor-pointer"
+              >
+                FAQ & Bantuan
+              </button>
+            )}
           </div>
         </div>
       </div>

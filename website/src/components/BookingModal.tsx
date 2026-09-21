@@ -582,6 +582,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <img
               src="/asset/img/Bulu Space_Logo Icon-03.png"
               alt="BuluSpace"
+              loading="lazy"
               className="w-8 h-auto"
             />
             <div>

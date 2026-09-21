@@ -44,13 +44,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
           <div className="lg:col-span-4 space-y-3">
             <div className="flex items-center gap-2">
               <img
-                src="/asset/img/Bulu Space_Logo Icon-03.png"
+                src="/asset/img/BULU SPACE_VERTICAL-01.png"
                 alt="BuluSpace"
+                loading="lazy"
                 className="w-8 h-auto"
               />
-              <span className="text-base font-semibold text-white">
-                BuluSpace
-              </span>
             </div>
             <p className="text-xs leading-relaxed max-w-xs">
               Studio waxing profesional dengan terapis bersertifikasi resmi,

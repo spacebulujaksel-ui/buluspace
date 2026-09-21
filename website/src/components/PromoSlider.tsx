@@ -82,12 +82,15 @@ export const PromoSlider: React.FC<PromoSliderProps> = ({ onClaimPromo }) => {
               className="flex h-full w-full transition-transform duration-500 ease-out will-change-transform"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
-              {PROMO_BANNERS.map((promo) => (
+              {PROMO_BANNERS.map((promo, i) => (
                 <div key={promo.id} className="relative w-full h-full shrink-0">
                   {/* Full-card image */}
                   <img
                     src={promo.image}
                     alt={promo.title}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : 'auto'}
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />

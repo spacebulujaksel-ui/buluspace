@@ -60,7 +60,7 @@ function FacilityCard({ facility }: { facility: Facility }) {
           style={{ transform: `translateX(-${photo * 100}%)` }}
         >
           {facility.images.map((src, i) => (
-            <img key={i} src={src} alt={`${facility.title} ${i + 1}`} className="w-full h-full shrink-0 object-cover" />
+            <img key={i} src={src} alt={`${facility.title} ${i + 1}`} loading="lazy" decoding="async" className="w-full h-full shrink-0 object-cover" />
           ))}
         </div>
         {facility.images.length > 1 && (

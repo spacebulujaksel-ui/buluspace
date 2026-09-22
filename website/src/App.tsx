@@ -202,7 +202,7 @@ export default function App() {
 
       <Footer onOpenFaq={goToFaq} />
 
-      <ChatBubble />
+      <ChatBubble raised={selectedServiceIds.length > 0} />
 
       <BookingModal
         isOpen={isBookingModalOpen}

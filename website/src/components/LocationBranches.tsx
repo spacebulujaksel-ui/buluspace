@@ -8,8 +8,9 @@ const branches = [
     address:
       "Jl. Raya Kb. Jeruk No.8, RT.1/RW.3, Kb. Jeruk, Kec. Kb. Jeruk, Jakarta, Daerah Khusus Ibukota Jakarta 11530",
     hours: "10.00 — 19.00 WIB",
-    lat: -6.1986735,
-    lng: 106.7768167,
+    mapsPlace:
+      "Bulu Space, Jl. Raya Kb. Jeruk No.8, RT.1/RW.3, Kb. Jeruk, Jakarta 11530",
+    mapsLink: "https://maps.app.goo.gl/TvfEirWQy9vZFsyr9",
     totalRooms: 2,
   },
   {
@@ -18,8 +19,9 @@ const branches = [
     address:
       "Jl. H. Syahrin No.3c 6, RT.7/RW.7, North Gandaria, Kebayoran Baru, South Jakarta City, Jakarta 12140",
     hours: "10.00 — 19.00 WIB",
-    lat: -6.2634069,
-    lng: 106.7940905,
+    mapsPlace:
+      "Bulu Space - Jaksel, Jl. H. Syahrin No.3c 6, RT.7/RW.7, North Gandaria, Kebayoran Baru, Jakarta 12140",
+    mapsLink: "https://maps.app.goo.gl/psNAzJH9uhQwWsuBA",
     totalRooms: 5,
   },
 ];
@@ -49,7 +51,7 @@ export const LocationBranches: React.FC = () => {
             >
               {/* Google Maps */}
               <iframe
-                src={`https://www.google.com/maps?q=${branch.lat},${branch.lng}&z=17&output=embed`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(branch.mapsPlace)}&output=embed`}
                 width="100%"
                 height="260"
                 style={{ border: 0 }}
@@ -59,6 +61,17 @@ export const LocationBranches: React.FC = () => {
                 title={`Google Maps ${branch.name}`}
                 className="h-52 sm:h-64 w-full"
               />
+              <div className="px-5 pt-3 -mb-1">
+                <a
+                  href={branch.mapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-pink-600 hover:text-pink-700"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  Buka lokasi di Google Maps
+                </a>
+              </div>
 
               {/* Info */}
               <div className="p-5 space-y-3">

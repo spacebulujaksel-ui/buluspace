@@ -4,10 +4,6 @@ export const FAQ_ITEMS = [
     a: "Pemesanan sangat mudah! Klik tombol 'Reservasi Sekarang' di website, pilih lokasi cabang (Jakarta Barat / Jakarta Selatan), tentukan layanan, tanggal, jam, dan terapis (opsional). Setelah konfirmasi, tiket reservasi Anda langsung terbit.",
   },
   {
-    q: "Apakah waxing di Bulu Space sakit dan aman untuk kulit sensitif?",
-    a: "Kami menggunakan wax premium jenis Gentle Film Hard Wax yang minim rasa sakit dan diformulasikan khusus aman untuk kulit sensitif. Terapis bersertifikasi kami terlatih menggunakan teknik khusus untuk kenyamanan maksimal.",
-  },
-  {
     q: "Apa yang perlu dipersiapkan sebelum melakukan treatment waxing?",
     a: "Pastikan panjang bulu minimal 0.5 cm (sekitar 2-3 minggu setelah cukur terakhir). Hindari eksfoliasi berat atau penggunaan retinol/lotion tebal 24 jam sebelum waxing agar hasil optimal.",
   },

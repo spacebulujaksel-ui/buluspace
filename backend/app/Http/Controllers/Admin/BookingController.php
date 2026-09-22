@@ -61,9 +61,10 @@ class BookingController extends Controller
         $appointment->save();
         $appointment->load(['therapist', 'details.service']);
 
-        if ($appointment->status === 'Completed') {
-            BookingMailer::toCustomer($appointment, 'aftercare');
-        }
+        // ponytail: email aftercare (tata cara treatment) dinonaktifkan sementara — uncomment blok di bawah untuk mengaktifkan lagi.
+        // if ($appointment->status === 'Completed') {
+        //     BookingMailer::toCustomer($appointment, 'aftercare');
+        // }
 
         return response()->json(['message' => 'Status booking diperbarui.', 'booking' => $appointment]);
     }

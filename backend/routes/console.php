@@ -8,6 +8,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('app:send-h1-reminders')->dailyAt('18:00');
+// ponytail: reminder H-1 dinonaktifkan sementara — uncomment baris di bawah untuk mengaktifkan lagi.
+// Schedule::command('app:send-h1-reminders')->dailyAt('18:00');
 Schedule::command('app:send-hour-reminders')->everyFifteenMinutes();
 Schedule::command('app:sync-therapist-leave-status')->hourly();

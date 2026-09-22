@@ -8,12 +8,14 @@ import {
   Star,
   Megaphone,
   Mail,
+  MessagesSquare,
   X,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/bookings', label: 'Bookings', icon: CalendarDays },
+  { to: '/chat', label: 'Chat', icon: MessagesSquare },
   { to: '/schedule', label: 'Jadwal', icon: CalendarRange },
   { to: '/therapists', label: 'Terapis', icon: Users },
   { to: '/services', label: 'Layanan', icon: Scissors },

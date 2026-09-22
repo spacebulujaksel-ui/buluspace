@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
 import Schedule from './pages/Schedule';
+import Chat from './pages/Chat';
 import Therapists from './pages/Therapists';
 import Services from './pages/Services';
 import Promos from './pages/Promos';
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/bookings" element={<Bookings />} />
         <Route path="/schedule" element={<Schedule />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/therapists" element={<Therapists />} />
         <Route path="/services" element={<Services />} />
         <Route path="/promos" element={<Promos />} />

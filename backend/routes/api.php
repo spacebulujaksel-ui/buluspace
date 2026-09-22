@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminChatController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailSettingController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\TherapistController as AdminTherapistController;
 use App\Http\Controllers\Admin\WalkInController as AdminWalkInController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\PromoController;
 use App\Http\Controllers\Api\PublicController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,12 @@ Route::get('/schedule-board', [PublicController::class, 'scheduleBoard']);
 Route::post('/bookings', [BookingController::class, 'store']);
 Route::get('/bookings/{code}', [BookingController::class, 'show']);
 Route::post('/bookings/{code}/cancel', [BookingController::class, 'cancel']);
+
+Route::middleware('throttle:20,1')->group(function () {
+    Route::post('/chats', [ChatController::class, 'store']);
+    Route::post('/chats/{id}/messages', [ChatController::class, 'send']);
+});
+Route::get('/chats/{id}/messages', [ChatController::class, 'messages']);
 
 /*
 |--------------------------------------------------------------------------
@@ -90,4 +98,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAdmin::class])
 
         Route::post('/walk-ins', [AdminWalkInController::class, 'store']);
         Route::delete('/walk-ins/{id}', [AdminWalkInController::class, 'destroy']);
+
+        Route::get('/chats', [AdminChatController::class, 'index']);
+        Route::get('/chats/{id}', [AdminChatController::class, 'show']);
+        Route::post('/chats/{id}/messages', [AdminChatController::class, 'reply']);
+        Route::post('/chats/{id}/close', [AdminChatController::class, 'close']);
     });

@@ -4,6 +4,7 @@ export interface CombinationItem {
   duration: number;
 }
 
+const SOLO_FULL = ['Full Front', 'Full Back'];
 const FULL_TREATMENTS = ['Full Legs', 'Full Arms', 'Full Front', 'Full Back'];
 
 export function combinationError(selected: CombinationItem[]): string | null {
@@ -21,7 +22,7 @@ export function combinationError(selected: CombinationItem[]): string | null {
     return bad ? 'Feel Smooth hanya bisa digabung dengan treatment 10–15 menit.' : null;
   }
 
-  const full = selected.find((s) => FULL_TREATMENTS.includes(s.name));
+  const full = selected.find((s) => SOLO_FULL.includes(s.name));
   if (full) return `${full.name} hanya bisa dipilih sendiri.`;
 
   const pkg = selected.find((s) => s.category === 'package');

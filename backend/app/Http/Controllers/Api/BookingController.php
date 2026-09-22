@@ -299,7 +299,7 @@ class BookingController extends Controller
             return $bad ? 'Feel Smooth hanya bisa digabung dengan treatment 10–15 menit.' : null;
         }
 
-        $fullIn = $names->intersect($full);
+        $fullIn = $names->intersect(['Full Front', 'Full Back']);
         if ($fullIn->isNotEmpty()) {
             return "{$fullIn->first()} hanya bisa dipilih sendiri.";
         }

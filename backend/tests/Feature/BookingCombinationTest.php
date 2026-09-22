@@ -32,6 +32,7 @@ class BookingCombinationTest extends TestCase
             'brazilian' => $make('Brazilian', 'intimate', 30),
             'full_legs' => $make('Full Legs', 'legs', 30),
             'full_arms' => $make('Full Arms', 'arms', 30),
+            'full_back' => $make('Full Back', 'upper', 30),
             'forehead' => $make('Forehead', 'face', 10),
             'underarms' => $make('Underarms', 'arms', 15),
             'feel_smooth' => $make('Feel Smooth', 'package', 60),
@@ -93,12 +94,17 @@ class BookingCombinationTest extends TestCase
         $this->assertStringContainsString('Clean Girl hanya bisa dipilih sendiri', $res->json('message'));
     }
 
-    public function test_full_treatment_must_be_ordered_alone(): void
+    public function test_full_legs_can_combine_with_other_treatments(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['full_legs', 'forehead'])));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['full_legs', 'forehead'])))->assertCreated();
+    }
+
+    public function test_solo_full_treatment_must_be_ordered_alone(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['full_back', 'forehead'])));
 
         $res->assertStatus(422);
-        $this->assertStringContainsString('Full Legs hanya bisa dipilih sendiri', $res->json('message'));
+        $this->assertStringContainsString('Full Back hanya bisa dipilih sendiri', $res->json('message'));
     }
 
     public function test_normal_singles_can_combine_freely(): void

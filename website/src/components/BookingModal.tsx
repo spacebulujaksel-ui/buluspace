@@ -645,7 +645,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         {srv.name}
                       </p>
                       {srv.category === "intimate" && (
-                        <p className="text-[10px] text-rose-500">(pria tidak bisa memilih treatment ini)</p>
+                        <p className="text-[10px] text-neutral-400">* Pria tidak bisa memilih treatment ini</p>
                       )}
                     </div>
                     <div className="text-right shrink-0">
@@ -976,8 +976,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 })}
               </div>
               {hasIntimate && (
-                <p className="text-[10px] text-rose-500 mt-1">
-                  (pria tidak bisa memilih treatment ini)
+                <p className="text-[10px] text-neutral-400 mt-1">
+                  * Pria tidak bisa memilih treatment ini
                 </p>
               )}
               {customerGender === "Pria" && (

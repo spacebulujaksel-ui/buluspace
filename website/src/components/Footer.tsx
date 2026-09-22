@@ -47,7 +47,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
                 src="/asset/img/BULU SPACE_VERTICAL-01.png"
                 alt="BuluSpace"
                 loading="lazy"
-                className="w-8 h-auto"
+                className="w-16 h-auto"
               />
             </div>
             <p className="text-xs leading-relaxed max-w-xs">

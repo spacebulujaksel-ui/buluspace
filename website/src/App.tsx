@@ -14,8 +14,9 @@ import { DataProvider } from './hooks/useData';
 import { SavedBooking } from './types';
 import { appointmentToSavedBooking, ServerBooking } from './lib/booking';
 import { api } from './lib/api';
-import { Calendar, HelpCircle } from 'lucide-react';
-import { FaqModal } from './components/FaqModal';
+import { buildWaLink } from './lib/wa';
+import { FaqPage } from './components/FaqPage';
+import { Calendar, MessageCircle } from 'lucide-react';
 
 export default function App() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState<boolean>(false);
@@ -25,7 +26,20 @@ export default function App() {
   const [latestBooking, setLatestBooking] = useState<SavedBooking | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState<boolean>(false);
   const [savedBookings, setSavedBookings] = useState<SavedBooking[]>([]);
-  const [isFaqOpen, setIsFaqOpen] = useState<boolean>(false);
+  const [chatOpen, setChatOpen] = useState<boolean>(false);
+  const [route, setRoute] = useState<string>(() => window.location.hash);
+
+  useEffect(() => {
+    const onHashChange = () => setRoute(window.location.hash);
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const isFaqPage = route === '#faq';
+  const goToFaq = () => {
+    setChatOpen(false);
+    window.location.hash = 'faq';
+  };
 
   useEffect(() => {
     try {
@@ -125,9 +139,12 @@ export default function App() {
       <Navbar
         onOpenBooking={() => setIsBookingModalOpen(true)}
         onOpenTrack={() => setIsTrackOpen(true)}
-        onOpenFaq={() => setIsFaqOpen(true)}
+        onOpenFaq={goToFaq}
       />
 
+      {isFaqPage ? (
+        <FaqPage />
+      ) : (
       <main className="flex-1">
         <PromoSlider onClaimPromo={handleClaimPromo} />
 
@@ -168,6 +185,7 @@ export default function App() {
           </div>
         </section>
       </main>
+      )}
 
       {/* Floating Booking Badge */}
       {savedBookings.length > 0 && (
@@ -184,21 +202,52 @@ export default function App() {
         </button>
       )}
 
-      <Footer onOpenFaq={() => setIsFaqOpen(true)} />
+      <Footer onOpenFaq={goToFaq} />
 
-      {/* Floating FAQ Button */}
-      <button
-        onClick={() => setIsFaqOpen(true)}
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-neutral-900 hover:bg-neutral-800 text-pink-400 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 group"
-        aria-label="Buka FAQ dan Bantuan"
-      >
-        <HelpCircle className="w-6 h-6 sm:w-7 sm:h-7" />
-
-        {/* Tooltip (Desktop Only) */}
-        <span className="absolute right-16 bg-neutral-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none hidden sm:block">
-          FAQ & Bantuan
-        </span>
-      </button>
+      {/* Floating WhatsApp Chat */}
+      <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end gap-3">
+        {chatOpen && (
+          <div className="bg-white border border-neutral-200 rounded-2xl shadow-lg p-2 min-w-52">
+            <a
+              href={buildWaLink(
+                "Halo Admin Bulu Space Jakarta Barat, saya mau konsultasi layanan waxing",
+                "Jakarta Barat",
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setChatOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] text-neutral-700 hover:bg-neutral-50"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              WhatsApp Jakarta Barat
+            </a>
+            <a
+              href={buildWaLink(
+                "Halo Admin Bulu Space Jakarta Selatan, saya mau konsultasi layanan waxing",
+                "Jakarta Selatan",
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setChatOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] text-neutral-700 hover:bg-neutral-50"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              WhatsApp Jakarta Selatan
+            </a>
+          </div>
+        )}
+        <button
+          onClick={() => setChatOpen((o) => !o)}
+          className="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 group"
+          aria-label="Chat WhatsApp"
+          aria-expanded={chatOpen}
+        >
+          <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 fill-white/20" />
+          <span className="absolute right-16 bg-neutral-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none hidden sm:block">
+            Chat WhatsApp
+          </span>
+        </button>
+      </div>
 
       <BookingModal
         isOpen={isBookingModalOpen}
@@ -223,8 +272,6 @@ export default function App() {
         onClose={() => setIsTrackOpen(false)}
         onBookingCancelled={handleBookingCancelled}
       />
-
-      <FaqModal isOpen={isFaqOpen} onClose={() => setIsFaqOpen(false)} />
       </div>
     </DataProvider>
   );

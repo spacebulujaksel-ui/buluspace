@@ -128,6 +128,28 @@ const merged = r.messages.filter((m) => Number(m.id) > lastIdRef.current);
     }
   };
 
+  const startNew = async () => {
+    setStarting(true);
+    setError("");
+    try {
+      const r = await api.post<{ id: number; messages: ChatMessage[] }>("/chats", {
+        branch_id: branchId,
+        customer_name: name.trim(),
+        customer_phone: phone.trim(),
+        new: true,
+      });
+      setSessionId(r.id);
+      lastIdRef.current = 0;
+      setMessages([]);
+      setLocalBubbles([]);
+      persist({ sessionId: r.id });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal memulai chat baru.");
+    } finally {
+      setStarting(false);
+    }
+  };
+
   const send = async () => {
     const text = input.trim();
     if (!text || !sessionId || sending) return;
@@ -227,6 +249,15 @@ const merged = r.messages.filter((m) => Number(m.id) > lastIdRef.current);
               </div>
             ) : (
               <>
+                <div className="flex justify-end mb-1">
+                  <button
+                    onClick={startNew}
+                    disabled={starting}
+                    className="text-[10px] text-neutral-400 underline hover:text-neutral-700 disabled:opacity-50"
+                  >
+                    Mulai Percakapan Baru
+                  </button>
+                </div>
                 {!isOfficeHours() && (
                   <div className="bg-amber-50 border border-amber-200 text-amber-800 text-[11px] rounded-xl px-3 py-2 mb-2">
                     Admin aktif 10.00–19.00 WIB — pesanmu akan dibalas pada jam operasional 🤍

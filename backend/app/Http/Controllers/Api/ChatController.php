@@ -17,11 +17,15 @@ class ChatController extends Controller
             'customer_phone' => 'required|string|max:30',
         ]);
 
-        $session = ChatSession::where('branch_id', $validated['branch_id'])
-            ->where('customer_phone', $validated['customer_phone'])
-            ->where('status', 'open')
-            ->orderByDesc('id')
-            ->first();
+        $session = null;
+
+        if (!$request->boolean('new')) {
+            $session = ChatSession::where('branch_id', $validated['branch_id'])
+                ->where('customer_phone', $validated['customer_phone'])
+                ->where('status', 'open')
+                ->orderByDesc('id')
+                ->first();
+        }
 
         if (!$session) {
             $session = ChatSession::create([

@@ -3,10 +3,9 @@ import {
   MapPin,
   Clock,
   Heart,
-  MessageCircle,
   ArrowUpRight,
 } from "lucide-react";
-import { buildWaLink, WA_JAKBAR, WA_JAKSEL } from "../lib/wa";
+import { WA_JAKBAR, WA_JAKSEL } from "../lib/wa";
 
 interface FooterProps {
   onOpenFaq?: () => void;
@@ -51,28 +50,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
               />
             </div>
             <p className="text-xs leading-relaxed max-w-xs">
-              Studio Waxing dengan Terapis Terlatih, Standar Kebersihan Tinggi, dan Privet Treatment Rooms.
+              Studio Waxing dengan Terapis Terlatih, Standar Kebersihan Tinggi, dan Private Treatment Rooms.
             </p>
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={buildWaLink("Halo Admin Bulu Space Jakarta Barat, saya mau konsultasi layanan waxing", "Jakarta Barat")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-xs font-medium transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                WhatsApp Jakarta Barat
-              </a>
-              <a
-                href={buildWaLink("Halo Admin Bulu Space Jakarta Selatan, saya mau konsultasi layanan waxing", "Jakarta Selatan")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-800 text-neutral-300 hover:bg-neutral-700 text-xs font-medium transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                WhatsApp Jakarta Selatan
-              </a>
-            </div>
           </div>
 
           {/* Social */}

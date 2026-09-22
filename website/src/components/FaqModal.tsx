@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, HelpCircle, ChevronDown, MessageCircle } from "lucide-react";
-import { buildWaLink } from "../lib/wa";
+import { X, HelpCircle, ChevronDown } from "lucide-react";
 
 interface FaqModalProps {
   isOpen: boolean;
@@ -112,45 +111,6 @@ export const FaqModal: React.FC<FaqModalProps> = ({ isOpen, onClose }) => {
               </div>
             );
           })}
-
-          {/* WA Help Box */}
-          <div className="pt-4 border-t border-neutral-800">
-            <div className="p-4 rounded-xl bg-gradient-to-r from-pink-950/30 to-neutral-900 border border-pink-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-white flex items-center gap-1.5">
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-                  Pertanyaan belum terjawab?
-                </p>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
-                  Tim Admin kami siap membantu menjawab pertanyaan Anda via WA
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <a
-                  href={buildWaLink(
-                    "Halo Admin Jakbar, saya mau tanya soal treatment waxing",
-                    "Jakarta Barat"
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-emerald-400 border border-emerald-500/20 transition-colors"
-                >
-                  Jakbar
-                </a>
-                <a
-                  href={buildWaLink(
-                    "Halo Admin Jaksel, saya mau tanya soal treatment waxing",
-                    "Jakarta Selatan"
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-emerald-400 border border-emerald-500/20 transition-colors"
-                >
-                  Jaksel
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

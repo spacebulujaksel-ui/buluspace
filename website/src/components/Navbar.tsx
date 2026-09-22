@@ -1,20 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Calendar, Menu, X, MessageCircle, Ticket } from "lucide-react";
-import { buildWaLink } from "../lib/wa";
+import React, { useState, useEffect } from "react";
+import { Calendar, Menu, X, HelpCircle, Ticket } from "lucide-react";
 
 interface NavbarProps {
   onOpenBooking: () => void;
   onOpenTrack: () => void;
+  onOpenFaq: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenBooking,
   onOpenTrack,
+  onOpenFaq,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [waOpen, setWaOpen] = useState(false);
-  const waRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,17 +22,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (!waOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (waRef.current && !waRef.current.contains(e.target as Node)) {
-        setWaOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [waOpen]);
 
   const navLinks = [
     { label: "Promo", href: "#promo" },
@@ -108,45 +96,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden md:inline">Lacak Booking</span>
           </button>
 
-          <div className="relative" ref={waRef}>
-            <button
-              onClick={() => setWaOpen((o) => !o)}
-              className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
-              title="Chat WhatsApp"
-              aria-haspopup="true"
-              aria-expanded={waOpen}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </button>
-            {waOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-neutral-200 rounded-xl shadow-lg py-1 z-50">
-                <a
-                  href={buildWaLink(
-                    "Halo Admin Bulu Space Jakarta Barat, saya ingin tanya jadwal waxing",
-                    "Jakarta Barat",
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 text-[12px] text-neutral-600 hover:bg-neutral-50"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
-                  WhatsApp Jakarta Barat
-                </a>
-                <a
-                  href={buildWaLink(
-                    "Halo Admin Bulu Space Jakarta Selatan, saya ingin tanya jadwal waxing",
-                    "Jakarta Selatan",
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 text-[12px] text-neutral-600 hover:bg-neutral-50"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
-                  WhatsApp Jakarta Selatan
-                </a>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={onOpenFaq}
+            className="p-2 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-1.5 text-[12px] font-medium"
+            title="FAQ & Bantuan"
+          >
+            <HelpCircle className="w-4 h-4" />
+            <span className="hidden md:inline">FAQ</span>
+          </button>
 
           <button
             onClick={onOpenBooking}
@@ -215,30 +172,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Calendar className="w-3.5 h-3.5" />
               Reservasi Sekarang
             </button>
-            <a
-              href={buildWaLink(
-                "Halo Admin Bulu Space Jakarta Barat, saya ingin tanya jadwal waxing",
-                "Jakarta Barat",
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenFaq();
+              }}
               className="w-full py-2.5 text-[12px] font-medium rounded-lg border border-neutral-200 text-neutral-700 flex items-center justify-center gap-2"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
-              WhatsApp Jakarta Barat
-            </a>
-            <a
-              href={buildWaLink(
-                "Halo Admin Bulu Space Jakarta Selatan, saya ingin tanya jadwal waxing",
-                "Jakarta Selatan",
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-2.5 text-[12px] font-medium rounded-lg border border-neutral-200 text-neutral-700 flex items-center justify-center gap-2"
-            >
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
-              WhatsApp Jakarta Selatan
-            </a>
+              <HelpCircle className="w-3.5 h-3.5" />
+              FAQ & Bantuan
+            </button>
           </div>
         </div>
       )}

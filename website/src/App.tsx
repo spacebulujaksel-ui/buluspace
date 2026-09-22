@@ -14,8 +14,7 @@ import { DataProvider } from './hooks/useData';
 import { SavedBooking } from './types';
 import { appointmentToSavedBooking, ServerBooking } from './lib/booking';
 import { api } from './lib/api';
-import { buildWaLink } from './lib/wa';
-import { Calendar, MessageCircle, HelpCircle } from 'lucide-react';
+import { Calendar, HelpCircle } from 'lucide-react';
 import { FaqModal } from './components/FaqModal';
 
 export default function App() {
@@ -123,7 +122,11 @@ export default function App() {
         </button>
       </div> */}
 
-      <Navbar onOpenBooking={() => setIsBookingModalOpen(true)} onOpenTrack={() => setIsTrackOpen(true)} />
+      <Navbar
+        onOpenBooking={() => setIsBookingModalOpen(true)}
+        onOpenTrack={() => setIsTrackOpen(true)}
+        onOpenFaq={() => setIsFaqOpen(true)}
+      />
 
       <main className="flex-1">
         <PromoSlider onClaimPromo={handleClaimPromo} />
@@ -160,24 +163,6 @@ export default function App() {
                   <Calendar className="w-4 h-4" />
                   Reservasi Sekarang
                 </button>
-                <a
-                  href={buildWaLink("Halo Admin Bulu Space Jakarta Barat, saya ingin tanya jadwal dan terapis", "Jakarta Barat")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-lg border border-neutral-700 text-neutral-200 text-sm font-medium hover:bg-neutral-800 transition-colors flex items-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Jakarta Barat
-                </a>
-                <a
-                  href={buildWaLink("Halo Admin Bulu Space Jakarta Selatan, saya ingin tanya jadwal dan terapis", "Jakarta Selatan")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 rounded-lg border border-neutral-700 text-neutral-200 text-sm font-medium hover:bg-neutral-800 transition-colors flex items-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Jakarta Selatan
-                </a>
               </div>
             </div>
           </div>

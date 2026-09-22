@@ -6,7 +6,6 @@ import {
   MapPin,
   Heart,
   Share2,
-  MessageCircle,
   X,
   Download,
   Copy,
@@ -15,7 +14,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { api } from "../lib/api";
-import { buildWaLink } from "../lib/wa";
 import { SavedBooking } from "../types";
 
 interface BookingConfirmationModalProps {
@@ -48,12 +46,6 @@ export const BookingConfirmationModal: React.FC<
     navigator.clipboard.writeText(booking.id);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleSendWA = () => {
-    const branch = booking.location ?? "Jakarta Barat";
-    const waMessage = `Halo Admin Bulu Space ${branch}, saya sudah membuat reservasi di website dengan Kode Booking *${booking.id}* atas nama *${booking.clientName}*. Mohon konfirmasi kedatangan saya pada ${booking.date} jam ${booking.timeSlot} di ${branch}. Terima kasih!`;
-    window.open(buildWaLink(waMessage, branch), "_blank");
   };
 
   const handleCancelBooking = async () => {
@@ -220,14 +212,6 @@ export const BookingConfirmationModal: React.FC<
             </div>
           ) : (
             <>
-              <button
-                onClick={handleSendWA}
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-700/20 cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4 fill-white" />
-                <span>Konfirmasi ke WhatsApp Admin Bulu Space</span>
-              </button>
-
               {showCancel ? (
                 <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 space-y-2.5">
                   <p className="text-[11px] font-semibold text-rose-700">

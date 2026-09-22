@@ -217,7 +217,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-7",
     category: "arms",
     name: "Half Arms",
-    description: "Waxing lengan bawah atau atas sesuai kebutuhan Anda.",
+    description: "Waxing lengan bawah hingga ujung tangan.",
     durationMinutes: 20,
     price: 74000,
     waxType: "Organic Soft Honey",
@@ -228,7 +228,7 @@ export const SERVICES: WaxService[] = [
     category: "arms",
     name: "Full Arms",
     description:
-      "Waxing lengan menyeluruh dari pundak hingga pergelangan tangan.",
+      "Waxing lengan menyeluruh dari bahu hingga ujung tangan.",
     durationMinutes: 30,
     price: 85000,
     waxType: "Organic Soft Honey",
@@ -497,8 +497,8 @@ export const HYGIENE_PILLARS = [
     icon: "Sparkles",
   },
   {
-    title: "Kamar Privat & Aromaterapi",
-    desc: "Ruangan treatment pribadi, musik menenangkan, dan sentuhan aroma terapi pilihan.",
+    title: "Kamar Privat & Terapis Profesional",
+    desc: "Ruangan treatment pribadi dan terapis profesional yang memiliki keterampilan dan mengutamakan kenyamanan pelanggan.",
     icon: "DoorClosed",
   },
 ];

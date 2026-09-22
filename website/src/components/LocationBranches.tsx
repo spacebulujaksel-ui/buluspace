@@ -6,19 +6,20 @@ const branches = [
     id: "jakbar",
     name: "Bulu Space Jakarta Barat",
     address:
-      "Jl. Raya Kb. Jeruk No.8, RT.1/RW.3, Kb. Jeruk, Kec. Kb. Jeruk, Jakarta, DKI Jakarta 11530",
+      "Jl. Raya Kb. Jeruk No.8, RT.1/RW.3, Kb. Jeruk, Kec. Kb. Jeruk, Jakarta, Daerah Khusus Ibukota Jakarta 11530",
     hours: "10.00 — 19.00 WIB",
-    mapsQuery: "Jl. Raya Kb. Jeruk No.8, Kb. Jeruk, Jakarta Barat 11530",
+    lat: -6.1986735,
+    lng: 106.7768167,
     totalRooms: 2,
   },
   {
     id: "jaksel",
     name: "Bulu Space Jakarta Selatan",
     address:
-      "Jl. H. Syahrin No.3c 6, RT.7/RW.7, Gandaria Utara, Kebayoran Baru, South Jakarta, DKI Jakarta 12140",
+      "Jl. H. Syahrin No.3c 6, RT.7/RW.7, North Gandaria, Kebayoran Baru, South Jakarta City, Jakarta 12140",
     hours: "10.00 — 19.00 WIB",
-    mapsQuery:
-      "Jl. H. Syahrin No.3c 6, Gandaria Utara, Kebayoran Baru, Jakarta Selatan 12140",
+    lat: -6.2634069,
+    lng: 106.7940905,
     totalRooms: 5,
   },
 ];
@@ -48,7 +49,7 @@ export const LocationBranches: React.FC = () => {
             >
               {/* Google Maps */}
               <iframe
-                src={`https://www.google.com/maps?q=${encodeURIComponent(branch.mapsQuery)}&output=embed`}
+                src={`https://www.google.com/maps?q=${branch.lat},${branch.lng}&z=17&output=embed`}
                 width="100%"
                 height="260"
                 style={{ border: 0 }}

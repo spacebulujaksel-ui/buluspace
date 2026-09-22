@@ -51,8 +51,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
               />
             </div>
             <p className="text-xs leading-relaxed max-w-xs">
-              Studio waxing profesional dengan terapis bersertifikasi resmi,
-              higienitas medis 100%, dan kenyamanan bilik privat.
+              Studio Waxing dengan Terapis Terlatih, Standar Kebersihan Tinggi, dan Privet Treatment Rooms.
             </p>
             <div className="flex flex-wrap gap-2">
               <a
@@ -154,7 +153,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
 
         {/* Bottom */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-neutral-500 gap-3">
-          <p>© 2026 Bulu Space (PT Ruang Mulus Nusantara)</p>
+          <p>© 2026 Bulu Space</p>
           <div className="flex items-center gap-4">
             <a
               href="#promo"

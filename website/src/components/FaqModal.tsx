@@ -32,6 +32,10 @@ const FAQ_ITEMS = [
     q: "Apa saja metode pembayaran yang diterima di studio Bulu Space?",
     a: "Kami menerima pembayaran tunai (Cash), Transfer Bank, QRIS (Gopay, OVO, ShopeePay, BCA, Mandiri, dll), serta Kartu Debit/Kredit langsung di lokasi studio saat hari treatment.",
   },
+  {
+    q: "Kalau setelah treatment muncul kemerahan, jerawat atau bintik-bintik kecil, gimana ya kak?",
+    a: "Kemerahan, jerawat, atau bintik-bintik kecil setelah treatment bisa terjadi dan umumnya merupakan reaksi kulit terhadap treatment, terutama pada kulit yang sensitif ya kak. 🤍\n\nUntuk membantu menenangkan kulit, kakak bisa:\n\n* Oleskan aloe vera gel.\n* Hindari scrub atau eksfoliasi sementara.\n* Gunakan pakaian yang longgar agar tidak banyak gesekan.\n* Hindari air hangat pada area treatment.\n* Kurangi aktivitas yang membuat keringat berlebih sementara waktu.\n* Boleh dikompres air dingin.\n\nBiasanya reaksi kulit akan mereda seiring waktu ya kak. Semoga lekas membaik. ☺️🙏🏻",
+  },
 ];
 
 export const FaqModal: React.FC<FaqModalProps> = ({ isOpen, onClose }) => {

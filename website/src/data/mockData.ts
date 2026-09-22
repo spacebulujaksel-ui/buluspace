@@ -497,7 +497,7 @@ export const HYGIENE_PILLARS = [
     icon: "Sparkles",
   },
   {
-    title: "Kamar Privat & Terapis Profesional",
+    title: "Kamar Private & Terapis Profesional",
     desc: "Ruangan treatment pribadi dan terapis profesional yang memiliki keterampilan dan mengutamakan kenyamanan pelanggan.",
     icon: "DoorClosed",
   },

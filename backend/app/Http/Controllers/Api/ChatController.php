@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class ChatController extends Controller
 {
@@ -56,11 +55,6 @@ class ChatController extends Controller
 
         $session->update(['last_message_at' => now()]);
 
-        $hour = (int) Carbon::now('Asia/Jakarta')->format('G');
-        if ($hour < 10 || $hour >= 19) {
-            $this->replyBot($session, 'Halo '.$session->customer_name.', info: admin aktif pukul 10.00–19.00 WIB. Pesan Kakak sudah kami terima dan akan dibalas pada jam operasional. Terima kasih 🤍');
-        }
-
         return response()->json([
             'id' => $session->id,
             'messages' => $session->fresh('messages')->messages->map(fn (ChatMessage $m) => $this->shape($m)),
@@ -89,16 +83,5 @@ class ChatController extends Controller
             'body' => $m->body,
             'created_at' => $m->created_at?->toIso8601String(),
         ];
-    }
-
-    private function replyBot(ChatSession $session, string $body): void
-    {
-        ChatMessage::create([
-            'chat_session_id' => $session->id,
-            'sender' => 'bot',
-            'body' => $body,
-            'is_read' => false,
-        ]);
-        $session->update(['last_message_at' => now()]);
     }
 }

@@ -16,6 +16,16 @@ interface ChatMessage {
 
 const CUSTOMER_KEY = "bulu_chat_customer";
 
+function isOfficeHours(): boolean {
+  try {
+    const wib = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Asia/Jakarta" }).format(new Date());
+    const h = Number(wib);
+    return h >= 10 && h < 19;
+  } catch {
+    return true;
+  }
+}
+
 function matchFaq(input: string): string | null {
   const words = (s: string) =>
     s
@@ -217,6 +227,11 @@ const merged = r.messages.filter((m) => Number(m.id) > lastIdRef.current);
               </div>
             ) : (
               <>
+                {!isOfficeHours() && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 text-[11px] rounded-xl px-3 py-2 mb-2">
+                    Admin aktif 10.00–19.00 WIB — pesanmu akan dibalas pada jam operasional 🤍
+                  </div>
+                )}
                 {allMessages.length === 0 && (
                   <div className="bg-white border border-neutral-200 rounded-xl p-3 text-xs text-neutral-500">
                     Tulis pertanyaanmu di bawah ini ya, admin akan membalas di sini 😊

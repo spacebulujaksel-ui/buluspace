@@ -581,8 +581,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
 
             <p className="text-xs text-slate-600 mb-4">
-              Pilih terapis favorit Anda atau biarkan tim kami menugaskan
-              terapis senior terbaik yang sesuai.
+              Pilih terapis favorit Anda atau biarkan tim kami menugaskan terapis terbaik.
             </p>
 
             {/* Therapist Cards Picker */}

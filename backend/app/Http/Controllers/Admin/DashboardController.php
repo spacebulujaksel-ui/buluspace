@@ -83,7 +83,7 @@ class DashboardController extends Controller
         return response()->json([
             'stats' => [
                 'total_bookings' => $bookings->count(),
-                'active_therapists' => Therapist::where('status', 'Active')->count(),
+                'active_therapists' => Therapist::where('branch_id', $branchId)->where('status', 'Active')->count(),
                 'total_services' => Service::count(),
                 'total_reviews' => Review::whereHas('appointment', fn ($q) => $q->where('location', $branchName))->count(),
                 'customers_today' => $customersToday,

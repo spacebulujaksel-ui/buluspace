@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertCircle, Loader2, Ban, Plus, Trash2, Calendar } from 'lucide-react';
+import { AlertCircle, Loader2, Ban, Plus, Trash2, Calendar, DoorOpen } from 'lucide-react';
 import { api } from '../lib/api';
 import { Appointment } from '../types';
 
@@ -193,93 +193,92 @@ export default function Schedule() {
       )}
 
       {/* Grid */}
-      <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden overflow-x-auto">
+      <div className="space-y-2">
         {loading ? (
           <div className="text-center py-16 text-sm text-neutral-400">Memuat jadwal...</div>
         ) : !data ? (
           <div className="text-center py-16 text-sm text-neutral-400">Tidak ada data jadwal.</div>
         ) : (
-          <table className="min-w-full text-left">
-            <thead>
-              <tr className="border-b border-neutral-200">
-                <th className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400 w-24">Jam</th>
-                <th className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">Ketersediaan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {slotRows.map((slot, idx) => {
-                const bookings = slotBookings(slot.start, slot.end);
-                const blockedRooms = slotBlockedRooms(slot.start, slot.end);
-                const uniqueBlocked = Array.from(new Set(blockedRooms));
-                const available = capacity - uniqueBlocked.length;
-                const isClosed = capacity > 0 && available <= 0;
-                const isFull = capacity > 0 && bookings.length >= available;
-                return (
-                  <tr key={idx} className="border-b border-neutral-50 last:border-0 align-top">
-                    <td className="px-4 py-2 text-[11px] text-neutral-400 font-mono whitespace-nowrap pt-3">
-                      {toLabel(slot.start)} – {toLabel(slot.end)}
-                    </td>
-                    <td
-                      className={`px-4 py-2 ${
-                        isClosed
-                          ? 'bg-neutral-100/70'
-                          : isFull
-                            ? 'bg-red-50'
-                            : bookings.length > 0
-                              ? 'bg-pink-50/60'
-                              : 'bg-emerald-50/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {isClosed && (
-                          <span className="text-[11px] font-semibold text-neutral-500 flex items-center gap-1">
-                            <Ban className="w-3 h-3" /> Ditutup
-                          </span>
-                        )}
-                        {uniqueBlocked.map((r) => (
-                          <span key={r} className="inline-flex flex-col items-start px-2 py-0.5 rounded bg-neutral-200/80 text-[10px] font-medium text-neutral-600">
-                            <span className="inline-flex items-center gap-1">
-                              <Ban className="w-3 h-3" /> Ruang {r} diblokir
-                            </span>
-                            {slotBlockNote(slot.start, slot.end, r) && (
-                              <span className="text-[10px] font-normal text-neutral-500">
-                                {slotBlockNote(slot.start, slot.end, r)}
-                              </span>
-                            )}
-                          </span>
-                        ))}
-                        {isFull && !isClosed && (
-                          <span className="text-[11px] font-semibold text-red-700">Penuh ({bookings.length}/{available})</span>
-                        )}
-                        {bookings.length > 0 && (isClosed || uniqueBlocked.length === 0 || isFull) && (
-                          <span className="text-[11px] text-neutral-400">{bookings.length} sesi</span>
-                        )}
-                      </div>
-                      {bookings.length > 0 && (
-                        <div className="mt-1.5 space-y-1">
-                          {bookings.map((b) => (
-                            <div key={b.id} className="rounded-lg bg-white border border-neutral-200 px-2.5 py-1.5">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-[11px] font-semibold text-neutral-800 font-mono">{b.booking_code}</p>
-                                <p className="text-[10px] text-neutral-400">{b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}</p>
-                              </div>
-                              <p className="text-[11px] text-neutral-600">{b.customer_name}</p>
-                              <p className="text-[10px] text-neutral-500">{b.therapist?.name ?? '—'}</p>
-                            </div>
-                          ))}
+          slotRows.map((slot) => {
+            const bookings = slotBookings(slot.start, slot.end);
+            const blockedRooms = slotBlockedRooms(slot.start, slot.end);
+            const uniqueBlocked = Array.from(new Set(blockedRooms));
+            const available = capacity - uniqueBlocked.length;
+            const isClosed = capacity > 0 && available <= 0;
+            const isFull = capacity > 0 && bookings.length >= available;
+            const rooms = Array.from({ length: capacity }, (_, i) => i + 1);
+            return (
+              <div key={slot.start} className="rounded-xl bg-white border border-neutral-200 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <span className="text-[11px] font-mono font-semibold text-neutral-500 px-2 py-1 rounded-lg bg-neutral-100">
+                    {toLabel(slot.start)} – {toLabel(slot.end)}
+                  </span>
+                  {capacity > 0 && (
+                    isClosed ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-neutral-600">
+                        <Ban className="w-3.5 h-3.5" /> Ditutup
+                      </span>
+                    ) : isFull ? (
+                      <span className="text-[11px] font-semibold text-red-700">
+                        Penuh ({bookings.length}/{available})
+                      </span>
+                    ) : bookings.length > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-pink-700">
+                        <span className="w-2 h-2 rounded-full bg-pink-400" /> Terisi · {bookings.length} sesi
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-medium text-emerald-700">
+                        {uniqueBlocked.length > 0 ? `Tersedia ${available} dari ${capacity} ruang` : 'Kosong'}
+                      </span>
+                    )
+                  )}
+                </div>
+
+                {/* Per-room strip — ruang yang diblokir tampil jelas */}
+                {capacity > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {rooms.map((r) => {
+                      const isBlocked = uniqueBlocked.includes(r);
+                      const note = slotBlockNote(slot.start, slot.end, r);
+                      return (
+                        <div
+                          key={r}
+                          title={isBlocked ? (note || 'Ruang diblokir') : undefined}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium ${
+                            isBlocked
+                              ? 'bg-neutral-200/90 border-neutral-300 text-neutral-700'
+                              : 'bg-emerald-50/60 border-emerald-200 text-emerald-800'
+                          }`}
+                        >
+                          {isBlocked ? <Ban className="w-3 h-3 shrink-0" /> : <DoorOpen className="w-3 h-3 shrink-0" />}
+                          <span>Ruang {r}</span>
+                          {isBlocked && note && (
+                            <span className="text-[10px] font-normal text-neutral-500">· {note}</span>
+                          )}
                         </div>
-                      )}
-                      {bookings.length === 0 && !isClosed && (
-                        <span className="text-[11px] text-emerald-700">
-                          {isFull ? 'Penuh' : uniqueBlocked.length > 0 ? `Tersedia ${available} ruang` : 'Kosong'}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Bookings */}
+                {bookings.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {bookings.map((b) => (
+                      <div
+                        key={b.id}
+                        className="inline-flex flex-col items-start gap-0.5 px-2.5 py-1.5 rounded-lg bg-neutral-50 border border-neutral-200"
+                      >
+                        <p className="text-[11px] font-semibold text-neutral-800 font-mono">{b.booking_code}</p>
+                        <p className="text-[11px] text-neutral-600">{b.customer_name}</p>
+                        <p className="text-[10px] text-neutral-400">{b.therapist?.name ?? '—'}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>

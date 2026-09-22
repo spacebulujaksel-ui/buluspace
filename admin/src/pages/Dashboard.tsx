@@ -176,7 +176,7 @@ export default function Dashboard() {
           <div className="px-5 py-3 border-b border-neutral-100">
             <h3 className="text-sm font-semibold text-neutral-900">Customer Offline Terbaru</h3>
           </div>
-          <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-100">
@@ -199,6 +199,19 @@ export default function Dashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="md:hidden divide-y divide-neutral-100">
+            {data.walk_ins.map((w) => (
+              <div key={w.id} className="flex items-center justify-between gap-2 px-5 py-3">
+                <div>
+                  <p className="text-[13px] font-medium text-neutral-900">{w.customer_name}</p>
+                  <p className="text-[11px] text-neutral-400">{formatDate(w.date)}</p>
+                </div>
+                <button onClick={() => removeWalkin(w)} className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50" title="Hapus">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -263,7 +276,7 @@ export default function Dashboard() {
           </div>
           <Clock className="w-4 h-4 text-neutral-400" />
         </div>
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-neutral-100">
@@ -296,9 +309,29 @@ export default function Dashboard() {
                 </tr>
               ))}
             </tbody>
-          </table>
+</table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-neutral-100">
+            {data.recent_bookings.map((apt) => (
+              <div key={apt.id} className="px-5 py-3.5 space-y-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-mono font-semibold text-neutral-800">{apt.booking_code}</p>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0 ${STATUS_STYLES[apt.status] ?? ''}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-50" />
+                    {apt.status}
+                  </span>
+                </div>
+                <p className="text-[13px] font-medium text-neutral-900">{apt.customer_name}</p>
+                <p className="text-[11px] text-neutral-500">
+                  {formatDate(apt.appointment_date)} · {apt.therapist?.name ?? '—'}
+                </p>
+                <p className="text-[13px] font-medium font-mono text-neutral-900">{formatRupiah(Number(apt.total_price))}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
       {/* Walk-in Modal */}
       {walkinOpen && (

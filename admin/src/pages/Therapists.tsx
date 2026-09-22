@@ -142,7 +142,8 @@ export default function Therapists() {
         {loading ? (
           <div className="text-center py-16 text-sm text-neutral-400">Memuat terapis...</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
@@ -232,6 +233,79 @@ export default function Therapists() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-neutral-100">
+            {data.map((t) => {
+              const onLeave = isOnLeaveOn(t, todayStr());
+              return (
+                <div key={t.id} className="px-4 py-3.5 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-pink-50 border border-pink-200 flex items-center justify-center text-pink-600 text-sm font-semibold uppercase shrink-0">
+                        {t.name[0]}
+                      </div>
+                      <span className="text-[13px] font-medium text-neutral-900">{t.name}</span>
+                    </div>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0 ${
+                        t.status === 'Active'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-neutral-100 text-neutral-500'
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-50" />
+                      {t.status}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {t.leaves && t.leaves.length > 0 ? (
+                      t.leaves.map((l) => (
+                        <span
+                          key={l.id}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                            onLeave ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-neutral-50 text-neutral-500 border border-neutral-200'
+                          }`}
+                        >
+                          <CalendarX2 className="w-3 h-3" />
+                          {l.start_date.slice(0, 10)} → {l.end_date.slice(0, 10)}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[12px] text-neutral-300">—</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 pt-1 border-t border-neutral-100">
+                    <button
+                      onClick={() => toggleStatus(t)}
+                      className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                        t.status === 'Active'
+                          ? 'text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100'
+                          : 'text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100'
+                      }`}
+                    >
+                      {t.status === 'Active' ? 'Nonaktifkan' : 'Aktifkan'}
+                    </button>
+                    <button
+                      onClick={() => openEdit(t)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => remove(t)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Hapus"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>
         )}
       </div>
 

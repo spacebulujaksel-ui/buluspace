@@ -141,7 +141,8 @@ export default function Promos() {
         ) : data.length === 0 ? (
           <div className="text-center py-16 text-neutral-400 text-sm">Belum ada promo.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
@@ -208,6 +209,61 @@ export default function Promos() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-neutral-100">
+            {data.map((p) => (
+              <div key={p.id} className="px-4 py-3.5 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  {p.image ? (
+                    <img src={p.image} alt={p.title} className="w-12 h-9 object-cover rounded-lg border border-neutral-200 shrink-0" />
+                  ) : (
+                    <div className="w-12 h-9 rounded-lg border border-dashed border-neutral-200 shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-neutral-900 text-white text-[10px] font-semibold uppercase tracking-wide">
+                        {p.tag}
+                      </span>
+                      <button
+                        onClick={() => toggleActive(p)}
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer transition-colors ${
+                          p.is_active
+                            ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                            : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
+                        }`}
+                      >
+                        {p.is_active ? <Eye className="w-3 h-3 mr-1" /> : <EyeOff className="w-3 h-3 mr-1" />}
+                        {p.is_active ? 'Aktif' : 'Nonaktif'}
+                      </button>
+                    </div>
+                    <p className="text-[13px] font-medium text-neutral-900 mt-1">{p.title}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => openEdit(p)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => remove(p)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Hapus"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="text-[11px] text-neutral-500">
+                  Kode: <span className="font-mono text-neutral-600">{p.promo_code ?? '—'}</span>
+                  {p.valid_until && <> · Berlaku sampai {formatDate(p.valid_until)}</>}
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 

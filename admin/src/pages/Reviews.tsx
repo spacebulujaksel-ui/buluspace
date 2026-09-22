@@ -75,7 +75,8 @@ export default function Reviews() {
         ) : data.length === 0 ? (
           <div className="text-center py-16 text-neutral-400 text-sm">Belum ada ulasan.</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
@@ -130,6 +131,49 @@ export default function Reviews() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-neutral-100">
+            {data.map((r) => (
+              <div key={r.id} className="px-4 py-3.5 space-y-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-[13px] font-medium text-neutral-900">{r.customer_name}</p>
+                    {r.therapist_name && <p className="text-[11px] text-neutral-400">{r.therapist_name}</p>}
+                  </div>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${i < r.rating ? 'text-amber-400 fill-amber-400' : 'text-neutral-200'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {r.comment && <p className="text-[12px] text-neutral-600 line-clamp-2">{r.comment}</p>}
+                <div className="flex items-center justify-between pt-1 border-t border-neutral-100">
+                  <span className="text-[11px] text-neutral-400">{formatDateTime(r.created_at)}</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setSelected(r)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                      title="Lihat detail"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => remove(r.id)}
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Hapus"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 

@@ -122,7 +122,7 @@ export default function Services() {
               {CATEGORIES[cat] ?? cat}
             </h3>
             <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-neutral-200">
@@ -172,11 +172,54 @@ export default function Services() {
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden divide-y divide-neutral-100">
+                {services.map((s) => (
+                  <div key={s.id} className="px-4 py-3.5 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[13px] font-medium text-neutral-900">{s.name}</p>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0 cursor-pointer ${
+                          s.status === 'Active'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-neutral-100 text-neutral-500'
+                        }`}
+                        onClick={() => toggleStatus(s)}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-50" />
+                        {s.status}
+                      </span>
+                    </div>
+                    {s.description && <p className="text-[12px] text-neutral-500">{s.description}</p>}
+                    <p className="text-[13px] font-mono font-medium text-neutral-900">{formatRupiah(Number(s.price))} · {s.duration_minutes} mnt</p>
+                    <div className="flex items-center justify-between pt-1 border-t border-neutral-100">
+                      <span className="text-[11px] text-neutral-500">{s.wax_type}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openEdit(s)}
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => remove(s)}
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

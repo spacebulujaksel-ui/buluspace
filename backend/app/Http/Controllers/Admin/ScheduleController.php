@@ -85,8 +85,7 @@ class ScheduleController extends Controller
 
     public function destroyBlock(Request $request, int $id)
     {
-        $blocked = BlockedSlot::where('branch_id', $request->user()->branch_id)->findOrFail($id);
-        $blocked->delete();
+        BlockedSlot::where('branch_id', $request->user()->branch_id)->whereKey($id)->delete();
 
         return response()->json(['message' => 'Blokir jam dihapus.']);
     }

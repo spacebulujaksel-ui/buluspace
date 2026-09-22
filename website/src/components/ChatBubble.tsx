@@ -180,7 +180,7 @@ const merged = r.messages.filter((m) => Number(m.id) > lastIdRef.current);
   return (
     <>
       {open && (
-        <div className="fixed bottom-24 right-5 sm:right-6 z-50 w-[calc(100vw-40px)] max-w-sm h-[480px] max-h-[80vh] bg-white border border-neutral-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="fixed bottom-24 right-5 sm:right-6 z-40 w-[calc(100vw-40px)] max-w-sm h-[480px] max-h-[80vh] bg-white border border-neutral-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
           <div className="bg-emerald-600 text-white px-4 py-3 flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
               <MessageCircle className="w-4 h-4" />
@@ -315,7 +315,7 @@ const merged = r.messages.filter((m) => Number(m.id) > lastIdRef.current);
 
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 group"
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-110 group"
         aria-label="Chat"
         aria-expanded={open}
       >

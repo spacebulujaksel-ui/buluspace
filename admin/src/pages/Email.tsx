@@ -7,7 +7,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
   booking_confirmation: 'Konfirmasi Booking (Customer)',
   admin_notification: 'Notifikasi Booking Baru (Admin)',
   reminder_h1: 'Pengingat H-1',
-  reminder_hours: 'Pengingat Beberapa Jam Sebelum',
+  reminder_hours: 'Pengingat 30 Menit Sebelum',
   aftercare: 'Tata Cara Setelah Treatment',
 };
 

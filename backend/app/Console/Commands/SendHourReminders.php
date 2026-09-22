@@ -11,7 +11,7 @@ class SendHourReminders extends Command
 {
     protected $signature = 'app:send-hour-reminders';
 
-    protected $description = 'Kirim email pengingat untuk booking yang mulai dalam 2 jam (sekali per booking).';
+    protected $description = 'Kirim email pengingat untuk booking yang mulai dalam 30 menit (sekali per booking).';
 
     public function handle(): int
     {
@@ -25,7 +25,7 @@ class SendHourReminders extends Command
             ->filter(function (Appointment $appointment) use ($now) {
                 $start = Carbon::parse($appointment->appointment_date->format('Y-m-d').' '.$appointment->start_time);
 
-                return $now->gte($start->copy()->subMinutes(120)) && $now->lt($start);
+                return $now->gte($start->copy()->subMinutes(30)) && $now->lt($start);
             });
 
         foreach ($items as $appointment) {
@@ -33,7 +33,7 @@ class SendHourReminders extends Command
             $appointment->update(['reminder_2_sent_at' => now()]);
         }
 
-        $this->info('Reminder 2-jam diproses untuk '.$items->count().' booking.');
+        $this->info('Reminder 30 menit diproses untuk '.$items->count().' booking.');
 
         return 0;
     }

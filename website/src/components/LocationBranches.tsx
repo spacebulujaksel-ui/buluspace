@@ -1,5 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MapPin, Clock, DoorClosed } from "lucide-react";
+
+function isOpenNow(): boolean {
+  try {
+    const wib = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Asia/Jakarta" }).format(new Date());
+    const h = Number(wib);
+    return h >= 10 && h < 19;
+  } catch {
+    return true;
+  }
+}
 
 const branches = [
   {
@@ -27,6 +37,15 @@ const branches = [
 ];
 
 export const LocationBranches: React.FC = () => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setTick((x) => x + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  const open = isOpenNow();
+
   return (
     <section id="lokasi-cabang" className="py-16 sm:py-24 bg-neutral-50 scroll-mt-16">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
@@ -95,9 +114,15 @@ export const LocationBranches: React.FC = () => {
                       {branch.totalRooms} kamar treatment
                     </span>
                   </div>
-                  <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    Buka
-                  </span>
+                  {open ? (
+                    <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      Buka
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-rose-700 bg-[#FAC9D2] px-2 py-0.5 rounded-full">
+                      Tutup
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

@@ -4,16 +4,15 @@ export interface CombinationItem {
   duration: number;
 }
 
-const FULL_TREATMENTS = ['Full Legs', 'Full Arms', 'Full Front', 'Full Back'];
-
 export function combinationError(selected: CombinationItem[]): string | null {
   if (selected.length < 2) return null;
 
   const names = selected.map((s) => s.name);
 
   if (names.includes('Brazilian')) {
-    const bad = selected.find((s) => s.category === 'package' || FULL_TREATMENTS.includes(s.name));
-    return bad ? `Brazilian tidak bisa digabung dengan ${bad.name}.` : null;
+    const ALLOWED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
+    const bad = selected.find((s) => s.name !== 'Brazilian' && !ALLOWED.includes(s.name));
+    return bad ? 'Brazilian hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Half Arms, Half Legs, Chest, Stomach, atau Buttocks.' : null;
   }
 
   if (names.includes('Feel Smooth')) {

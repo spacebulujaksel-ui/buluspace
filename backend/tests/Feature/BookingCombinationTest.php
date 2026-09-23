@@ -33,6 +33,7 @@ class BookingCombinationTest extends TestCase
             'full_legs' => $make('Full Legs', 'legs', 30),
             'full_arms' => $make('Full Arms', 'arms', 30),
             'half_arms' => $make('Half Arms', 'arms', 20),
+            'half_legs' => $make('Half Legs', 'legs', 25),
             'full_front' => $make('Full Front', 'upper', 30),
             'full_back' => $make('Full Back', 'upper', 30),
             'forehead' => $make('Forehead', 'face', 10),
@@ -68,12 +69,36 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'forehead'])))->assertCreated();
     }
 
+    public function test_brazilian_can_combine_with_half_arms(): void
+    {
+        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_arms'])))->assertCreated();
+    }
+
+    public function test_brazilian_cannot_combine_with_underarms(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
+    }
+
+    public function test_brazilian_total_duration_is_30_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_legs', 'forehead'])));
+
+        $res->assertCreated();
+        $appointment = $res->json('booking');
+        $startMin = (int) substr($appointment['start_time'], 0, 2) * 60 + (int) substr($appointment['start_time'], 3, 2);
+        $endMin = (int) substr($appointment['end_time'], 0, 2) * 60 + (int) substr($appointment['end_time'], 3, 2);
+        $this->assertSame(30, $endMin - $startMin);
+    }
+
     public function test_brazilian_cannot_combine_with_full_treatment(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])));
 
         $res->assertStatus(422);
-        $this->assertStringContainsString('Brazilian tidak bisa digabung dengan Full Legs', $res->json('message'));
+        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
     }
 
     public function test_feel_smooth_can_combine_with_allowed_treatments(): void

@@ -69,7 +69,12 @@ class BookingController extends Controller
             : 0;
 
         $hasFeelSmooth = $services->contains(fn (Service $s) => $s->name === 'Feel Smooth');
-        $totalMinutes = $hasFeelSmooth ? 60 : $services->sum('duration_minutes');
+        $hasBrazilian = $services->contains(fn (Service $s) => $s->name === 'Brazilian');
+        $totalMinutes = match (true) {
+            $hasFeelSmooth => 60,
+            $hasBrazilian => 30,
+            default => $services->sum('duration_minutes'),
+        };
         $totalPrice = $services->sum(fn ($s) => (float) $s->price) + $maleSurcharge;
 
         $start = Carbon::parse($validated['appointment_date'].' '.$validated['start_time']);
@@ -285,13 +290,13 @@ class BookingController extends Controller
             return null;
         }
 
-        $full = collect(['Full Legs', 'Full Arms', 'Full Front', 'Full Back']);
         $names = $services->pluck('name');
 
         if ($names->contains('Brazilian')) {
-            $bad = $services->first(fn (Service $s) => $s->category === 'package' || $full->contains($s->name));
+            $allowed = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
+            $bad = $services->first(fn (Service $s) => $s->name !== 'Brazilian' && !in_array($s->name, $allowed, true));
 
-            return $bad ? "Brazilian tidak bisa digabung dengan {$bad->name}." : null;
+            return $bad ? 'Brazilian hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Half Arms, Half Legs, Chest, Stomach, atau Buttocks.' : null;
         }
 
         if ($names->contains('Feel Smooth')) {

@@ -167,10 +167,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   );
   const totalMinutes = selectedServiceObjs.some((s) => s.name === "Feel Smooth")
     ? 60
-    : selectedServiceObjs.reduce(
-        (acc, s) => acc + s.durationMinutes,
-        0,
-      );
+    : selectedServiceObjs.some((s) => s.name === "Brazilian")
+      ? 30
+      : selectedServiceObjs.reduce(
+          (acc, s) => acc + s.durationMinutes,
+          0,
+        );
 
   const asMinutes = (t: string) => {
     const [h, m] = t.split(":").map(Number);

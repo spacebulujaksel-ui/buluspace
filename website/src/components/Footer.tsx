@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  MapPin,
-  Clock,
-  Heart,
-  ArrowUpRight,
-} from "lucide-react";
+import { MapPin, Clock, Heart, ArrowUpRight } from "lucide-react";
 import { WA_JAKBAR, WA_JAKSEL } from "../lib/wa";
 
 interface FooterProps {
@@ -50,7 +45,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFaq }) => {
               />
             </div>
             <p className="text-xs leading-relaxed max-w-xs">
-              Studio Waxing dengan Terapis Terlatih, Standar Kebersihan Tinggi, dan Private Treatment Rooms.
+              Studio Waxing dengan Standar Kebersihan Tinggi dan Private
+              Treatment Rooms.
             </p>
           </div>
 

@@ -53,7 +53,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [clientName, setClientName] = useState<string>("");
   const [clientPhone, setClientPhone] = useState<string>("");
   const [clientEmail, setClientEmail] = useState<string>("");
-  const [customerGender, setCustomerGender] = useState<"" | "Pria" | "Wanita">("");
+  const [customerGender, setCustomerGender] = useState<"" | "Pria" | "Wanita">(
+    "",
+  );
   const [date, setDate] = useState<string>("");
   const [timeSlot, setTimeSlot] = useState<string>("13:30");
   const [location, setLocation] = useState<string>(
@@ -70,7 +72,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     { therapist_id: number; start_time: string; end_time: string }[]
   >([]);
   const [rooms, setRooms] = useState<Record<string, number>>({});
-  const [blocked, setBlocked] = useState<{ room_number: number; start_time: string; end_time: string }[]>([]);
+  const [blocked, setBlocked] = useState<
+    { room_number: number; start_time: string; end_time: string }[]
+  >([]);
   const [onLeaveIds, setOnLeaveIds] = useState<number[]>([]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState(() => {
@@ -128,11 +132,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    const branch = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
+    const branch = location.startsWith("Jakarta Selatan")
+      ? "Jakarta Selatan"
+      : "Jakarta Barat";
     api
-      .get<{ booked: { therapist_id: number; start_time: string; end_time: string }[]; rooms: Record<string, number>; blocked: { room_number: number; start_time: string; end_time: string }[]; on_leave_ids: number[] }>(
-        `/availability?date=${date}&location=${encodeURIComponent(branch)}`,
-      )
+      .get<{
+        booked: {
+          therapist_id: number;
+          start_time: string;
+          end_time: string;
+        }[];
+        rooms: Record<string, number>;
+        blocked: {
+          room_number: number;
+          start_time: string;
+          end_time: string;
+        }[];
+        on_leave_ids: number[];
+      }>(`/availability?date=${date}&location=${encodeURIComponent(branch)}`)
       .then((r) => {
         setBookedSlots(r.booked);
         setRooms(r.rooms ?? {});
@@ -142,29 +159,47 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       .catch(() => setBookedSlots([]));
   }, [isOpen, date, location]);
 
-  const selectedServiceObjs = SERVICES.filter((s) => selectedServices.includes(s.id));
-  const hasIntimate = selectedServiceObjs.some((s) => s.category === "intimate");
-  const totalMinutes = selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
+  const selectedServiceObjs = SERVICES.filter((s) =>
+    selectedServices.includes(s.id),
+  );
+  const hasIntimate = selectedServiceObjs.some(
+    (s) => s.category === "intimate",
+  );
+  const totalMinutes = selectedServiceObjs.reduce(
+    (acc, s) => acc + s.durationMinutes,
+    0,
+  );
 
   const asMinutes = (t: string) => {
     const [h, m] = t.split(":").map(Number);
     return h * 60 + m;
   };
 
-  const selectedBranchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
-  const branchTherapists = THERAPISTS.filter((t) => t.branch === selectedBranchName);
+  const selectedBranchName = location.startsWith("Jakarta Selatan")
+    ? "Jakarta Selatan"
+    : "Jakarta Barat";
+  const branchTherapists = THERAPISTS.filter(
+    (t) => t.branch === selectedBranchName,
+  );
 
   const selectedSlotMin = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
   const selectedWindowEnd = selectedSlotMin + totalMinutes;
   const therapistBusy = (tid: number): boolean => {
     if (totalMinutes <= 0) return true;
     return bookedSlots.some(
-      (b) => b.therapist_id === tid && selectedSlotMin < asMinutes(b.end_time) && selectedWindowEnd > asMinutes(b.start_time),
+      (b) =>
+        b.therapist_id === tid &&
+        selectedSlotMin < asMinutes(b.end_time) &&
+        selectedWindowEnd > asMinutes(b.start_time),
     );
   };
 
   useEffect(() => {
-    if (therapistId !== "any" && (therapistBusy(Number(therapistId)) || onLeaveIds.includes(Number(therapistId)))) {
+    if (
+      therapistId !== "any" &&
+      (therapistBusy(Number(therapistId)) ||
+        onLeaveIds.includes(Number(therapistId)))
+    ) {
       setTherapistId("any");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,7 +208,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const bookingCutoff = (() => {
     const withCut = selectedServiceObjs.filter((s) => s.lastOrderTime);
     if (withCut.length === 0) return null;
-    const earliest = withCut.reduce((a, b) => (a.lastOrderTime! <= b.lastOrderTime! ? a : b));
+    const earliest = withCut.reduce((a, b) =>
+      a.lastOrderTime! <= b.lastOrderTime! ? a : b,
+    );
     return { name: earliest.name, time: earliest.lastOrderTime! };
   })();
   const cutoffMin = bookingCutoff ? asMinutes(bookingCutoff.time) : null;
@@ -192,7 +229,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     for (let min = 10 * 60; min <= 19 * 60; min += 15) {
       const h = Math.floor(min / 60);
       const m = min % 60;
-      slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} WIB`);
+      slots.push(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} WIB`,
+      );
     }
     return slots;
   })();
@@ -215,9 +254,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (service?.category === "intimate" && customerGender === "Pria") {
       setCustomerGender("Wanita");
     }
-    const candidate = SERVICES.filter((s) => selectedServices.includes(s.id) || s.id === id);
+    const candidate = SERVICES.filter(
+      (s) => selectedServices.includes(s.id) || s.id === id,
+    );
     const err = combinationError(
-      candidate.map((s) => ({ name: s.name, category: s.category, duration: s.durationMinutes })),
+      candidate.map((s) => ({
+        name: s.name,
+        category: s.category,
+        duration: s.durationMinutes,
+      })),
     );
     if (err) {
       setErrorMessage(err);
@@ -229,8 +274,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const selectGender = (g: "Pria" | "Wanita") => {
     setCustomerGender(g);
     if (g === "Pria") {
-      const intimateIds = SERVICES.filter((s) => s.category === "intimate").map((s) => s.id);
-      const remaining = selectedServices.filter((id) => !intimateIds.includes(id));
+      const intimateIds = SERVICES.filter((s) => s.category === "intimate").map(
+        (s) => s.id,
+      );
+      const remaining = selectedServices.filter(
+        (id) => !intimateIds.includes(id),
+      );
       if (remaining.length !== selectedServices.length) {
         setSelectedServices(remaining);
         setErrorMessage("Layanan intimate dihapus karena hanya untuk wanita.");
@@ -275,7 +324,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Pricing calculations
   const subtotal = selectedServiceObjs.reduce((acc, s) => acc + s.price, 0);
   const maleSurcharge =
-    customerGender === "Pria" ? MALE_SURCHARGE_PER_TREATMENT * selectedServices.length : 0;
+    customerGender === "Pria"
+      ? MALE_SURCHARGE_PER_TREATMENT * selectedServices.length
+      : 0;
   const discountAmount = promoApplied
     ? Math.round((subtotal * discountPercent) / 100)
     : 0;
@@ -289,18 +340,30 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const slotBusy = (slotMin: number): boolean => {
     if (totalMinutes <= 0) return true;
     const now = new Date();
-    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes() + 30) {
+    if (
+      date === toDateStr(now) &&
+      slotMin <= now.getHours() * 60 + now.getMinutes() + 30
+    ) {
       return true;
     }
     const slotEnd = slotMin + totalMinutes;
-    const overlaps = (b: { therapist_id: number; start_time: string; end_time: string }) =>
-      slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time);
-    const branchName = location.startsWith("Jakarta Selatan") ? "Jakarta Selatan" : "Jakarta Barat";
+    const overlaps = (b: {
+      therapist_id: number;
+      start_time: string;
+      end_time: string;
+    }) => slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time);
+    const branchName = location.startsWith("Jakarta Selatan")
+      ? "Jakarta Selatan"
+      : "Jakarta Barat";
     const capacity = rooms[branchName] ?? 0;
     if (capacity <= 0) return true;
     const blockedRooms = new Set(
       blocked
-        .filter((b) => slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time))
+        .filter(
+          (b) =>
+            slotMin < asMinutes(b.end_time) &&
+            slotEnd > asMinutes(b.start_time),
+        )
         .map((b) => b.room_number),
     );
     const available = capacity - blockedRooms.size;
@@ -309,14 +372,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (overlapping >= available) return true;
     if (therapistId !== "any") {
       const tid = Number(therapistId);
-      if (bookedSlots.some((b) => b.therapist_id === tid && overlaps(b))) return true;
+      if (bookedSlots.some((b) => b.therapist_id === tid && overlaps(b)))
+        return true;
     }
     return false;
   };
 
   const slotState = (slotMin: number): "available" | "full" | "past" => {
     const now = new Date();
-    if (date === toDateStr(now) && slotMin <= now.getHours() * 60 + now.getMinutes() + 30) {
+    if (
+      date === toDateStr(now) &&
+      slotMin <= now.getHours() * 60 + now.getMinutes() + 30
+    ) {
       return "past";
     }
     if (cutoffMin !== null && slotMin > cutoffMin) {
@@ -358,7 +425,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const calendarDays: (string | null)[] = [];
   {
-    const firstOfMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+    const firstOfMonth = new Date(
+      viewMonth.getFullYear(),
+      viewMonth.getMonth(),
+      1,
+    );
     const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday start
     const daysInMonth = new Date(
       viewMonth.getFullYear(),
@@ -367,12 +438,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     ).getDate();
     for (let i = 0; i < startOffset; i++) calendarDays.push(null);
     for (let d = 1; d <= daysInMonth; d++) {
-      calendarDays.push(toDateStr(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d)));
+      calendarDays.push(
+        toDateStr(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d)),
+      );
     }
   }
 
   const changeMonth = (delta: number) => {
-    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+    setViewMonth(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1),
+    );
   };
 
   const monthLabel = new Intl.DateTimeFormat("id-ID", {
@@ -396,7 +471,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       return;
     }
     if (!clientEmail.trim()) {
-      setErrorMessage("Mohon cantumkan email Anda untuk menerima notifikasi booking.");
+      setErrorMessage(
+        "Mohon cantumkan email Anda untuk menerima notifikasi booking.",
+      );
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail.trim())) {
@@ -433,31 +510,45 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         start_time: startTime,
         service_ids: selectedServices.map((id) => parseInt(id, 10)),
         location: locationLabel,
-        notes: [customTherapistRequest.trim(), specialNotes.trim()].filter(Boolean).join(" · ") || null,
+        notes:
+          [customTherapistRequest.trim(), specialNotes.trim()]
+            .filter(Boolean)
+            .join(" · ") || null,
       });
 
       const newBooking: SavedBooking = {
-        id: res.booking?.booking_code ?? `BS-${Math.floor(100000 + Math.random() * 900000)}`,
+        id:
+          res.booking?.booking_code ??
+          `BS-${Math.floor(100000 + Math.random() * 900000)}`,
         clientName: clientName.trim(),
         clientPhone: clientPhone.trim(),
         clientEmail: clientEmail.trim(),
         customerGender: customerGender as "Pria" | "Wanita",
         selectedServices,
-        therapistId: String(res.booking?.therapist_id ?? (therapistId === "any" ? "" : therapistId)),
+        therapistId: String(
+          res.booking?.therapist_id ??
+            (therapistId === "any" ? "" : therapistId),
+        ),
         customTherapistRequest: customTherapistRequest.trim(),
         location: res.booking?.location ?? locationLabel,
         date: res.booking?.appointment_date ?? date,
-        timeSlot: res.booking ? `${res.booking.start_time.slice(0, 5)} WIB` : timeSlot,
+        timeSlot: res.booking
+          ? `${res.booking.start_time.slice(0, 5)} WIB`
+          : timeSlot,
         promoCode: promoApplied ? promoCode : "",
         specialNotes: specialNotes.trim(),
         createdAt: new Date().toISOString(),
         totalPrice: Number(res.booking?.total_price ?? subtotal),
         discountAmount,
         finalPrice: Number(res.booking?.total_price ?? finalPrice),
-        therapistName: res.booking?.therapist?.name ?? selectedTherapistObj?.nickname ?? "Rekomendasi Bulu Space",
+        therapistName:
+          res.booking?.therapist?.name ??
+          selectedTherapistObj?.nickname ??
+          "Rekomendasi Bulu Space",
         serviceNames: selectedServiceObjs.map((s) => s.name),
         status: res.booking?.status
-          ? STATUS_MAP[res.booking.status as keyof typeof STATUS_MAP] ?? "Menunggu WhatsApp"
+          ? (STATUS_MAP[res.booking.status as keyof typeof STATUS_MAP] ??
+            "Menunggu WhatsApp")
           : "Menunggu WhatsApp",
       };
 
@@ -488,7 +579,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 Reservasi & Request Terapis
               </h3>
               <p className="text-xs text-slate-400">
-                Studio Bulu Space — Higienis Medis & Tanpa Nyeri Berlebih
+                Studio Waxing dengan Standar Kebersihan Tinggi dan Private
+                Treatment Rooms.
               </p>
             </div>
           </div>
@@ -543,7 +635,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         {srv.name}
                       </p>
                       {srv.category === "intimate" && (
-                        <p className="text-[10px] text-neutral-400">* Pria tidak bisa memilih treatment ini</p>
+                        <p className="text-[10px] text-neutral-400">
+                          * Pria tidak bisa memilih treatment ini
+                        </p>
                       )}
                     </div>
                     <div className="text-right shrink-0">
@@ -581,7 +675,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
 
             <p className="text-xs text-slate-600 mb-4">
-              Pilih terapis favorit Anda atau biarkan tim kami menugaskan terapis terbaik.
+              Pilih terapis favorit Anda atau biarkan tim kami menugaskan
+              terapis terbaik.
             </p>
 
             {/* Therapist Cards Picker */}
@@ -641,7 +736,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                             ? "bg-pink-100/80 border-pink-400 text-slate-900 shadow-xs ring-1 ring-pink-400 cursor-pointer"
                             : "bg-white border-slate-200 hover:border-slate-300 text-slate-800 cursor-pointer"
                       }`}
-                      title={onLeave ? `${t.nickname} sedang cuti pada tanggal ini` : busy ? `${t.nickname} sedang sibuk di jam tersebut` : t.name}
+                      title={
+                        onLeave
+                          ? `${t.nickname} sedang cuti pada tanggal ini`
+                          : busy
+                            ? `${t.nickname} sedang sibuk di jam tersebut`
+                            : t.name
+                      }
                     >
                       <div className="w-10 h-10 rounded-full bg-pink-100 border border-pink-200 flex items-center justify-center text-pink-600 text-xs font-bold shrink-0">
                         {t.name[0]}
@@ -653,7 +754,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         <p className="text-[11px] text-slate-500 truncate">
                           {t.role}
                         </p>
-                        <p className="text-[10px] text-pink-500 truncate" aria-label="Rating bintang 5">
+                        <p
+                          className="text-[10px] text-pink-500 truncate"
+                          aria-label="Rating bintang 5"
+                        >
                           ★★★★★
                         </p>
                       </div>
@@ -743,11 +847,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
                     {/* Weekday headers (Monday first) */}
                     <div className="grid grid-cols-7 text-center text-[10px] font-medium text-slate-400 mb-1">
-                      {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((d) => (
-                        <span key={d} className="py-1">
-                          {d}
-                        </span>
-                      ))}
+                      {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map(
+                        (d) => (
+                          <span key={d} className="py-1">
+                            {d}
+                          </span>
+                        ),
+                      )}
                     </div>
 
                     {/* Days */}
@@ -788,13 +894,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
                 <span>Jam Sesi Kedatangan</span>
                 <span className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Tersedia</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Penuh</span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />{" "}
+                    Tersedia
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" />{" "}
+                    Penuh
+                  </span>
                 </span>
               </label>
               {bookingCutoff && (
                 <p className="text-[11px] text-rose-600 mb-1.5 font-medium">
-                  {bookingCutoff.name} hanya bisa dipesan sampai pukul {bookingCutoff.time}
+                  {bookingCutoff.name} hanya bisa dipesan sampai pukul{" "}
+                  {bookingCutoff.time}
                 </p>
               )}
               <div className="max-h-44 overflow-y-auto pr-1 grid grid-cols-4 xs:grid-cols-5 gap-1.5 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">
@@ -930,7 +1043,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 />
               </div>
               <p className="text-[10px] text-slate-400 mt-1">
-                Konfirmasi booking, instruksi pembayaran & notifikasi dikirim ke email ini.
+                Konfirmasi booking, instruksi pembayaran & notifikasi dikirim ke
+                email ini.
               </p>
             </div>
 
@@ -975,7 +1089,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             {maleSurcharge > 0 && (
               <div className="flex justify-between text-rose-600 font-semibold">
                 <span>Khusus Pria (×{selectedServices.length} perawatan):</span>
-                <span className="font-mono">+{formatRupiah(maleSurcharge)}</span>
+                <span className="font-mono">
+                  +{formatRupiah(maleSurcharge)}
+                </span>
               </div>
             )}
             {/* Temporarily hidden - discount display */}

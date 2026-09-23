@@ -32,8 +32,10 @@ class BookingCombinationTest extends TestCase
             'brazilian' => $make('Brazilian', 'intimate', 30),
             'full_legs' => $make('Full Legs', 'legs', 30),
             'full_arms' => $make('Full Arms', 'arms', 30),
+            'half_arms' => $make('Half Arms', 'arms', 20),
             'full_back' => $make('Full Back', 'upper', 30),
             'forehead' => $make('Forehead', 'face', 10),
+            'cheek' => $make('Cheek', 'face', 10),
             'underarms' => $make('Underarms', 'arms', 15),
             'feel_smooth' => $make('Feel Smooth', 'package', 60),
             'clean_girl' => $make('Clean Girl', 'package', 45),
@@ -73,9 +75,9 @@ class BookingCombinationTest extends TestCase
         $this->assertStringContainsString('Brazilian tidak bisa digabung dengan Full Legs', $res->json('message'));
     }
 
-    public function test_feel_smooth_can_combine_with_duration_10_to_15(): void
+    public function test_feel_smooth_can_combine_with_allowed_treatments(): void
     {
-        $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms'])))->assertCreated();
+        $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms', 'cheek'])))->assertCreated();
     }
 
     public function test_feel_smooth_cannot_combine_with_long_treatment(): void
@@ -83,7 +85,28 @@ class BookingCombinationTest extends TestCase
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'full_arms'])));
 
         $res->assertStatus(422);
-        $this->assertStringContainsString('Feel Smooth hanya bisa digabung dengan treatment 10–15 menit', $res->json('message'));
+        $this->assertStringContainsString('Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks,', $res->json('message'));
+    }
+
+    public function test_feel_smooth_cannot_combine_with_half_arms_even_if_15_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks,', $res->json('message'));
+    }
+
+    public function test_feel_smooth_total_duration_is_60_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms'])));
+
+        $res->assertCreated();
+        $appointment = $res->json('booking');
+        $start = $appointment['start_time'];
+        $end = $appointment['end_time'];
+        $startMin = (int) substr($start, 0, 2) * 60 + (int) substr($start, 3, 2);
+        $endMin = (int) substr($end, 0, 2) * 60 + (int) substr($end, 3, 2);
+        $this->assertSame(60, $endMin - $startMin);
     }
 
     public function test_package_must_be_ordered_alone(): void

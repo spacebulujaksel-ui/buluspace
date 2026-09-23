@@ -68,7 +68,8 @@ class BookingController extends Controller
             ? self::MALE_SURCHARGE_PER_TREATMENT * count($validated['service_ids'])
             : 0;
 
-        $totalMinutes = $services->sum('duration_minutes');
+        $hasFeelSmooth = $services->contains(fn (Service $s) => $s->name === 'Feel Smooth');
+        $totalMinutes = $hasFeelSmooth ? 60 : $services->sum('duration_minutes');
         $totalPrice = $services->sum(fn ($s) => (float) $s->price) + $maleSurcharge;
 
         $start = Carbon::parse($validated['appointment_date'].' '.$validated['start_time']);
@@ -294,10 +295,10 @@ class BookingController extends Controller
         }
 
         if ($names->contains('Feel Smooth')) {
-            $bad = $services->first(fn (Service $s) => $s->name !== 'Feel Smooth'
-                && ((int) $s->duration_minutes < 10 || (int) $s->duration_minutes > 15));
+            $allowed = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
+            $bad = $services->first(fn (Service $s) => $s->name !== 'Feel Smooth' && !in_array($s->name, $allowed, true));
 
-            return $bad ? 'Feel Smooth hanya bisa digabung dengan treatment 10–15 menit.' : null;
+            return $bad ? 'Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks, atau Basic Bikini.' : null;
         }
 
         $fullIn = $names->intersect(['Full Front', 'Full Back']);

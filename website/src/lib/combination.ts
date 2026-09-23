@@ -18,8 +18,9 @@ export function combinationError(selected: CombinationItem[]): string | null {
   }
 
   if (names.includes('Feel Smooth')) {
-    const bad = selected.find((s) => s.name !== 'Feel Smooth' && (s.duration < 10 || s.duration > 15));
-    return bad ? 'Feel Smooth hanya bisa digabung dengan treatment 10–15 menit.' : null;
+    const ALLOWED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
+    const bad = selected.find((s) => s.name !== 'Feel Smooth' && !ALLOWED.includes(s.name));
+    return bad ? 'Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks, atau Basic Bikini.' : null;
   }
 
   const full = selected.find((s) => SOLO_FULL.includes(s.name));

@@ -165,10 +165,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const hasIntimate = selectedServiceObjs.some(
     (s) => s.category === "intimate",
   );
-  const totalMinutes = selectedServiceObjs.reduce(
-    (acc, s) => acc + s.durationMinutes,
-    0,
-  );
+  const totalMinutes = selectedServiceObjs.some((s) => s.name === "Feel Smooth")
+    ? 60
+    : selectedServiceObjs.reduce(
+        (acc, s) => acc + s.durationMinutes,
+        0,
+      );
 
   const asMinutes = (t: string) => {
     const [h, m] = t.split(":").map(Number);

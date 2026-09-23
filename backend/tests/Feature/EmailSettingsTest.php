@@ -55,7 +55,8 @@ class EmailSettingsTest extends TestCase
 
     public function test_hour_reminder_marks_within_two_hours_and_does_not_double_send(): void
     {
-        $appointment = $this->booking(now()->format('Y-m-d'), now()->addMinutes(90)->format('H:i'));
+        $now = now('Asia/Jakarta');
+        $appointment = $this->booking($now->format('Y-m-d'), $now->addMinutes(20)->format('H:i'));
 
         $this->artisan('app:send-hour-reminders')->assertExitCode(0);
         $this->artisan('app:send-hour-reminders')->assertExitCode(0);

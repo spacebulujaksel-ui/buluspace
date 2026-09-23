@@ -15,7 +15,7 @@ class SendHourReminders extends Command
 
     public function handle(): int
     {
-        $now = now();
+        $now = Carbon::now('Asia/Jakarta');
 
         $items = Appointment::with(['therapist', 'details.service'])
             ->whereDate('appointment_date', $now->toDateString())
@@ -23,14 +23,17 @@ class SendHourReminders extends Command
             ->whereIn('status', ['Pending', 'Confirmed'])
             ->get()
             ->filter(function (Appointment $appointment) use ($now) {
-                $start = Carbon::parse($appointment->appointment_date->format('Y-m-d').' '.$appointment->start_time);
+                $start = Carbon::parse(
+                    $appointment->appointment_date->format('Y-m-d').' '.$appointment->start_time,
+                    'Asia/Jakarta'
+                );
 
                 return $now->gte($start->copy()->subMinutes(30)) && $now->lt($start);
             });
 
         foreach ($items as $appointment) {
             BookingMailer::toCustomer($appointment, 'reminder_hours');
-            $appointment->update(['reminder_2_sent_at' => now()]);
+            $appointment->update(['reminder_2_sent_at' => Carbon::now('Asia/Jakarta')]);
         }
 
         $this->info('Reminder 30 menit diproses untuk '.$items->count().' booking.');

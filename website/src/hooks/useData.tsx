@@ -1,13 +1,17 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { api } from '../lib/api';
-import { PromoBanner, Review, Therapist, WaxService } from '../types';
+import { PromoBanner, Review, Therapist, WaxService, FaqItem } from '../types';
 import { PROMO_BANNERS, THERAPISTS as MOCK_THERAPISTS, SERVICES as MOCK_SERVICES, REVIEWS as MOCK_REVIEWS } from '../data/mockData';
+import { FAQ_ITEMS as MOCK_FAQS } from '../data/faq';
+
+const MOCK_FAQ_ITEMS: FaqItem[] = MOCK_FAQS.map((f, i) => ({ id: i + 1, q: f.q, a: f.a }));
 
 interface PublicData {
   promos: PromoBanner[];
   services: WaxService[];
   therapists: Therapist[];
   reviews: Review[];
+  faqs: FaqItem[];
   ready: boolean;
 }
 
@@ -16,6 +20,7 @@ const DataCtx = createContext<PublicData>({
   services: MOCK_SERVICES,
   therapists: MOCK_THERAPISTS,
   reviews: MOCK_REVIEWS,
+  faqs: MOCK_FAQ_ITEMS,
   ready: false,
 });
 
@@ -86,22 +91,28 @@ function mapReview(r: Record<string, any>): Review {
   };
 }
 
+function mapFaq(f: Record<string, any>): FaqItem {
+  return { id: Number(f.id), q: f.question, a: f.answer };
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<PublicData>({
     promos: PROMO_BANNERS,
     services: MOCK_SERVICES,
     therapists: MOCK_THERAPISTS,
     reviews: MOCK_REVIEWS,
+    faqs: MOCK_FAQ_ITEMS,
     ready: false,
   });
 
   useEffect(() => {
     const load = async () => {
-      const [promos, services, therapists, reviews] = await Promise.allSettled([
+      const [promos, services, therapists, reviews, faqs] = await Promise.allSettled([
         api.get<any[]>('/promos'),
         api.get<any[]>('/services'),
         api.get<any[]>('/therapists'),
         api.get<any[]>('/reviews'),
+        api.get<any[]>('/faqs'),
       ]);
 
       setData((prev) => ({
@@ -109,6 +120,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         services: services.status === 'fulfilled' ? services.value.filter((s) => s.status === 'Active').map(mapService) : prev.services,
         therapists: therapists.status === 'fulfilled' ? therapists.value.filter((t) => t.status === 'Active' || t.on_leave).map(mapTherapist) : prev.therapists,
         reviews: reviews.status === 'fulfilled' && reviews.value.length > 0 ? reviews.value.map(mapReview) : prev.reviews,
+        faqs: faqs.status === 'fulfilled' && faqs.value.length > 0 ? faqs.value.map(mapFaq) : prev.faqs,
         ready: true,
       }));
     };

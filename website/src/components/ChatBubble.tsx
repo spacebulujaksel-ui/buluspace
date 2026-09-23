@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { api } from "../lib/api";
-import { FAQ_ITEMS } from "../data/faq";
+import { FaqItem } from "../types";
+import { useData } from "../hooks/useData";
 
 interface BranchOpt {
   id: number;
@@ -26,7 +27,7 @@ function isOfficeHours(): boolean {
   }
 }
 
-function matchFaq(input: string): string | null {
+function matchFaq(input: string, faqs: FaqItem[]): string | null {
   const words = (s: string) =>
     s
       .toLowerCase()
@@ -36,7 +37,7 @@ function matchFaq(input: string): string | null {
   const inputWords = new Set(words(input));
   if (inputWords.size < 2) return null;
   let best: { score: number; a: string } | null = null;
-  for (const item of FAQ_ITEMS) {
+  for (const item of faqs) {
     const qWords = words(item.q);
     const score = qWords.filter((w) => inputWords.has(w)).length;
     if (!best || score > best.score) best = { score, a: item.a };
@@ -46,6 +47,7 @@ function matchFaq(input: string): string | null {
 }
 
 export const ChatBubble: React.FC<{ raised?: boolean }> = ({ raised = false }) => {
+  const { faqs } = useData();
   const [open, setOpen] = useState(false);
   const [branches, setBranches] = useState<BranchOpt[]>([]);
   const [name, setName] = useState("");
@@ -164,7 +166,7 @@ const merged = r.messages.filter((m) => Number(m.id) > lastIdRef.current);
         return [...prev, ...merged.filter((m) => !seen.has(String(m.id)))];
       });
 
-      const answer = matchFaq(text);
+      const answer = matchFaq(text, faqs);
       if (answer) {
         setLocalBubbles((prev) => [...prev, { id: `faq-${Date.now()}`, sender: "bot", body: answer }]);
       }

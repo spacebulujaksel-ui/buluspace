@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { HelpCircle, ChevronDown, ArrowLeft } from "lucide-react";
-import { FAQ_ITEMS } from "../data/faq";
+import { useData } from "../hooks/useData";
 
 export const FaqPage: React.FC = () => {
+  const { faqs } = useData();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
@@ -22,11 +23,11 @@ export const FaqPage: React.FC = () => {
         </div>
 
         <div className="space-y-3">
-          {FAQ_ITEMS.map((item, index) => {
+          {faqs.map((item, index) => {
             const isExpanded = openIndex === index;
             return (
               <div
-                key={index}
+                key={item.id ?? index}
                 className="border border-neutral-200 rounded-xl bg-white overflow-hidden transition-colors"
               >
                 <button
@@ -44,7 +45,7 @@ export const FaqPage: React.FC = () => {
                   />
                 </button>
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-1 text-xs text-neutral-600 leading-relaxed border-t border-neutral-100">
+                  <div className="px-4 pb-4 pt-1 text-xs text-neutral-600 leading-relaxed border-t border-neutral-100 whitespace-pre-line">
                     {item.a}
                   </div>
                 )}

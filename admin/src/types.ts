@@ -109,6 +109,15 @@ export interface Promo {
   updated_at?: string;
 }
 
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  is_active: boolean | number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface WalkIn {
   id: number;
   date: string;

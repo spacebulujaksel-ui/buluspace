@@ -9,6 +9,7 @@ import {
   Megaphone,
   Mail,
   MessagesSquare,
+  HelpCircle,
   X,
 } from 'lucide-react';
 
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { to: '/therapists', label: 'Terapis', icon: Users },
   { to: '/services', label: 'Layanan', icon: Scissors },
   { to: '/promos', label: 'Promo', icon: Megaphone },
+  { to: '/faqs', label: 'FAQ', icon: HelpCircle },
   { to: '/email', label: 'Email', icon: Mail },
   { to: '/reviews', label: 'Ulasan', icon: Star },
 ];

@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminChatController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailSettingController;
+use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\PromoController as AdminPromoController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
@@ -29,6 +30,7 @@ Route::get('/reviews', [PublicController::class, 'reviews']);
 Route::get('/promos', [PromoController::class, 'index']);
 Route::get('/availability', [PublicController::class, 'availability']);
 Route::get('/branches', [PublicController::class, 'branches']);
+Route::get('/faqs', [PublicController::class, 'faqs']);
 Route::get('/schedule-board', [PublicController::class, 'scheduleBoard']);
 
 Route::post('/bookings', [BookingController::class, 'store']);
@@ -92,6 +94,11 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAdmin::class])
 
         Route::get('/reviews', [AdminReviewController::class, 'index']);
         Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy']);
+
+        Route::get('/faqs', [FaqController::class, 'index']);
+        Route::post('/faqs', [FaqController::class, 'store']);
+        Route::put('/faqs/{id}', [FaqController::class, 'update']);
+        Route::delete('/faqs/{id}', [FaqController::class, 'destroy']);
 
         Route::get('/email-settings', [EmailSettingController::class, 'index']);
         Route::put('/email-settings', [EmailSettingController::class, 'update']);

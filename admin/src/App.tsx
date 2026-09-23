@@ -8,6 +8,7 @@ import Chat from './pages/Chat';
 import Therapists from './pages/Therapists';
 import Services from './pages/Services';
 import Promos from './pages/Promos';
+import Faq from './pages/Faq';
 import Reviews from './pages/Reviews';
 import Email from './pages/Email';
 
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/therapists" element={<Therapists />} />
         <Route path="/services" element={<Services />} />
         <Route path="/promos" element={<Promos />} />
+        <Route path="/faqs" element={<Faq />} />
         <Route path="/reviews" element={<Reviews />} />
         <Route path="/email" element={<Email />} />
       </Route>

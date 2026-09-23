@@ -82,3 +82,9 @@ export interface Review {
   comment: string;
   avatar?: string;
 }
+
+export interface FaqItem {
+  id: number;
+  q: string;
+  a: string;
+}

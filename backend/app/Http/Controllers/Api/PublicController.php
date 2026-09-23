@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Branch;
+use App\Models\Faq;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\Therapist;
@@ -55,6 +56,11 @@ class PublicController extends Controller
     public function branches()
     {
         return Branch::orderBy('sort_order')->get(['id', 'name', 'address', 'rooms_count']);
+    }
+
+    public function faqs()
+    {
+        return Faq::where('is_active', true)->orderBy('id')->get(['id', 'question', 'answer']);
     }
 
     public function scheduleBoard(Request $request)

@@ -3,6 +3,7 @@ import { Search, Filter, Eye, X, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { formatRupiah, formatDate, formatDateTime } from '../data/helpers';
 import { Appointment } from '../types';
+import { Modal } from '../components/Modal';
 
 const STATUS_OPTIONS = ['All', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
 
@@ -21,6 +22,8 @@ export default function Bookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   const load = () => fetchBookings(true);
 
@@ -48,17 +51,28 @@ export default function Bookings() {
     return () => clearInterval(timer);
   }, [filter, search]);
 
-  const updateStatus = async (id: number, status: string) => {
+  const updateStatus = async (id: number, status: string, reason?: string) => {
     setUpdating(true);
     try {
-      await api.put(`/admin/bookings/${id}/status`, { status });
-      setSelected((s) => (s && s.id === id ? { ...s, status: status as Appointment['status'] } : s));
+      await api.put(`/admin/bookings/${id}/status`, { status, cancel_reason: reason });
+      setSelected((s) => (s && s.id === id ? { ...s, status: status as Appointment['status'], cancel_reason: reason ?? s.cancel_reason } : s));
       load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal mengubah status.');
     } finally {
       setUpdating(false);
     }
+  };
+
+  const askCancel = (apt: Appointment) => {
+    setCancelTarget(apt);
+    setCancelReason('');
+  };
+
+  const submitCancel = async () => {
+    if (!cancelTarget) return;
+    await updateStatus(cancelTarget.id, 'Cancelled', cancelReason.trim() || undefined);
+    setCancelTarget(null);
   };
 
     return (
@@ -187,6 +201,16 @@ export default function Bookings() {
                             Selesai
                           </button>
                         )}
+                        {apt.status === 'Confirmed' && (
+                          <button
+                            onClick={() => askCancel(apt)}
+                            disabled={updating}
+                            className="px-2 py-1 rounded-lg text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors disabled:opacity-50"
+                            title="Batalkan booking"
+                          >
+                            Batal
+                          </button>
+                        )}
                         <button
                           onClick={() => setSelected(apt)}
                           className="p-1.5 rounded-lg text-neutral-400 hover:text-pink-600 hover:bg-pink-50 transition-colors"
@@ -251,6 +275,15 @@ export default function Bookings() {
                         className="px-2 py-1 rounded-lg text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50"
                       >
                         Selesai
+                      </button>
+                    )}
+                    {apt.status === 'Confirmed' && (
+                      <button
+                        onClick={() => askCancel(apt)}
+                        disabled={updating}
+                        className="px-2 py-1 rounded-lg text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors disabled:opacity-50"
+                      >
+                        Batal
                       </button>
                     )}
                     <button
@@ -375,7 +408,7 @@ export default function Bookings() {
                   {['Confirmed', 'Completed', 'Cancelled', 'Rejected'].map((s) => (
                     <button
                       key={s}
-                      onClick={() => updateStatus(selected.id, s)}
+                      onClick={() => (s === 'Cancelled' || s === 'Rejected' ? askCancel(selected) : updateStatus(selected.id, s))}
                       disabled={updating || selected.status === s}
                       className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors disabled:cursor-default ${
                         selected.status === s
@@ -394,6 +427,44 @@ export default function Bookings() {
           </div>
         </div>
       )}
+      <Modal
+        title="Batalkan Booking"
+        subtitle={cancelTarget ? `Kode ${cancelTarget.booking_code}` : undefined}
+        isOpen={!!cancelTarget}
+        onClose={() => setCancelTarget(null)}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-[13px] text-neutral-600">
+            Booking <span className="font-semibold text-neutral-900">{cancelTarget?.booking_code}</span>{' '}
+            akan dibatalkan. Tuliskan alasan pembatalan (opsional).
+          </p>
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            rows={4}
+            maxLength={500}
+            placeholder="Alasan pembatalan"
+            className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white resize-none"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setCancelTarget(null)}
+              disabled={updating}
+              className="px-4 py-2 rounded-xl text-[13px] font-medium text-neutral-600 bg-white border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+            >
+              Batal
+            </button>
+            <button
+              onClick={submitCancel}
+              disabled={updating}
+              className="px-4 py-2 rounded-xl text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50"
+            >
+              {updating ? 'Menyimpan...' : 'Batalkan Booking'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

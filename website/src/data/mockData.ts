@@ -492,7 +492,7 @@ export const HYGIENE_PILLARS = [
   },
   {
     title: "Minim Rasa Sakit",
-    desc: "Teknik gentle pull dengan 100% natural sugar organik yang lembut di kulit, aman untuk kulit sensitif.",
+    desc: "Teknik gentle pull dengan 100% natural sugar organik yang lembut di kulit.",
     icon: "Sparkles",
   },
   {

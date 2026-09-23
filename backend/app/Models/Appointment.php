@@ -12,11 +12,14 @@ class Appointment extends Model
 {
     use HasFactory;
 
+    public const AUTO_THERAPIST_LABEL = 'Rekomendasi Bulu Space';
+
     protected $fillable = [
         'booking_code', 'user_id', 'therapist_id', 'appointment_date',
         'start_time', 'end_time', 'status', 'customer_name', 'customer_phone',
         'customer_email', 'customer_gender', 'location', 'notes', 'cancel_reason',
         'reminder_1_sent_at', 'reminder_2_sent_at', 'total_price',
+        'is_auto_assign',
     ];
 
     protected function casts(): array
@@ -24,6 +27,7 @@ class Appointment extends Model
         return [
             'appointment_date' => 'date',
             'total_price' => 'decimal:2',
+            'is_auto_assign' => 'boolean',
         ];
     }
 
@@ -51,6 +55,33 @@ class Appointment extends Model
     {
         return $this->belongsToMany(Service::class, 'appointment_details', 'appointment_id', 'service_id')
             ->withPivot(['quantity', 'price']);
+    }
+
+    /** Nama terapis yang AMAN ditampilkan ke customer/semua permukaan. */
+    public function getTherapistDisplayAttribute(): ?string
+    {
+        return $this->is_auto_assign
+            ? self::AUTO_THERAPIST_LABEL
+            : $this->therapist?->name;
+    }
+
+    /**
+     * Satu titik anonimisasi: SEMUA operasi Eloquent yang meng-serialize
+     * appointment (website, admin, board, email) otomatis memakai label
+     * "Rekomendasi Bulu Space" utk auto-assign, tanpa ubah controller/frontend.
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        if ($this->is_auto_assign && isset($array['therapist']) && is_array($array['therapist'])) {
+            $array['therapist'] = [
+                'id' => $array['therapist']['id'] ?? null,
+                'name' => self::AUTO_THERAPIST_LABEL,
+            ];
+        }
+
+        return $array;
     }
 
     public function canCancel(): bool

@@ -24,7 +24,7 @@ class ReviewController extends Controller
                 'rating' => $r->rating,
                 'comment' => $r->comment,
                 'created_at' => $r->created_at,
-                'therapist_name' => $r->appointment?->therapist?->name,
+                'therapist_name' => $r->appointment?->therapist_display,
             ]);
 
         $total = Review::whereHas('appointment', fn ($q) => $q->where('location', $branchName))->count();

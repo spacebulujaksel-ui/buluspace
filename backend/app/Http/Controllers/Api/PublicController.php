@@ -46,7 +46,7 @@ class PublicController extends Controller
             ->map(fn ($r) => [
                 'id' => $r->id,
                 'client_name' => $r->user?->name ?? 'Customer',
-                'therapist_name' => $r->appointment?->therapist?->name,
+                'therapist_name' => $r->appointment?->therapist_display,
                 'rating' => $r->rating,
                 'comment' => $r->comment,
                 'created_at' => $r->created_at,
@@ -80,7 +80,7 @@ class PublicController extends Controller
                 'start_time' => $apt->start_time,
                 'end_time' => $apt->end_time,
                 'status' => $apt->status,
-                'therapist' => $apt->therapist?->name,
+                'therapist' => $apt->therapist_display,
                 'services' => $apt->details->map(fn ($d) => $d->service?->name ?? 'Layanan #'.$d->service_id)->values(),
             ]);
 

@@ -71,7 +71,7 @@ class BookingMailer
             'date' => $appointment->appointment_date ? $appointment->appointment_date->format('d/m/Y') : '-',
             'time' => substr($appointment->start_time, 0, 5).' - '.substr($appointment->end_time, 0, 5).' WIB',
             'branch' => $appointment->location ?? '-',
-            'therapist' => $appointment->therapist?->name ?? 'Menunggu penugasan',
+            'therapist' => $appointment->therapist_display ?? 'Menunggu penugasan',
             'services' => $services ?: '-',
             'total' => 'Rp '.number_format((float) $appointment->total_price, 0, ',', '.'),
             'admin_wa' => self::waForBranch($appointment->location),

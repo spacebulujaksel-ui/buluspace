@@ -204,6 +204,7 @@ class BookingController extends Controller
             'location' => $validated['location'] ?? null,
             'notes' => $validated['notes'] ?? null,
             'total_price' => $totalPrice,
+            'is_auto_assign' => empty($validated['therapist_id']),
         ]);
 
         foreach ($services as $service) {

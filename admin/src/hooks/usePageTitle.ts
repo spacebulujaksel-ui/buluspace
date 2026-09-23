@@ -6,7 +6,6 @@ const TITLES: Record<string, string> = {
   '/therapists': 'Manajemen Terapis',
   '/services': 'Manajemen Layanan',
   '/promos': 'Manajemen Promo',
-  '/reviews': 'Manajemen Ulasan',
 };
 
 export function usePageTitle() {

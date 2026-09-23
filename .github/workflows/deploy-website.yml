@@ -37,6 +37,6 @@ jobs:
 
       - name: Rsync dist to server
         run: |
-          rsync -az --no-owner --no-group --delete \
+          rsync -az --no-owner --no-group --delete --exclude 'gray-wolf-369400.hostingersite.com' \
             -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
             website/dist/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:domains/buluspace.com/public_html/"

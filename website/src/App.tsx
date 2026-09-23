@@ -185,21 +185,6 @@ export default function App() {
       </main>
       )}
 
-      {/* Floating Booking Badge */}
-      {savedBookings.length > 0 && (
-        <button
-          onClick={() => {
-            setLatestBooking(savedBookings[0]);
-            setIsConfirmationOpen(true);
-          }}
-          className="fixed bottom-5 left-5 z-40 bg-white text-neutral-700 px-3.5 py-2 rounded-lg border border-neutral-200 shadow-sm flex items-center gap-2 hover:bg-neutral-50 transition-colors text-xs font-medium"
-          title="Lihat Tiket Reservasi"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          Tiket #{savedBookings[0].id}
-        </button>
-      )}
-
       <Footer onOpenFaq={goToFaq} />
 
       <ChatBubble raised={selectedServiceIds.length > 0} />

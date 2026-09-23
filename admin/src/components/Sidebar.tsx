@@ -5,7 +5,6 @@ import {
   CalendarRange,
   Users,
   Scissors,
-  Star,
   Megaphone,
   Mail,
   MessagesSquare,
@@ -23,7 +22,6 @@ const NAV_ITEMS = [
   { to: '/promos', label: 'Promo', icon: Megaphone },
   { to: '/faqs', label: 'FAQ', icon: HelpCircle },
   { to: '/email', label: 'Email', icon: Mail },
-  { to: '/reviews', label: 'Ulasan', icon: Star },
 ];
 
 interface SidebarProps {

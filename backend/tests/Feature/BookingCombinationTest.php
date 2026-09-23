@@ -33,6 +33,7 @@ class BookingCombinationTest extends TestCase
             'full_legs' => $make('Full Legs', 'legs', 30),
             'full_arms' => $make('Full Arms', 'arms', 30),
             'half_arms' => $make('Half Arms', 'arms', 20),
+            'full_front' => $make('Full Front', 'upper', 30),
             'full_back' => $make('Full Back', 'upper', 30),
             'forehead' => $make('Forehead', 'face', 10),
             'cheek' => $make('Cheek', 'face', 10),
@@ -122,12 +123,14 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['full_legs', 'forehead'])))->assertCreated();
     }
 
-    public function test_solo_full_treatment_must_be_ordered_alone(): void
+    public function test_full_back_can_combine_with_other_treatments(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['full_back', 'forehead'])));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['full_back', 'forehead'])))->assertCreated();
+    }
 
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Full Back hanya bisa dipilih sendiri', $res->json('message'));
+    public function test_full_front_and_back_can_combine_together_with_others(): void
+    {
+        $this->postJson('/api/bookings', $this->payload($this->ids(['full_front', 'full_back', 'forehead'])))->assertCreated();
     }
 
     public function test_normal_singles_can_combine_freely(): void

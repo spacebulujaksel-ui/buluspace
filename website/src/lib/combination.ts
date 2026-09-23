@@ -4,7 +4,6 @@ export interface CombinationItem {
   duration: number;
 }
 
-const SOLO_FULL = ['Full Front', 'Full Back'];
 const FULL_TREATMENTS = ['Full Legs', 'Full Arms', 'Full Front', 'Full Back'];
 
 export function combinationError(selected: CombinationItem[]): string | null {
@@ -22,9 +21,6 @@ export function combinationError(selected: CombinationItem[]): string | null {
     const bad = selected.find((s) => s.name !== 'Feel Smooth' && !ALLOWED.includes(s.name));
     return bad ? 'Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks, atau Basic Bikini.' : null;
   }
-
-  const full = selected.find((s) => SOLO_FULL.includes(s.name));
-  if (full) return `${full.name} hanya bisa dipilih sendiri.`;
 
   const pkg = selected.find((s) => s.category === 'package');
   return pkg ? `${pkg.name} hanya bisa dipilih sendiri.` : null;

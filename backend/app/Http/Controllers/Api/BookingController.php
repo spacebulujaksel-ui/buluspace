@@ -301,11 +301,6 @@ class BookingController extends Controller
             return $bad ? 'Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks, atau Basic Bikini.' : null;
         }
 
-        $fullIn = $names->intersect(['Full Front', 'Full Back']);
-        if ($fullIn->isNotEmpty()) {
-            return "{$fullIn->first()} hanya bisa dipilih sendiri.";
-        }
-
         $pkg = $services->first(fn (Service $s) => $s->category === 'package');
 
         return $pkg ? "{$pkg->name} hanya bisa dipilih sendiri." : null;

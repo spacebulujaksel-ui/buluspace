@@ -227,8 +227,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-8",
     category: "arms",
     name: "Full Arms",
-    description:
-      "Waxing lengan menyeluruh dari bahu hingga ujung tangan.",
+    description: "Waxing lengan menyeluruh dari bahu hingga ujung tangan.",
     durationMinutes: 30,
     price: 85000,
     waxType: "Organic Soft Honey",
@@ -487,7 +486,7 @@ export const REVIEWS: Review[] = [
 
 export const HYGIENE_PILLARS = [
   {
-    title: "Higienis Standar Medis",
+    title: "Standar Kebersihan Tinggi",
     desc: "Stik wax sekali pakai tanpa double-dipping. Seluruh peralatan steril untuk keamanan Anda.",
     icon: "ShieldCheck",
   },

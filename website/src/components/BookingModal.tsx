@@ -327,10 +327,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     customerGender === "Pria"
       ? MALE_SURCHARGE_PER_TREATMENT * selectedServices.length
       : 0;
-  const discountAmount = promoApplied
-    ? Math.round((subtotal * discountPercent) / 100)
-    : 0;
-  const finalPrice = Math.max(0, subtotal + maleSurcharge - discountAmount);
+  const finalPrice = Math.max(0, subtotal + maleSurcharge);
 
   const selectedTherapistObj = THERAPISTS.find((t) => t.id === therapistId);
   const therapistDisplayName = selectedTherapistObj
@@ -539,7 +536,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         specialNotes: specialNotes.trim(),
         createdAt: new Date().toISOString(),
         totalPrice: Number(res.booking?.total_price ?? subtotal),
-        discountAmount,
+        discountAmount: 0,
         finalPrice: Number(res.booking?.total_price ?? finalPrice),
         therapistName:
           res.booking?.therapist?.name ??

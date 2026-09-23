@@ -1,7 +1,7 @@
 export const FAQ_ITEMS = [
   {
     q: "Bagaimana cara memesan (booking) treatment waxing di Bulu Space?",
-    a: "Pemesanan sangat mudah! Klik tombol 'Reservasi Sekarang' di website, pilih lokasi cabang (Jakarta Barat / Jakarta Selatan), tentukan layanan, tanggal, jam, dan terapis (opsional). Setelah konfirmasi, tiket reservasi Anda langsung terbit.",
+    a: "Pemesanan sangat mudah! Klik tombol 'Reservasi Sekarang' di website, pilih lokasi cabang (Jakarta Barat / Jakarta Selatan), tentukan layanan, tanggal, jam, dan therapist (opsional). Setelah konfirmasi, tiket reservasi Anda langsung terbit.",
   },
   {
     q: "Apa yang perlu dipersiapkan sebelum melakukan treatment waxing?",
@@ -17,11 +17,11 @@ export const FAQ_ITEMS = [
   },
   {
     q: "Apa saja metode pembayaran yang diterima di studio Bulu Space?",
-    a: "Kami menerima pembayaran tunai (Cash), Transfer Bank, QRIS (Gopay, OVO, ShopeePay, BCA, Mandiri, dll), serta Kartu Debit/Kredit langsung di lokasi studio saat hari treatment.",
+    a: "Kami menerima pembayaran tunai (Cash), Transfer Bank, QRIS (Gopay, OVO, ShopeePay, BCA, Mandiri, dll), serta Kartu Debit langsung di lokasi studio saat hari treatment.",
   },
   {
     q: "Kalau setelah treatment muncul kemerahan, jerawat atau bintik-bintik kecil, gimana ya kak?",
-    a: "Kemerahan, jerawat, atau bintik-bintik kecil setelah treatment bisa terjadi dan umumnya merupakan reaksi kulit terhadap treatment, terutama pada kulit yang sensitif ya kak. 🤍\n\nUntuk membantu menenangkan kulit, kakak bisa:\n\n* Oleskan aloe vera gel.\n* Hindari scrub atau eksfoliasi sementara.\n* Gunakan pakaian yang longgar agar tidak banyak gesekan.\n* Hindari air hangat pada area treatment.\n* Kurangi aktivitas yang membuat keringat berlebih sementara waktu.\n* Boleh dikompres air dingin.\n\nBiasanya reaksi kulit akan mereda seiring waktu ya kak. Semoga lekas membaik. ☺️🙏🏻",
+    a: "Kemerahan, jerawat, atau bintik-bintik kecil setelah treatment bisa terjadi dan umumnya merupakan reaksi kulit terhadap treatment, terutama pada kulit yang sensitif ya kak. 🤍\n\nUntuk membantu menenangkan kulit, kakak bisa:\n\n* Oleskan aloe vera gel.\n* Hindari scrub atau eksfoliasi sementara.\n* Gunakan pakaian yang longgar agar tidak banyak gesekan.\n* Hindari air hangat pada area treatment.\n* Kurangi aktivitas yang membuat keringat berlebih sementara waktu.\n* Boleh dikompres air dingin.\n\nBiasanya reaksi kulit akan mereda seiring waktu ya kak.☺️🙏🏻",
   },
   {
     q: "Bisa walk-in tidak kak?",
@@ -80,12 +80,12 @@ export const FAQ_ITEMS = [
     a: "Kulit bisa terasa bertekstur setelah waxing karena folikel rambut dan kulit sedang mengalami iritasi ringan, atau ada sel kulit mati yang menumpuk kak.\n\nBiasanya bersifat sementara ya kak, jadi hindari menggaruk dan jangan langsung scrub, tunggu sekitar 3 hari, lalu gunakan body scrub yang lembut. Bisa juga pakai aloe vera 100% tanpa alkohol untuk membantu menenangkan kulit 😊",
   },
   {
-    q: "Kak, kalau aku terlanjur sudah pakai deodoran apakah masih bisa treatment?",
+    q: "Kak, kalau aku terlanjur sudah pakai deodorant apakah masih bisa treatment?",
     a: "Masih bisa kak, asalkan area underarms sudah dibersihkan sampai tidak ada sisa deodorant sebelum treatment. ☺️",
   },
   {
     q: "Kak, apakah di Bulu Space tersedia remover/micellar water?",
-    a: "Kami tersedia ya kak, sebelum treatment dimulai terapist akan memastikan jika kakak memakai riasan atau tidak, jadi akan dibantu dibersihkan oleh terapist kak. 😊",
+    a: "Kami tersedia ya kak, sebelum treatment dimulai therapist akan memastikan jika kakak memakai riasan atau tidak, jadi akan dibantu dibersihkan oleh therapist kak. 😊",
   },
   {
     q: "Kalau member card aku hilang, gimana ya, kak?",
@@ -133,7 +133,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "Kalau ada bekas luka, bekas jahitan, atau bekas jahitan sesar, boleh waxing nggak kak?",
-    a: "Boleh kak selama luka atau bekas jahitannya sudah sembuh dan kering ya. Nanti tetap akan dicek terlebih dahulu oleh therapist kami. Kalau dirasa belum memungkinkan, area di sekitar bekas luka atau jahitan tidak akan diwaxing ya, kak. 🤍",
+    a: "Boleh kak selama luka atau bekas jahitannya sudah sembuh dan kering ya. Nanti tetap akan dicek terlebih dahulu oleh therapist kami. Kalau dirasa belum memungkinkan, area di sekitar bekas luka atau jahitan tidak akan di waxing ya, kak. 🤍",
   },
   {
     q: "Untuk treatment paket, bisa diganti nggak kak? Misalnya paket Bali Ready, Half Legs nya diganti ke Eyebrows?",

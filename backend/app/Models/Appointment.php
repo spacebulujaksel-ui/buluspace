@@ -19,7 +19,7 @@ class Appointment extends Model
         'start_time', 'end_time', 'status', 'customer_name', 'customer_phone',
         'customer_email', 'customer_gender', 'location', 'notes', 'cancel_reason',
         'reminder_1_sent_at', 'reminder_2_sent_at', 'total_price',
-        'is_auto_assign',
+        'is_auto_assign', 'import_hash',
     ];
 
     protected function casts(): array

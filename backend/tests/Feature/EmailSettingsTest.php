@@ -46,11 +46,15 @@ class EmailSettingsTest extends TestCase
 
     public function test_h1_reminder_marks_booking_for_tomorrow(): void
     {
-        $appointment = $this->booking(now()->addDay()->format('Y-m-d'), '13:00');
+        $frozen = \Illuminate\Support\Carbon::parse('2026-01-15 07:30:00', 'Asia/Jakarta');
+        \Illuminate\Support\Carbon::setTestNow($frozen);
+
+        $appointment = $this->booking($frozen->copy()->addDay()->format('Y-m-d'), '13:00');
 
         $this->artisan('app:send-h1-reminders')->assertExitCode(0);
 
         $this->assertNotNull($appointment->fresh()->reminder_1_sent_at);
+        \Illuminate\Support\Carbon::setTestNow();
     }
 
     public function test_hour_reminder_marks_within_two_hours_and_does_not_double_send(): void

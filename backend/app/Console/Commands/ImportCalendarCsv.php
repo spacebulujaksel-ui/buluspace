@@ -64,7 +64,7 @@ class ImportCalendarCsv extends Command
 
         $format = array_key_exists('SUMMARY', $rows[0])
             ? 'calendar'
-            : (array_key_exists('Waktu Mulai', $rows[0]) ? 'spreadsheet' : null);
+            : ((array_key_exists('Waktu Mulai', $rows[0]) || array_key_exists('waktu_mulai', $rows[0]) || array_key_exists('nama_customer', $rows[0])) ? 'spreadsheet' : null);
 
         if ($format === null) {
             $this->error('Format CSV tidak dikenali (butuh kolom SUMMARY/DTSTART atau Waktu Mulai/Tanggal/Bulan/Tahun).');
@@ -246,11 +246,18 @@ class ImportCalendarCsv extends Command
             'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8,
             'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12,
         ];
-        $year = trim($row['Tahun'] ?? '');
-        $month = $months[$row['Bulan'] ?? ''] ?? null;
-        $day = trim($row['Tanggal'] ?? '');
-        $startTime = trim($row['Waktu Mulai'] ?? '');
-        $endTime = trim($row['Waktu Selesai'] ?? '');
+        $year = trim($this->val($row, ['Tahun', 'tahun']));
+        $monthRaw = trim($this->val($row, ['Bulan', 'bulan']));
+        $day = trim($this->val($row, ['Tanggal', 'tanggal']));
+        $startTime = trim($this->val($row, ['Waktu Mulai', 'waktu_mulai']));
+        $endTime = trim($this->val($row, ['Waktu Selesai', 'waktu_selesai']));
+        $status = strtoupper(trim($this->val($row, ['STATUS', 'status'])));
+
+        if ($status !== '' && $status !== 'CONFIRMED') {
+            return null;
+        }
+
+        $month = $months[$monthRaw] ?? (preg_match('/^\d{1,2}$/', $monthRaw) ? (int) $monthRaw : null);
 
         if ($month === null || !preg_match('/^\d{4}$/', $year) || !preg_match('/^\d{1,2}$/', $day)
             || !preg_match('/^\d{1,2}:\d{2}$/', $startTime) || !preg_match('/^\d{1,2}:\d{2}$/', $endTime)) {
@@ -267,7 +274,7 @@ class ImportCalendarCsv extends Command
         );
 
         return [
-            'summary' => trim($row['Nama Customer'] ?? ''),
+            'summary' => trim($this->val($row, ['Nama Customer', 'nama_customer'])),
             'description' => $this->extractTreatment($row),
             'start' => $compose($startTime),
             'end' => $compose($endTime),
@@ -275,36 +282,50 @@ class ImportCalendarCsv extends Command
         ];
     }
 
-    private function extractTreatment(array $row): string
+    private function val(array $row, array $keys): string
     {
-        $direct = trim($row['Treatment'] ?? '');
-        if ($direct !== '') {
-            return $direct;
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $row)) {
+                return (string) $row[$key];
+            }
         }
 
-        $catatan = trim($row['Catatan'] ?? '');
-        if ($catatan === '' || !preg_match('/Treatment\s*:\s*([^\r\n]+?)(?:\s+Pax\s*:|\s+Cabang\s*:|\s+HP\s*:|\s+Booking\s+via\s*:|\s+Therapist\s*:|\s*$)/i', $catatan, $m)) {
+        return '';
+    }
+
+    private function segment(string $text, string $label): string
+    {
+        if (!preg_match('/'.preg_quote($label, '/').'\s*:\s*([^\r\n]+?)(?:\s+Pax\s*:|\s+Cabang\s*:|\s+HP\s*:|\s+Booking\s+via\s*:|\s+Therapist\s*:|\s*$)/i', $text, $m)) {
             return '';
         }
 
         return trim($m[1]);
     }
 
+    private function extractTreatment(array $row): string
+    {
+        $direct = trim($this->val($row, ['Treatment', 'treatment']));
+        if ($direct !== '') {
+            return preg_match('/^Treatment\s*:/i', $direct)
+                ? $this->segment($direct, 'Treatment')
+                : $direct;
+        }
+
+        $catatan = trim($this->val($row, ['Catatan', 'catatan']));
+
+        return $catatan === '' ? '' : $this->segment($catatan, 'Treatment');
+    }
+
     private function extractTherapist(array $row): string
     {
-        $direct = trim($row['Therapist'] ?? '');
+        $direct = trim($this->val($row, ['Therapist', 'therapist', 'nama_therapist']));
         if ($direct !== '') {
             return $direct;
         }
 
-        $catatan = trim($row['Catatan'] ?? '');
-        if ($catatan === '' || !preg_match('/Therapist\s*:\s*([^\s,;]+(?:\s+[^\s,;]+)*)/i', $catatan, $m)) {
-            return '';
-        }
+        $catatan = trim($this->val($row, ['Catatan', 'catatan']));
 
-        $name = $m[1];
-
-        return preg_replace('/\s*(Pax|Cabang|HP|Booking)\s*:.*$/i', '', $name);
+        return $catatan === '' ? '' : $this->segment($catatan, 'Therapist');
     }
 
     private function matchTherapist(string $normalized, int $branchId): ?Therapist

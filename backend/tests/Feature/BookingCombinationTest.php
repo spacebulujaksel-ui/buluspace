@@ -74,12 +74,9 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_arms'])))->assertCreated();
     }
 
-    public function test_brazilian_cannot_combine_with_underarms(): void
+    public function test_brazilian_can_combine_with_underarms(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])))->assertCreated();
     }
 
     public function test_brazilian_total_duration_is_30_minutes(): void
@@ -93,12 +90,9 @@ class BookingCombinationTest extends TestCase
         $this->assertSame(30, $endMin - $startMin);
     }
 
-    public function test_brazilian_cannot_combine_with_full_treatment(): void
+    public function test_brazilian_can_combine_with_full_treatment(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])))->assertCreated();
     }
 
     public function test_feel_smooth_can_combine_with_allowed_treatments(): void
@@ -106,20 +100,14 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms', 'cheek'])))->assertCreated();
     }
 
-    public function test_feel_smooth_cannot_combine_with_long_treatment(): void
+    public function test_feel_smooth_can_combine_with_long_treatment(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'full_arms'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks,', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'full_arms'])))->assertCreated();
     }
 
-    public function test_feel_smooth_cannot_combine_with_half_arms_even_if_15_minutes(): void
+    public function test_feel_smooth_can_combine_with_half_arms(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks,', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])))->assertCreated();
     }
 
     public function test_feel_smooth_total_duration_is_60_minutes(): void
@@ -135,12 +123,9 @@ class BookingCombinationTest extends TestCase
         $this->assertSame(60, $endMin - $startMin);
     }
 
-    public function test_package_must_be_ordered_alone(): void
+    public function test_package_can_be_combined(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['clean_girl', 'forehead'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Clean Girl hanya bisa dipilih sendiri', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['clean_girl', 'forehead'])))->assertCreated();
     }
 
     public function test_full_legs_can_combine_with_other_treatments(): void
@@ -161,6 +146,17 @@ class BookingCombinationTest extends TestCase
     public function test_normal_singles_can_combine_freely(): void
     {
         $this->postJson('/api/bookings', $this->payload($this->ids(['forehead', 'underarms'])))->assertCreated();
+    }
+
+    public function test_regular_combination_duration_is_sum_of_treatments(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['forehead', 'full_legs'])));
+
+        $res->assertCreated();
+        $appointment = $res->json('booking');
+        $startMin = (int) substr($appointment['start_time'], 0, 2) * 60 + (int) substr($appointment['start_time'], 3, 2);
+        $endMin = (int) substr($appointment['end_time'], 0, 2) * 60 + (int) substr($appointment['end_time'], 3, 2);
+        $this->assertSame(40, $endMin - $startMin);
     }
 
     public function test_male_cannot_book_intimate_services(): void

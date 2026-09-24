@@ -13,7 +13,6 @@ use App\Models\TherapistLeave;
 use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 class BookingController extends Controller
 {
@@ -38,11 +37,6 @@ class BookingController extends Controller
         $services = Service::whereIn('id', $validated['service_ids'])->where('status', 'Active')->get();
         if ($services->count() !== count($validated['service_ids'])) {
             return response()->json(['message' => 'Terdapat layanan yang tidak valid.'], 422);
-        }
-
-        $combinationError = $this->combinationErrorMessage($services->values());
-        if ($combinationError) {
-            return response()->json(['message' => $combinationError], 422);
         }
 
         if ($validated['customer_gender'] === 'Pria' && $services->contains(fn (Service $s) => $s->category === 'intimate')) {
@@ -282,33 +276,6 @@ class BookingController extends Controller
         $appointment->save();
 
         return response()->json(['message' => 'Booking berhasil dibatalkan.', 'booking' => $appointment]);
-    }
-
-    private function combinationErrorMessage(Collection $services): ?string
-    {
-        if ($services->count() < 2) {
-            return null;
-        }
-
-        $names = $services->pluck('name');
-
-        if ($names->contains('Brazilian')) {
-            $allowed = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
-            $bad = $services->first(fn (Service $s) => $s->name !== 'Brazilian' && !in_array($s->name, $allowed, true));
-
-            return $bad ? 'Brazilian hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Half Arms, Half Legs, Chest, Stomach, atau Buttocks.' : null;
-        }
-
-        if ($names->contains('Feel Smooth')) {
-            $allowed = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
-            $bad = $services->first(fn (Service $s) => $s->name !== 'Feel Smooth' && !in_array($s->name, $allowed, true));
-
-            return $bad ? 'Feel Smooth hanya bisa digabung dengan Eyebrows, Upper Lip, Chin, Cheek, Forehead, Underarms, Chest, Stomach, Buttocks, atau Basic Bikini.' : null;
-        }
-
-        $pkg = $services->first(fn (Service $s) => $s->category === 'package');
-
-        return $pkg ? "{$pkg->name} hanya bisa dipilih sendiri." : null;
     }
 
     private function generateCode(): string

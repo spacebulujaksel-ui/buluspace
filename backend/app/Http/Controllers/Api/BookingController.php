@@ -144,6 +144,7 @@ class BookingController extends Controller
             }
 
             $conflict = Appointment::where('therapist_id', $therapist->id)
+                ->where('is_auto_assign', false)
                 ->whereDate('appointment_date', $validated['appointment_date'])
                 ->whereIn('status', ['Pending', 'Confirmed'])
                 ->get()

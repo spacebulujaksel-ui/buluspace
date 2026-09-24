@@ -69,7 +69,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [specialNotes, setSpecialNotes] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [bookedSlots, setBookedSlots] = useState<
-    { therapist_id: number; start_time: string; end_time: string }[]
+    {
+      therapist_id: number;
+      start_time: string;
+      end_time: string;
+      is_auto_assign?: boolean;
+    }[]
   >([]);
   const [rooms, setRooms] = useState<Record<string, number>>({});
   const [blocked, setBlocked] = useState<
@@ -141,6 +146,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           therapist_id: number;
           start_time: string;
           end_time: string;
+          is_auto_assign?: boolean;
         }[];
         rooms: Record<string, number>;
         blocked: {
@@ -197,6 +203,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (totalMinutes <= 0) return true;
     return bookedSlots.some(
       (b) =>
+        !b.is_auto_assign &&
         b.therapist_id === tid &&
         selectedSlotMin < asMinutes(b.end_time) &&
         selectedWindowEnd > asMinutes(b.start_time),
@@ -382,7 +389,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (overlapping >= available) return true;
     if (therapistId !== "any") {
       const tid = Number(therapistId);
-      if (bookedSlots.some((b) => b.therapist_id === tid && overlaps(b)))
+      if (
+        bookedSlots.some(
+          (b) => !b.is_auto_assign && b.therapist_id === tid && overlaps(b),
+        )
+      )
         return true;
     }
     return false;

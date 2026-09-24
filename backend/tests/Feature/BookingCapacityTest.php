@@ -111,6 +111,29 @@ class BookingCapacityTest extends TestCase
         $this->postJson('/api/bookings', $this->payload('15:00', $therapist->id))->assertStatus(409);
     }
 
+    public function test_rekomendasi_booking_does_not_block_specific_therapist(): void
+    {
+        $therapist = Therapist::first();
+        $date = now()->addDay()->format('Y-m-d');
+
+        \App\Models\Appointment::create([
+            'booking_code' => 'BS-AUTO1',
+            'therapist_id' => $therapist->id,
+            'appointment_date' => $date,
+            'start_time' => '15:00',
+            'end_time' => '16:00',
+            'status' => 'Confirmed',
+            'customer_name' => 'Auto Assign',
+            'customer_phone' => '081',
+            'location' => $this->branch,
+            'total_price' => 200000,
+            'is_auto_assign' => true,
+        ]);
+
+        // Customer yang eksplisit memilih terapis yang sama di jam yang sama TETAP boleh.
+        $this->postJson('/api/bookings', $this->payload('15:00', $therapist->id))->assertCreated();
+    }
+
     public function test_male_surcharge_per_treatment_is_added(): void
     {
         $first = Service::create(['name' => 'Forehead', 'description' => null, 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'status' => 'Active']);

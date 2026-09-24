@@ -57,6 +57,19 @@ class EmailSettingsTest extends TestCase
         \Illuminate\Support\Carbon::setTestNow();
     }
 
+    public function test_h1_reminder_skips_outside_07_wib(): void
+    {
+        $frozen = \Illuminate\Support\Carbon::parse('2026-01-15 14:30:00', 'Asia/Jakarta');
+        \Illuminate\Support\Carbon::setTestNow($frozen);
+
+        $appointment = $this->booking($frozen->copy()->addDay()->format('Y-m-d'), '13:00');
+
+        $this->artisan('app:send-h1-reminders')->assertExitCode(0);
+
+        $this->assertNull($appointment->fresh()->reminder_1_sent_at);
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
     public function test_hour_reminder_marks_within_two_hours_and_does_not_double_send(): void
     {
         $now = now('Asia/Jakarta');

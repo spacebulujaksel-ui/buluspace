@@ -232,12 +232,14 @@ class ImportCalendarCsv extends Command
     private function normalize(array $row, string $format): ?array
     {
         if ($format === 'calendar') {
+            $description = str_replace("\\,", ',', str_replace('\\n', ' ', trim($row['DESCRIPTION'] ?? '')));
+
             return [
                 'summary' => trim($row['SUMMARY'] ?? ''),
-                'description' => trim($row['DESCRIPTION'] ?? ''),
+                'description' => $description,
                 'start' => trim($row['DTSTART'] ?? ''),
                 'end' => trim($row['DTEND'] ?? ''),
-                'therapist' => '',
+                'therapist' => $this->segment($description, 'Therapist'),
             ];
         }
 

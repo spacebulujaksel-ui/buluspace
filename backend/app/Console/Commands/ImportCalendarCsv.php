@@ -268,11 +268,26 @@ class ImportCalendarCsv extends Command
 
         return [
             'summary' => trim($row['Nama Customer'] ?? ''),
-            'description' => trim($row['Treatment'] ?? ''),
+            'description' => $this->extractTreatment($row),
             'start' => $compose($startTime),
             'end' => $compose($endTime),
             'therapist' => $this->extractTherapist($row),
         ];
+    }
+
+    private function extractTreatment(array $row): string
+    {
+        $direct = trim($row['Treatment'] ?? '');
+        if ($direct !== '') {
+            return $direct;
+        }
+
+        $catatan = trim($row['Catatan'] ?? '');
+        if ($catatan === '' || !preg_match('/Treatment\s*:\s*([^\r\n]+?)(?:\s+Pax\s*:|\s+Cabang\s*:|\s+HP\s*:|\s+Booking\s+via\s*:|\s+Therapist\s*:|\s*$)/i', $catatan, $m)) {
+            return '';
+        }
+
+        return trim($m[1]);
     }
 
     private function extractTherapist(array $row): string

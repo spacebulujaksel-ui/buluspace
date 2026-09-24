@@ -38,8 +38,4 @@ jobs:
           ssh -p "${{ secrets.SSH_PORT }}" -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
             "cd '${{ secrets.DEPLOY_PATH }}' && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts && php artisan migrate --force && php artisan optimize:clear"
 
-      - name: Ensure Laravel scheduler cron (best-effort)
-        run: |
-          ssh -p "${{ secrets.SSH_PORT }}" -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            'CRON_PATH="'${{ secrets.DEPLOY_PATH }}'"; LINE="* * * * * cd $CRON_PATH && php artisan schedule:run >> /dev/null 2>&1"; ( crontab -l 2>/dev/null | grep -v "artisan schedule:run"; echo "$LINE" ) | crontab -'
-        continue-on-error: true
+      

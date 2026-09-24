@@ -42,9 +42,10 @@ class BookingCombinationTest extends TestCase
             'feel_smooth' => $make('Feel Smooth', 'package', 60),
             'clean_girl' => $make('Clean Girl', 'package', 45),
         ];
+        $this->services['full_legs']->update(['last_order_time' => '18:00']);
     }
 
-    private function payload(array $serviceIds, string $gender = 'Wanita'): array
+    private function payload(array $serviceIds, string $gender = 'Wanita', string $startTime = '13:00'): array
     {
         return [
             'customer_name' => 'Test',
@@ -53,7 +54,7 @@ class BookingCombinationTest extends TestCase
             'customer_gender' => $gender,
             'therapist_id' => null,
             'appointment_date' => now()->addDay()->format('Y-m-d'),
-            'start_time' => '13:00',
+            'start_time' => $startTime,
             'service_ids' => $serviceIds,
             'location' => 'Jakarta Barat',
         ];
@@ -74,25 +75,28 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_arms'])))->assertCreated();
     }
 
-    public function test_brazilian_can_combine_with_underarms(): void
-    {
-        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])))->assertCreated();
-    }
-
-    public function test_brazilian_total_duration_is_30_minutes(): void
+    public function test_brazilian_combination_sums_extra_treatments(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_legs', 'forehead'])));
 
         $res->assertCreated();
-        $appointment = $res->json('booking');
-        $startMin = (int) substr($appointment['start_time'], 0, 2) * 60 + (int) substr($appointment['start_time'], 3, 2);
-        $endMin = (int) substr($appointment['end_time'], 0, 2) * 60 + (int) substr($appointment['end_time'], 3, 2);
-        $this->assertSame(30, $endMin - $startMin);
+        $this->assertSame(65, $this->durationMinutes($res->json('booking')));
     }
 
-    public function test_brazilian_can_combine_with_full_treatment(): void
+    public function test_brazilian_plus_single_allowed_is_30_minutes(): void
     {
-        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])))->assertCreated();
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'forehead'])));
+
+        $res->assertCreated();
+        $this->assertSame(30, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_cannot_combine_with_long_treatment(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
     }
 
     public function test_feel_smooth_can_combine_with_allowed_treatments(): void
@@ -110,17 +114,20 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])))->assertCreated();
     }
 
-    public function test_feel_smooth_total_duration_is_60_minutes(): void
+    public function test_feel_smooth_combination_sums_additions(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms'])));
 
         $res->assertCreated();
-        $appointment = $res->json('booking');
-        $start = $appointment['start_time'];
-        $end = $appointment['end_time'];
-        $startMin = (int) substr($start, 0, 2) * 60 + (int) substr($start, 3, 2);
-        $endMin = (int) substr($end, 0, 2) * 60 + (int) substr($end, 3, 2);
-        $this->assertSame(60, $endMin - $startMin);
+        $this->assertSame(85, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_feel_smooth_plus_brazilian_total_duration_is_90_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'brazilian'])));
+
+        $res->assertCreated();
+        $this->assertSame(90, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_package_can_be_combined(): void
@@ -170,5 +177,53 @@ class BookingCombinationTest extends TestCase
     public function test_female_can_book_intimate_services(): void
     {
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian']), 'Wanita'))->assertCreated();
+    }
+
+    public function test_brazilian_cannot_combine_with_underarms(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
+    }
+
+    public function test_booking_past_closing_time_is_rejected(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['forehead']), 'Wanita', '18:55'));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('melewati jam tutup', $res->json('message'));
+    }
+
+    public function test_booking_at_exact_closing_cutoff_is_accepted(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['forehead']), 'Wanita', '18:50'));
+
+        $res->assertCreated();
+        $this->assertSame('19:00', $res->json('booking.end_time'));
+    }
+
+    public function test_full_legs_static_cutoff_18_00_is_respected(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['full_legs']), 'Wanita', '18:30'));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('melewati jam tutup', $res->json('message'));
+    }
+
+    public function test_full_legs_booking_at_static_cutoff_18_00_is_accepted(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['full_legs']), 'Wanita', '18:00'));
+
+        $res->assertCreated();
+        $this->assertSame('18:30', $res->json('booking.end_time'));
+    }
+
+    private function durationMinutes(array $appointment): int
+    {
+        $startMin = (int) substr($appointment['start_time'], 0, 2) * 60 + (int) substr($appointment['start_time'], 3, 2);
+        $endMin = (int) substr($appointment['end_time'], 0, 2) * 60 + (int) substr($appointment['end_time'], 3, 2);
+
+        return $endMin - $startMin;
     }
 }

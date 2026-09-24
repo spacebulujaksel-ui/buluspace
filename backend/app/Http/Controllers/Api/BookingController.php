@@ -43,32 +43,50 @@ class BookingController extends Controller
             return response()->json(['message' => 'Layanan intimate hanya untuk wanita.'], 422);
         }
 
-        $cutoffService = $services->filter(fn (Service $s) => !empty($s->last_order_time))
-            ->sortBy('last_order_time')
-            ->first();
+        $hasFeelSmooth = $services->contains(fn (Service $s) => $s->name === 'Feel Smooth');
+        $hasBrazilian = $services->contains(fn (Service $s) => $s->name === 'Brazilian');
 
-        if ($cutoffService) {
-            $cutoffHm = substr($cutoffService->last_order_time, 0, 5);
-            $startHm = substr($validated['start_time'], 0, 5);
+        if ($hasBrazilian) {
+            $brazilianAllowed = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
+            $forbidden = $services->filter(fn (Service $s) => $s->name !== 'Brazilian'
+                && $s->name !== 'Feel Smooth' && !in_array($s->name, $brazilianAllowed));
 
-            if ($startHm > $cutoffHm) {
+            if ($forbidden->isNotEmpty()) {
                 return response()->json([
-                    'message' => $cutoffService->name.' hanya bisa dipesan sampai pukul '.$cutoffHm.'.',
+                    'message' => 'Brazilian hanya bisa digabung dengan: Eyebrows, Upper Lip, Chin, Cheek, Forehead, Half Arms, Half Legs, Chest, Stomach, Buttocks (atau paket Feel Smooth).',
                 ], 422);
             }
+        }
+
+        $totalMinutes = $services->sum('duration_minutes');
+        if ($hasFeelSmooth) {
+            $totalMinutes = 60 + $services->where('name', '!=', 'Feel Smooth')->sum('duration_minutes');
+        } elseif ($hasBrazilian) {
+            $added = $services->where('name', '!=', 'Brazilian');
+            $totalMinutes = $added->count() >= 2 ? 30 + $added->sum('duration_minutes') : 30;
+        }
+
+        $closingMin = 19 * 60;
+        $staticCutoff = $services->filter(fn (Service $s) => !empty($s->last_order_time))
+            ->sortBy('last_order_time')
+            ->first();
+        $staticCutoffMin = $staticCutoff
+            ? (int) substr($staticCutoff->last_order_time, 0, 2) * 60 + (int) substr($staticCutoff->last_order_time, 3, 2)
+            : $closingMin;
+        $cutoffMin = min($closingMin - $totalMinutes, $staticCutoffMin);
+        $startMin = (int) substr($validated['start_time'], 0, 2) * 60 + (int) substr($validated['start_time'], 3, 2);
+
+        if ($startMin > $cutoffMin) {
+            $cutoffHm = sprintf('%02d:%02d', intdiv($cutoffMin, 60), $cutoffMin % 60);
+
+            return response()->json([
+                'message' => 'Booking melewati jam tutup (19:00 WIB). Jam mulai maksimal untuk durasi ini adalah pukul '.$cutoffHm.' WIB.',
+            ], 422);
         }
 
         $maleSurcharge = $validated['customer_gender'] === 'Pria'
             ? self::MALE_SURCHARGE_PER_TREATMENT * count($validated['service_ids'])
             : 0;
-
-        $hasFeelSmooth = $services->contains(fn (Service $s) => $s->name === 'Feel Smooth');
-        $hasBrazilian = $services->contains(fn (Service $s) => $s->name === 'Brazilian');
-        $totalMinutes = match (true) {
-            $hasFeelSmooth => 60,
-            $hasBrazilian => 30,
-            default => $services->sum('duration_minutes'),
-        };
         $totalPrice = $services->sum(fn ($s) => (float) $s->price) + $maleSurcharge;
 
         $start = Carbon::parse($validated['appointment_date'].' '.$validated['start_time']);

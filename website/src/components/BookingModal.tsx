@@ -165,14 +165,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const hasIntimate = selectedServiceObjs.some(
     (s) => s.category === "intimate",
   );
-  const totalMinutes = selectedServiceObjs.some((s) => s.name === "Feel Smooth")
-    ? 60
-    : selectedServiceObjs.some((s) => s.name === "Brazilian")
-      ? 30
-      : selectedServiceObjs.reduce(
-          (acc, s) => acc + s.durationMinutes,
-          0,
-        );
+  const totalMinutes = (() => {
+    if (selectedServiceObjs.some((s) => s.name === "Feel Smooth")) {
+      const rest = selectedServiceObjs.filter((s) => s.name !== "Feel Smooth");
+      return 60 + rest.reduce((acc, s) => acc + s.durationMinutes, 0);
+    }
+    if (selectedServiceObjs.some((s) => s.name === "Brazilian")) {
+      const added = selectedServiceObjs.filter((s) => s.name !== "Brazilian");
+      return added.length >= 2
+        ? 30 + added.reduce((acc, s) => acc + s.durationMinutes, 0)
+        : 30;
+    }
+    return selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
+  })();
 
   const asMinutes = (t: string) => {
     const [h, m] = t.split(":").map(Number);
@@ -209,15 +214,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [therapistId, timeSlot, totalMinutes, bookedSlots, onLeaveIds]);
 
-  const bookingCutoff = (() => {
-    const withCut = selectedServiceObjs.filter((s) => s.lastOrderTime);
-    if (withCut.length === 0) return null;
-    const earliest = withCut.reduce((a, b) =>
-      a.lastOrderTime! <= b.lastOrderTime! ? a : b,
-    );
-    return { name: earliest.name, time: earliest.lastOrderTime! };
-  })();
-  const cutoffMin = bookingCutoff ? asMinutes(bookingCutoff.time) : null;
+  const closeMinute = 19 * 60;
+  const staticCutoff = selectedServiceObjs.reduce<string | null>(
+    (earliest, s) => {
+      if (!s.lastOrderTime) return earliest;
+      return earliest === null || s.lastOrderTime < earliest
+        ? s.lastOrderTime
+        : earliest;
+    },
+    null,
+  );
+  const cutoffMin = staticCutoff
+    ? Math.min(closeMinute - totalMinutes, asMinutes(staticCutoff))
+    : closeMinute - totalMinutes;
 
   useEffect(() => {
     if (cutoffMin === null) return;
@@ -905,10 +914,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </span>
                 </span>
               </label>
-              {bookingCutoff && (
+              {cutoffMin > 10 * 60 && (
                 <p className="text-[11px] text-rose-600 mb-1.5 font-medium">
-                  {bookingCutoff.name} hanya bisa dipesan sampai pukul{" "}
-                  {bookingCutoff.time}
+                  Jam operasional s/d 19:00 — untuk durasi ini, jam mulai
+                  maksimal {`${String(Math.floor(cutoffMin / 60)).padStart(2, "0")}:${String(cutoffMin % 60).padStart(2, "0")}`} WIB.
                 </p>
               )}
               <div className="max-h-44 overflow-y-auto pr-1 grid grid-cols-4 xs:grid-cols-5 gap-1.5 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">

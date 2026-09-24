@@ -46,18 +46,6 @@ class BookingController extends Controller
         $hasFeelSmooth = $services->contains(fn (Service $s) => $s->name === 'Feel Smooth');
         $hasBrazilian = $services->contains(fn (Service $s) => $s->name === 'Brazilian');
 
-        if ($hasBrazilian) {
-            $brazilianAllowed = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
-            $forbidden = $services->filter(fn (Service $s) => $s->name !== 'Brazilian'
-                && $s->name !== 'Feel Smooth' && !in_array($s->name, $brazilianAllowed));
-
-            if ($forbidden->isNotEmpty()) {
-                return response()->json([
-                    'message' => 'Brazilian hanya bisa digabung dengan: Eyebrows, Upper Lip, Chin, Cheek, Forehead, Half Arms, Half Legs, Chest, Stomach, Buttocks (atau paket Feel Smooth).',
-                ], 422);
-            }
-        }
-
         $totalMinutes = $services->sum('duration_minutes');
         if ($hasFeelSmooth) {
             $totalMinutes = 60 + $services->where('name', '!=', 'Feel Smooth')->sum('duration_minutes');

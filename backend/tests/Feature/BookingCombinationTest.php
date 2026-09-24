@@ -91,12 +91,9 @@ class BookingCombinationTest extends TestCase
         $this->assertSame(30, $this->durationMinutes($res->json('booking')));
     }
 
-    public function test_brazilian_cannot_combine_with_long_treatment(): void
+    public function test_brazilian_can_combine_with_full_legs(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])))->assertCreated();
     }
 
     public function test_feel_smooth_can_combine_with_allowed_treatments(): void
@@ -179,12 +176,9 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian']), 'Wanita'))->assertCreated();
     }
 
-    public function test_brazilian_cannot_combine_with_underarms(): void
+    public function test_brazilian_can_combine_with_underarms(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])));
-
-        $res->assertStatus(422);
-        $this->assertStringContainsString('Brazilian hanya bisa digabung dengan', $res->json('message'));
+        $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])))->assertCreated();
     }
 
     public function test_booking_past_closing_time_is_rejected(): void

@@ -139,15 +139,33 @@ class ImportCalendarCsv extends Command
 
             $matched = $this->matchServices($services, $description.' '.$summary);
 
+            $assignedTherapist = $therapist;
+            $isAuto = true;
+            $tName = $n['therapist'];
+
+            if ($tName !== '') {
+                $norm = strtolower(preg_replace('/^\s*(mba|mbak|kak|mas)\s+/i', '', $tName));
+                $norm = preg_replace('/[^a-z]+/i', ' ', $norm);
+                $found = $this->matchTherapist($norm, $branch->id);
+
+                if ($found) {
+                    $assignedTherapist = $found;
+                    $isAuto = false;
+                } else {
+                    $this->warn("baris {$line}: terapis '{$tName}' tidak cocok di {$branch->name}, pakai Rekomendasi.");
+                }
+            }
+
             if ($dry) {
                 $created++;
 
-                $this->line(sprintf('  [rencana] %s | %s %s-%s | %s | Rp.%s',
+                $this->line(sprintf('  [rencana] %s | %s %s-%s | %s | terapis %s | Rp.%s',
                     $start->toDateString(),
                     $name,
                     $start->format('H:i'),
                     $end->format('H:i'),
                     $matched->count() ? $matched->pluck('name')->implode(', ') : '(tanpa treatment)',
+                    $isAuto ? 'Rekomendasi' : $assignedTherapist->name,
                     number_format($matched->sum('price'), 0, ',', '.'),
                 ));
 
@@ -156,7 +174,7 @@ class ImportCalendarCsv extends Command
 
             $booking = Appointment::create([
                 'booking_code' => $this->generateCode(),
-                'therapist_id' => $therapist->id,
+                'therapist_id' => $assignedTherapist->id,
                 'appointment_date' => $start->toDateString(),
                 'start_time' => $start->format('H:i'),
                 'end_time' => $end->format('H:i'),
@@ -165,7 +183,7 @@ class ImportCalendarCsv extends Command
                 'customer_phone' => '-',
                 'location' => $branch->name,
                 'total_price' => $matched->sum('price'),
-                'is_auto_assign' => true,
+                'is_auto_assign' => $isAuto,
                 'import_hash' => $hash,
             ]);
 
@@ -219,6 +237,7 @@ class ImportCalendarCsv extends Command
                 'description' => trim($row['DESCRIPTION'] ?? ''),
                 'start' => trim($row['DTSTART'] ?? ''),
                 'end' => trim($row['DTEND'] ?? ''),
+                'therapist' => '',
             ];
         }
 
@@ -252,7 +271,35 @@ class ImportCalendarCsv extends Command
             'description' => trim($row['Treatment'] ?? ''),
             'start' => $compose($startTime),
             'end' => $compose($endTime),
+            'therapist' => $this->extractTherapist($row),
         ];
+    }
+
+    private function extractTherapist(array $row): string
+    {
+        $direct = trim($row['Therapist'] ?? '');
+        if ($direct !== '') {
+            return $direct;
+        }
+
+        $catatan = trim($row['Catatan'] ?? '');
+        if ($catatan === '' || !preg_match('/Therapist\s*:\s*([^\s,;]+(?:\s+[^\s,;]+)*)/i', $catatan, $m)) {
+            return '';
+        }
+
+        $name = $m[1];
+
+        return preg_replace('/\s*(Pax|Cabang|HP|Booking)\s*:.*$/i', '', $name);
+    }
+
+    private function matchTherapist(string $normalized, int $branchId): ?Therapist
+    {
+        $norm = trim(strtolower(preg_replace('/\s+/', ' ', $normalized)));
+
+        return Therapist::where('branch_id', $branchId)
+            ->where('status', 'Active')
+            ->get()
+            ->first(fn (Therapist $t) => trim(strtolower($t->name)) === $norm);
     }
 
     private function parseDate(string $value): ?Carbon

@@ -83,12 +83,12 @@ class BookingCombinationTest extends TestCase
         $this->assertSame(65, $this->durationMinutes($res->json('booking')));
     }
 
-    public function test_brazilian_plus_single_allowed_is_30_minutes(): void
+    public function test_brazilian_plus_single_is_sum_of_durations(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'forehead'])));
 
         $res->assertCreated();
-        $this->assertSame(30, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(40, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_brazilian_can_combine_with_full_legs(): void

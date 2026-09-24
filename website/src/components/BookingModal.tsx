@@ -182,19 +182,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const hasIntimate = selectedServiceObjs.some(
     (s) => s.category === "intimate",
   );
-  const totalMinutes = (() => {
-    if (selectedServiceObjs.some((s) => s.name === "Feel Smooth")) {
-      const rest = selectedServiceObjs.filter((s) => s.name !== "Feel Smooth");
-      return 60 + rest.reduce((acc, s) => acc + s.durationMinutes, 0);
-    }
-    if (selectedServiceObjs.some((s) => s.name === "Brazilian")) {
-      const added = selectedServiceObjs.filter((s) => s.name !== "Brazilian");
-      return added.length >= 2
-        ? 30 + added.reduce((acc, s) => acc + s.durationMinutes, 0)
-        : 30;
-    }
-    return selectedServiceObjs.reduce((acc, s) => acc + s.durationMinutes, 0);
-  })();
+  const totalMinutes = selectedServiceObjs.reduce(
+    (acc, s) => acc + s.durationMinutes,
+    0,
+  );
 
   const asMinutes = (t: string) => {
     const [h, m] = t.split(":").map(Number);

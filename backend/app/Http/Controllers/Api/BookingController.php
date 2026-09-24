@@ -43,16 +43,7 @@ class BookingController extends Controller
             return response()->json(['message' => 'Layanan intimate hanya untuk wanita.'], 422);
         }
 
-        $hasFeelSmooth = $services->contains(fn (Service $s) => $s->name === 'Feel Smooth');
-        $hasBrazilian = $services->contains(fn (Service $s) => $s->name === 'Brazilian');
-
         $totalMinutes = $services->sum('duration_minutes');
-        if ($hasFeelSmooth) {
-            $totalMinutes = 60 + $services->where('name', '!=', 'Feel Smooth')->sum('duration_minutes');
-        } elseif ($hasBrazilian) {
-            $added = $services->where('name', '!=', 'Brazilian');
-            $totalMinutes = $added->count() >= 2 ? 30 + $added->sum('duration_minutes') : 30;
-        }
 
         $closingMin = 19 * 60;
         $staticCutoff = $services->filter(fn (Service $s) => !empty($s->last_order_time))

@@ -19,7 +19,7 @@ interface ScheduleData {
 
 const SLOT_START = 10 * 60;
 const SLOT_END = 19 * 60;
-const STEP = 30;
+const STEP = 15;
 
 const toMin = (t: string) => {
   const [h, m] = t.split(':').map(Number);

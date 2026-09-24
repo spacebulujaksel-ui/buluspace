@@ -34,6 +34,22 @@ interface BookingModalProps {
   onBookingSuccess: (booking: SavedBooking) => void;
 }
 
+type AvailabilityData = {
+  booked: {
+    therapist_id: number;
+    start_time: string;
+    end_time: string;
+    is_auto_assign?: boolean;
+  }[];
+  rooms: Record<string, number>;
+  blocked: {
+    room_number: number;
+    start_time: string;
+    end_time: string;
+  }[];
+  on_leave_ids: number[];
+};
+
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
@@ -135,34 +151,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDatePickerOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const submitLockRef = useRef(false);
+
+  const refreshAvail = async (): Promise<void> => {
     const branch = location.startsWith("Jakarta Selatan")
       ? "Jakarta Selatan"
       : "Jakarta Barat";
-    api
-      .get<{
-        booked: {
-          therapist_id: number;
-          start_time: string;
-          end_time: string;
-          is_auto_assign?: boolean;
-        }[];
-        rooms: Record<string, number>;
-        blocked: {
-          room_number: number;
-          start_time: string;
-          end_time: string;
-        }[];
-        on_leave_ids: number[];
-      }>(`/availability?date=${date}&location=${encodeURIComponent(branch)}`)
-      .then((r) => {
-        setBookedSlots(r.booked);
-        setRooms(r.rooms ?? {});
-        setBlocked(r.blocked ?? []);
-        setOnLeaveIds(r.on_leave_ids ?? []);
-      })
-      .catch(() => setBookedSlots([]));
+    try {
+      const r = await api.get<AvailabilityData>(
+        `/availability?date=${date}&location=${encodeURIComponent(branch)}`,
+      );
+      setBookedSlots(r.booked);
+      setRooms(r.rooms ?? {});
+      setBlocked(r.blocked ?? []);
+      setOnLeaveIds(r.on_leave_ids ?? []);
+    } catch {
+      setBookedSlots([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    refreshAvail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, date, location]);
 
   const selectedServiceObjs = SERVICES.filter((s) =>
@@ -413,6 +424,35 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return slotBusy(slotMin) ? "full" : "available";
   };
 
+  const slotNowFull = (
+    data: AvailabilityData,
+    slotMin: number,
+    slotEnd: number,
+  ): boolean => {
+    if (totalMinutes <= 0) return true;
+    const branchName = location.startsWith("Jakarta Selatan")
+      ? "Jakarta Selatan"
+      : "Jakarta Barat";
+    const capacity = data.rooms[branchName] ?? 0;
+    if (capacity <= 0) return true;
+    const blockedRooms = new Set(
+      data.blocked
+        .filter(
+          (b) =>
+            slotMin < asMinutes(b.end_time) &&
+            slotEnd > asMinutes(b.start_time),
+        )
+        .map((b) => b.room_number),
+    );
+    const available = capacity - blockedRooms.size;
+    if (available <= 0) return true;
+    const overlapping = data.booked.filter(
+      (b) =>
+        slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time),
+    ).length;
+    return overlapping >= available;
+  };
+
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -477,6 +517,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   }).format(viewMonth);
 
   const handleFormSubmit = async () => {
+    if (submitLockRef.current) return;
+
     if (!clientName.trim()) {
       setErrorMessage("Mohon cantumkan nama lengkap Anda.");
       return;
@@ -519,8 +561,25 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     const startTime = timeSlot.replace(" WIB", "").slice(0, 5);
 
+    submitLockRef.current = true;
     setSubmitting(true);
     try {
+      const startMin = asMinutes(startTime);
+      const branchLabel = location.startsWith("Jakarta Selatan")
+        ? "Jakarta Selatan"
+        : "Jakarta Barat";
+      const fresh = await api.get<AvailabilityData>(
+        `/availability?date=${date}&location=${encodeURIComponent(branchLabel)}`,
+      );
+
+      if (slotNowFull(fresh, startMin, startMin + totalMinutes)) {
+        setTimeSlot("");
+        setErrorMessage(
+          "Slot yang Anda pilih baru saja terisi. Silakan pilih jam lain.",
+        );
+        return;
+      }
+
       const res = await api.post<{ booking: any }>("/bookings", {
         customer_name: clientName.trim(),
         customer_phone: clientPhone.trim(),
@@ -580,6 +639,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       );
     } finally {
       setSubmitting(false);
+      submitLockRef.current = false;
     }
   };
 

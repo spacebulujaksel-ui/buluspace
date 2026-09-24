@@ -56,6 +56,22 @@ class ImportCalendarCsv extends Command
         }
 
         $rows = $this->readCsv($file);
+        if (empty($rows)) {
+            $this->error('File CSV kosong atau hanya berisi header.');
+
+            return 1;
+        }
+
+        $format = array_key_exists('SUMMARY', $rows[0])
+            ? 'calendar'
+            : (array_key_exists('Waktu Mulai', $rows[0]) ? 'spreadsheet' : null);
+
+        if ($format === null) {
+            $this->error('Format CSV tidak dikenali (butuh kolom SUMMARY/DTSTART atau Waktu Mulai/Tanggal/Bulan/Tahun).');
+
+            return 1;
+        }
+
         $therapist = Therapist::where('branch_id', $branch->id)->where('status', 'Active')->first();
 
         if (!$therapist) {
@@ -72,17 +88,25 @@ class ImportCalendarCsv extends Command
 
         foreach ($rows as $i => $row) {
             $line = $i + 1;
-            $summary = trim($row['SUMMARY'] ?? '');
-            $description = $row['DESCRIPTION'] ?? '';
+            $n = $this->normalize($row, $format);
 
-            if (preg_match('/^BREAK/i', $summary)) {
+            if ($n === null) {
+                $rejected++;
+
+                continue;
+            }
+
+            $summary = $n['summary'];
+            $description = $n['description'];
+
+            if ($summary === '' || preg_match('/^(BREAK|LIBUR|TRAINING|OFF|KOSONG|CANCEL)/i', $summary)) {
                 $skipped++;
 
                 continue;
             }
 
-            $start = $this->parseDate($row['DTSTART'] ?? '');
-            $end = $this->parseDate($row['DTEND'] ?? '');
+            $start = $this->parseDate($n['start']);
+            $end = $this->parseDate($n['end']);
 
             if (!$start || !$end) {
                 $this->warn("baris {$line}: tanggal tidak valid, di-skip.");
@@ -166,11 +190,14 @@ class ImportCalendarCsv extends Command
     {
         $fh = fopen($file, 'r');
         $header = fgetcsv($fh);
+        if (is_array($header)) {
+            $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0] ?? '');
+        }
         $map = array_flip(array_map('trim', $header ?: []));
         $rows = [];
 
         while (($line = fgetcsv($fh)) !== false) {
-            if (!is_array($line) || count($line) < count($map)) {
+            if (!is_array($line) || count($line) === 0) {
                 continue;
             }
             $row = [];
@@ -182,6 +209,50 @@ class ImportCalendarCsv extends Command
         fclose($fh);
 
         return $rows;
+    }
+
+    private function normalize(array $row, string $format): ?array
+    {
+        if ($format === 'calendar') {
+            return [
+                'summary' => trim($row['SUMMARY'] ?? ''),
+                'description' => trim($row['DESCRIPTION'] ?? ''),
+                'start' => trim($row['DTSTART'] ?? ''),
+                'end' => trim($row['DTEND'] ?? ''),
+            ];
+        }
+
+        $months = [
+            'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4,
+            'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8,
+            'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12,
+        ];
+        $year = trim($row['Tahun'] ?? '');
+        $month = $months[$row['Bulan'] ?? ''] ?? null;
+        $day = trim($row['Tanggal'] ?? '');
+        $startTime = trim($row['Waktu Mulai'] ?? '');
+        $endTime = trim($row['Waktu Selesai'] ?? '');
+
+        if ($month === null || !preg_match('/^\d{4}$/', $year) || !preg_match('/^\d{1,2}$/', $day)
+            || !preg_match('/^\d{1,2}:\d{2}$/', $startTime) || !preg_match('/^\d{1,2}:\d{2}$/', $endTime)) {
+            return null;
+        }
+
+        $compose = fn (string $time) => sprintf(
+            '%04d%02d%02dT%02d%02d00',
+            (int) $year,
+            $month,
+            (int) $day,
+            (int) substr($time, 0, 2),
+            (int) substr($time, 3, 2),
+        );
+
+        return [
+            'summary' => trim($row['Nama Customer'] ?? ''),
+            'description' => trim($row['Treatment'] ?? ''),
+            'start' => $compose($startTime),
+            'end' => $compose($endTime),
+        ];
     }
 
     private function parseDate(string $value): ?Carbon

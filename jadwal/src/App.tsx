@@ -154,8 +154,9 @@ export default function App() {
     <p className="text-sm font-mono font-semibold">
       {e.start_time.slice(0, 5)} – {e.end_time.slice(0, 5)}
     </p>
-    <p className="mt-1 text-[13px] font-medium text-neutral-900">{e.therapist ?? '—'}</p>
-    <p className="text-[12px] text-neutral-500">{e.services.join(', ') || '—'}</p>
+     <p className="mt-1 text-[13px] font-medium text-neutral-900">{e.customer_name}</p>
+     <p className="text-[12px] text-neutral-500">Terapis: {e.therapist ?? '—'}</p>
+     <p className="text-[12px] text-neutral-500">{e.services.join(', ') || '—'}</p>
     {(e.status === 'Cancelled' || e.status === 'Rejected') && (
       <span className="mt-1 inline-block px-2 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-semibold">
         Batal

@@ -80,6 +80,7 @@ class PublicController extends Controller
                 'start_time' => $apt->start_time,
                 'end_time' => $apt->end_time,
                 'status' => $apt->status,
+                'customer_name' => $apt->customer_name,
                 'therapist' => $apt->therapist_display,
                 'services' => $apt->details->map(fn ($d) => $d->service?->name ?? 'Layanan #'.$d->service_id)->values(),
             ]);

@@ -41,11 +41,12 @@ class BookingCombinationTest extends TestCase
             'underarms' => $make('Underarms', 'arms', 15),
             'feel_smooth' => $make('Feel Smooth', 'package', 60),
             'clean_girl' => $make('Clean Girl', 'package', 45),
+            'bali_ready' => $make('Bali Ready', 'package', 45),
         ];
         $this->services['full_legs']->update(['last_order_time' => '18:00']);
     }
 
-    private function payload(array $serviceIds, string $gender = 'Wanita', string $startTime = '13:00'): array
+    private function payload(array $serviceIds, string $gender = 'Wanita', string $startTime = '13:00', ?string $appointmentDate = null): array
     {
         return [
             'customer_name' => 'Test',
@@ -53,7 +54,7 @@ class BookingCombinationTest extends TestCase
             'customer_email' => 'test@example.com',
             'customer_gender' => $gender,
             'therapist_id' => null,
-            'appointment_date' => now()->addDay()->format('Y-m-d'),
+            'appointment_date' => $appointmentDate ?? now()->addDay()->format('Y-m-d'),
             'start_time' => $startTime,
             'service_ids' => $serviceIds,
             'location' => 'Jakarta Barat',
@@ -251,6 +252,33 @@ class BookingCombinationTest extends TestCase
     public function test_brazilian_can_combine_with_underarms(): void
     {
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])))->assertCreated();
+    }
+
+    public function test_official_combination_durations_match_roster(): void
+    {
+        $expected = [
+            [['feel_smooth', 'full_back'], 90],
+            [['feel_smooth', 'full_front'], 90],
+            [['feel_smooth', 'full_legs'], 90],
+            [['feel_smooth', 'brazilian'], 90],
+            [['feel_smooth', 'bali_ready'], 105],
+            [['feel_smooth', 'clean_girl'], 105],
+            [['brazilian', 'full_arms'], 60],
+            [['brazilian', 'full_back'], 60],
+            [['brazilian', 'full_front'], 60],
+            [['brazilian', 'full_legs'], 60],
+            [['brazilian', 'feel_smooth'], 90],
+            [['brazilian', 'clean_girl'], 75],
+            [['brazilian', 'bali_ready'], 75],
+        ];
+
+        foreach ($expected as $index => [$keys, $minutes]) {
+            $date = now()->addDays($index + 1)->format('Y-m-d');
+            $res = $this->postJson('/api/bookings', $this->payload($this->ids($keys), 'Wanita', '13:00', $date));
+
+            $res->assertCreated();
+            $this->assertSame($minutes, $this->durationMinutes($res->json('booking')), implode(' + ', $keys));
+        }
     }
 
     public function test_booking_past_closing_time_is_rejected(): void

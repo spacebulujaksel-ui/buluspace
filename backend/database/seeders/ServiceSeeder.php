@@ -27,7 +27,7 @@ class ServiceSeeder extends Seeder
             ['name' => 'Basic Bikini', 'description' => 'Merapikan bulu area bikini line', 'price' => 63000, 'duration_minutes' => 15, 'category' => 'intimate', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Brazilian', 'description' => 'Perawatan intim menyeluruh', 'price' => 85000, 'duration_minutes' => 30, 'category' => 'intimate', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Buttocks', 'description' => 'Membersihkan bulu area bokong', 'price' => 63000, 'duration_minutes' => 15, 'category' => 'intimate', 'wax_type' => 'Gentle Film Hard Wax'],
-            ['name' => 'Clean Girl', 'description' => 'Eyebrows + Upper Lip + Forehead', 'price' => 107000, 'duration_minutes' => 45, 'category' => 'package', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Clean Girl', 'description' => 'Threading Eyebrows + Upper Lip + Forehead', 'price' => 107000, 'duration_minutes' => 45, 'category' => 'package', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Feel Smooth', 'description' => 'Full Legs + Full Arms', 'price' => 168000, 'duration_minutes' => 60, 'category' => 'package', 'wax_type' => 'Organic Soft Honey'],
             ['name' => 'Bali Ready', 'description' => 'Underarms + Half Legs + Brazilian', 'price' => 195000, 'duration_minutes' => 45, 'category' => 'package', 'wax_type' => 'Gentle Film Hard Wax'],
         ];

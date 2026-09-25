@@ -30,7 +30,7 @@ class SyncServices extends Command
         ['name' => 'Basic Bikini', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area bikini line'],
         ['name' => 'Brazilian', 'category' => 'intimate', 'duration_minutes' => 30, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing area intim menyeluruh'],
         ['name' => 'Buttocks', 'category' => 'intimate', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu area bokong'],
-        ['name' => 'Clean Girl', 'category' => 'package', 'duration_minutes' => 45, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing Eyebrows + Upper Lip + Forehead'],
+        ['name' => 'Clean Girl', 'category' => 'package', 'duration_minutes' => 45, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Threading Eyebrows + Upper Lip + Forehead'],
         ['name' => 'Feel Smooth', 'category' => 'package', 'duration_minutes' => 60, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing Full Legs + Full Arms'],
         ['name' => 'Bali Ready', 'category' => 'package', 'duration_minutes' => 45, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing Underarms + Half Legs + Brazilian'],
     ];

@@ -341,8 +341,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-18",
     category: "package",
     name: "Clean Girl",
-    description:
-      "Waxing wajah bersih menyeluruh untuk tampilan fresh dan rapi.",
+    description: "Threading wajah bersih menyeluruh untuk tampilan fresh dan rapi.",
     durationMinutes: 45,
     price: 107000,
     waxType: "Gentle Film Hard Wax",

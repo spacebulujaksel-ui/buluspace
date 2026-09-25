@@ -19,7 +19,7 @@ class BookingController extends Controller
 {
     private const MALE_SURCHARGE_PER_TREATMENT = 7000;
 
-    private const BRAZILIAN_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
+    private const BRAZILIAN_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
     private const FEEL_SMOOTH_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
 
     public function store(Request $request)

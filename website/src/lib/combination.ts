@@ -10,7 +10,7 @@ export function combinationError(_selected: CombinationItem[]): string | null {
 
 // Add-on yang durasinya diserap ke durasi dasar Brazilian/Feel Smooth (tidak menambah total).
 const ABSORBED: Record<string, string[]> = {
-  Brazilian: ["Eyebrows", "Upper Lip", "Chin", "Cheek", "Forehead", "Half Arms", "Half Legs", "Chest", "Stomach", "Buttocks"],
+  Brazilian: ["Eyebrows", "Upper Lip", "Chin", "Cheek", "Forehead", "Underarms", "Half Arms", "Half Legs", "Chest", "Stomach", "Buttocks"],
   "Feel Smooth": ["Eyebrows", "Upper Lip", "Chin", "Cheek", "Forehead", "Underarms", "Chest", "Stomach", "Buttocks", "Basic Bikini"],
 };
 

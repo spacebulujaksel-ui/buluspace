@@ -91,12 +91,12 @@ class BookingCombinationTest extends TestCase
         $this->assertSame(30, $this->durationMinutes($res->json('booking')));
     }
 
-    public function test_brazilian_plus_underarms_adds_duration(): void
+    public function test_brazilian_absorbs_underarms(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])));
 
         $res->assertCreated();
-        $this->assertSame(45, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(30, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_brazilian_plus_full_legs_adds_duration(): void

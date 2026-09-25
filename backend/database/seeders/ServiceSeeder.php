@@ -14,7 +14,7 @@ class ServiceSeeder extends Seeder
             ['name' => 'Eyebrows', 'description' => 'Merapikan bentuk alis sesuai kontur wajah', 'price' => 52000, 'duration_minutes' => 15, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Chin', 'description' => 'Menghilangkan bulu dagu halus', 'price' => 32000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Upper Lip', 'description' => 'Pembersihan bulu area atas bibir', 'price' => 32000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
-            ['name' => 'Cheek', 'description' => 'Waxing bulu halus di area pipi untuk wajah glowing', 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Cheek', 'description' => 'Waxing bulu halus di area pipi', 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Underarms', 'description' => 'Pembersihan bulu ketiak hingga ke akar', 'price' => 52000, 'duration_minutes' => 15, 'category' => 'arms', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Half Arms', 'description' => 'Waxing lengan bawah hingga ujung tangan', 'price' => 74000, 'duration_minutes' => 20, 'category' => 'arms', 'wax_type' => 'Organic Soft Honey'],
             ['name' => 'Full Arms', 'description' => 'Waxing lengan menyeluruh dari bahu hingga ujung tangan', 'price' => 85000, 'duration_minutes' => 30, 'category' => 'arms', 'wax_type' => 'Organic Soft Honey'],

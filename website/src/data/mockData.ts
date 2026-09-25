@@ -194,7 +194,7 @@ export const SERVICES: WaxService[] = [
     id: "srv-5",
     category: "face",
     name: "Cheek",
-    description: "Waxing bulu halus di area pipi.",
+    description: "Waxing bulu halus di area pipi",
     durationMinutes: 10,
     price: 37000,
     waxType: "Gentle Film Hard Wax",

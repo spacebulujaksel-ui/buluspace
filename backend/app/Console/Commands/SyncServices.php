@@ -13,7 +13,7 @@ class SyncServices extends Command
     protected $description = 'Sinkronkan daftar layanan sesuai roster resmi (update durasi/kategori/deskripsi, harga dipertahankan).';
 
     private const ROSTER = [
-        ['name' => 'Cheek', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus di area pipi untuk wajah glowing', 'price' => 37000],
+        ['name' => 'Cheek', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus di area pipi', 'price' => 37000],
         ['name' => 'Forehead', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus area dahi'],
         ['name' => 'Eyebrows', 'category' => 'face', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Merapikan bentuk alis. Untuk pertama kali bisa ±30 menit'],
         ['name' => 'Chin', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus area dagu'],

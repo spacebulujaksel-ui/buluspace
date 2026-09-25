@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useData } from "../hooks/useData";
 import { api } from "../lib/api";
-import { combinationError } from "../lib/combination";
+import { combinationError, totalMinutesFor } from "../lib/combination";
 import { STATUS_MAP } from "../lib/booking";
 import { Therapist, WaxService, SavedBooking } from "../types";
 
@@ -182,9 +182,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const hasIntimate = selectedServiceObjs.some(
     (s) => s.category === "intimate",
   );
-  const totalMinutes = selectedServiceObjs.reduce(
-    (acc, s) => acc + s.durationMinutes,
-    0,
+  const totalMinutes = totalMinutesFor(
+    selectedServiceObjs.map((s) => ({
+      name: s.name,
+      category: s.category,
+      duration: s.durationMinutes,
+    })),
   );
 
   const asMinutes = (t: string) => {

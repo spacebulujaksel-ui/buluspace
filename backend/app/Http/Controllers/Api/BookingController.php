@@ -13,10 +13,14 @@ use App\Models\TherapistLeave;
 use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class BookingController extends Controller
 {
     private const MALE_SURCHARGE_PER_TREATMENT = 7000;
+
+    private const BRAZILIAN_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
+    private const FEEL_SMOOTH_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
 
     public function store(Request $request)
     {
@@ -43,7 +47,7 @@ class BookingController extends Controller
             return response()->json(['message' => 'Layanan intimate hanya untuk wanita.'], 422);
         }
 
-        $totalMinutes = $services->sum('duration_minutes');
+        $totalMinutes = $this->totalMinutes($services);
 
         $closingMin = 19 * 60;
         $staticCutoff = $services->filter(fn (Service $s) => !empty($s->last_order_time))
@@ -283,5 +287,16 @@ class BookingController extends Controller
         } while (Appointment::where('booking_code', $code)->exists());
 
         return $code;
+    }
+
+    private function totalMinutes(Collection $services): int
+    {
+        $absorbed = $services->contains('name', 'Brazilian')
+            ? self::BRAZILIAN_ABSORBED
+            : ($services->contains('name', 'Feel Smooth')
+                ? self::FEEL_SMOOTH_ABSORBED
+                : []);
+
+        return (int) $services->reject(fn (Service $s) => in_array($s->name, $absorbed))->sum('duration_minutes');
     }
 }

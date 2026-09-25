@@ -75,20 +75,52 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_arms'])))->assertCreated();
     }
 
-    public function test_brazilian_combination_sums_extra_treatments(): void
+    public function test_brazilian_absorbs_short_addons(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_legs', 'forehead'])));
 
         $res->assertCreated();
-        $this->assertSame(65, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(30, $this->durationMinutes($res->json('booking')));
     }
 
-    public function test_brazilian_plus_single_is_sum_of_durations(): void
+    public function test_brazilian_absorbs_single_short_addon(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'forehead'])));
 
         $res->assertCreated();
-        $this->assertSame(40, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(30, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_plus_underarms_adds_duration(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'underarms'])));
+
+        $res->assertCreated();
+        $this->assertSame(45, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_plus_full_legs_adds_duration(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs'])));
+
+        $res->assertCreated();
+        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_absorbs_short_addon_when_combined_with_long(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs', 'forehead'])));
+
+        $res->assertCreated();
+        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_plus_clean_girl_adds_duration(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'clean_girl'])));
+
+        $res->assertCreated();
+        $this->assertSame(75, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_brazilian_can_combine_with_full_legs(): void
@@ -111,12 +143,36 @@ class BookingCombinationTest extends TestCase
         $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])))->assertCreated();
     }
 
-    public function test_feel_smooth_combination_sums_additions(): void
+    public function test_feel_smooth_absorbs_short_addons(): void
     {
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms'])));
 
         $res->assertCreated();
-        $this->assertSame(85, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_feel_smooth_absorbs_underarms(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'underarms'])));
+
+        $res->assertCreated();
+        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_feel_smooth_half_arms_adds_duration(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])));
+
+        $res->assertCreated();
+        $this->assertSame(80, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_feel_smooth_plus_full_arms_adds_duration(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'full_arms'])));
+
+        $res->assertCreated();
+        $this->assertSame(90, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_feel_smooth_plus_brazilian_total_duration_is_90_minutes(): void

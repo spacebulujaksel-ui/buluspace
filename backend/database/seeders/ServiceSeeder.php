@@ -10,11 +10,11 @@ class ServiceSeeder extends Seeder
     public function run(): void
     {
         $services = [
-            ['name' => 'Forehead', 'description' => 'Pembersihan bulu area dahi', 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
-            ['name' => 'Eyebrows', 'description' => 'Merapikan bentuk alis sesuai kontur wajah', 'price' => 52000, 'duration_minutes' => 15, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
-            ['name' => 'Chin', 'description' => 'Menghilangkan bulu dagu halus', 'price' => 32000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
-            ['name' => 'Upper Lip', 'description' => 'Pembersihan bulu area atas bibir', 'price' => 32000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
-            ['name' => 'Cheek', 'description' => 'Waxing bulu halus di area pipi', 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Forehead', 'description' => 'Threading bulu halus area dahi', 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Eyebrows', 'description' => 'Threading bentuk alis. Untuk pertama kali bisa ±30 menit', 'price' => 52000, 'duration_minutes' => 15, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Chin', 'description' => 'Threading bulu halus area dagu', 'price' => 32000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Upper Lip', 'description' => 'Threading bulu halus area atas bibir', 'price' => 32000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
+            ['name' => 'Cheek', 'description' => 'Threading bulu halus di area pipi', 'price' => 37000, 'duration_minutes' => 10, 'category' => 'face', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Underarms', 'description' => 'Pembersihan bulu ketiak hingga ke akar', 'price' => 52000, 'duration_minutes' => 15, 'category' => 'arms', 'wax_type' => 'Gentle Film Hard Wax'],
             ['name' => 'Half Arms', 'description' => 'Waxing lengan bawah hingga ujung tangan', 'price' => 74000, 'duration_minutes' => 15, 'category' => 'arms', 'wax_type' => 'Organic Soft Honey'],
             ['name' => 'Full Arms', 'description' => 'Waxing lengan menyeluruh dari bahu hingga ujung tangan', 'price' => 85000, 'duration_minutes' => 30, 'category' => 'arms', 'wax_type' => 'Organic Soft Honey'],

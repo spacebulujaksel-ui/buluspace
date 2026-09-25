@@ -13,11 +13,11 @@ class SyncServices extends Command
     protected $description = 'Sinkronkan daftar layanan sesuai roster resmi (update durasi/kategori/deskripsi, harga dipertahankan).';
 
     private const ROSTER = [
-        ['name' => 'Cheek', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus di area pipi', 'price' => 37000],
-        ['name' => 'Forehead', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Membersihkan bulu halus area dahi'],
-        ['name' => 'Eyebrows', 'category' => 'face', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Merapikan bentuk alis. Untuk pertama kali bisa ±30 menit'],
-        ['name' => 'Chin', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus area dagu'],
-        ['name' => 'Upper Lip', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu halus area atas bibir'],
+        ['name' => 'Cheek', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Threading bulu halus di area pipi', 'price' => 37000],
+        ['name' => 'Forehead', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Threading bulu halus area dahi'],
+        ['name' => 'Eyebrows', 'category' => 'face', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Threading bentuk alis. Untuk pertama kali bisa ±30 menit'],
+        ['name' => 'Chin', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Threading bulu halus area dagu'],
+        ['name' => 'Upper Lip', 'category' => 'face', 'duration_minutes' => 10, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Threading bulu halus area atas bibir'],
         ['name' => 'Underarms', 'category' => 'arms', 'duration_minutes' => 15, 'wax_type' => 'Gentle Film Hard Wax', 'description' => 'Waxing bulu ketiak sepenuhnya'],
         ['name' => 'Half Arms', 'category' => 'arms', 'duration_minutes' => 15, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing lengan bawah hingga ujung tangan'],
         ['name' => 'Full Arms', 'category' => 'arms', 'duration_minutes' => 30, 'wax_type' => 'Organic Soft Honey', 'description' => 'Waxing lengan menyeluruh dari bahu hingga ujung tangan'],

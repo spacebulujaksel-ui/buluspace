@@ -183,6 +183,22 @@ class BookingCombinationTest extends TestCase
         $this->assertSame(90, $this->durationMinutes($res->json('booking')));
     }
 
+    public function test_feel_smooth_plus_brazilian_absorbs_underarms(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'brazilian', 'underarms'])));
+
+        $res->assertCreated();
+        $this->assertSame(90, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_feel_smooth_plus_brazilian_absorbs_half_arms(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'brazilian', 'half_arms'])));
+
+        $res->assertCreated();
+        $this->assertSame(90, $this->durationMinutes($res->json('booking')));
+    }
+
     public function test_package_can_be_combined(): void
     {
         $this->postJson('/api/bookings', $this->payload($this->ids(['clean_girl', 'forehead'])))->assertCreated();

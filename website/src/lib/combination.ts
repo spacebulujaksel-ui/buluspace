@@ -15,12 +15,12 @@ const ABSORBED: Record<string, string[]> = {
 };
 
 export function totalMinutesFor(items: CombinationItem[]): number {
-  const withBase = items.some((i) => i.name === "Brazilian")
-    ? "Brazilian"
-    : items.some((i) => i.name === "Feel Smooth")
-      ? "Feel Smooth"
-      : null;
-  if (!withBase) return items.reduce((acc, i) => acc + i.duration, 0);
-  const absorbed = ABSORBED[withBase] ?? [];
+  const hasBrazilian = items.some((i) => i.name === "Brazilian");
+  const hasFeelSmooth = items.some((i) => i.name === "Feel Smooth");
+  if (!hasBrazilian && !hasFeelSmooth) return items.reduce((acc, i) => acc + i.duration, 0);
+  const absorbed = [
+    ...(hasBrazilian ? ABSORBED["Brazilian"] : []),
+    ...(hasFeelSmooth ? ABSORBED["Feel Smooth"] : []),
+  ];
   return items.reduce((acc, i) => acc + (absorbed.includes(i.name) ? 0 : i.duration), 0);
 }

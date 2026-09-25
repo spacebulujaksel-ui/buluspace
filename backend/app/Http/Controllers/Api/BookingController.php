@@ -291,11 +291,11 @@ class BookingController extends Controller
 
     private function totalMinutes(Collection $services): int
     {
-        $absorbed = $services->contains('name', 'Brazilian')
-            ? self::BRAZILIAN_ABSORBED
-            : ($services->contains('name', 'Feel Smooth')
-                ? self::FEEL_SMOOTH_ABSORBED
-                : []);
+        $names = $services->pluck('name');
+        $absorbed = array_values(array_unique(array_merge(
+            $names->contains('Brazilian') ? self::BRAZILIAN_ABSORBED : [],
+            $names->contains('Feel Smooth') ? self::FEEL_SMOOTH_ABSORBED : [],
+        )));
 
         return (int) $services->reject(fn (Service $s) => in_array($s->name, $absorbed))->sum('duration_minutes');
     }

@@ -20,11 +20,11 @@ class BookingMailer
         return self::WA_BY_BRANCH[$branch] ?? self::ADMIN_WA;
     }
 
-    public static function toCustomer(Appointment $appointment, string $type): void
+    public static function toCustomer(Appointment $appointment, string $type): bool
     {
         $setting = EmailSetting::where('type', $type)->first();
         if (!$setting || blank($appointment->customer_email)) {
-            return;
+            return false;
         }
 
         try {
@@ -32,8 +32,12 @@ class BookingMailer
                 self::render($setting, self::data($appointment)),
                 fn ($m) => $m->to($appointment->customer_email)->subject($setting->subject)
             );
+
+            return true;
         } catch (\Throwable $e) {
-            logger()->error('Email "'.$type.'" gagal: '.$e->getMessage());
+            logger()->error('Email "'.$type.'" gagal ('.$appointment->booking_code.'): '.$e->getMessage());
+
+            return false;
         }
     }
 
@@ -74,6 +78,7 @@ class BookingMailer
             'therapist' => $appointment->therapist_display ?? 'Menunggu penugasan',
             'services' => $services ?: '-',
             'total' => 'Rp '.number_format((float) $appointment->total_price, 0, ',', '.'),
+            'cancel_reason' => $appointment->cancel_reason ?: 'Dibatalkan tanpa alasan.',
             'admin_wa' => self::waForBranch($appointment->location),
         ] + ($full ? [] : []);
     }

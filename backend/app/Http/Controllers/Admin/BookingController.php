@@ -53,6 +53,8 @@ class BookingController extends Controller
 
         $appointment = Appointment::where('location', $this->branchName($request))->findOrFail($id);
 
+        $statusChanged = $appointment->status !== $validated['status'];
+
         if (in_array($validated['status'], ['Cancelled', 'Rejected']) && !empty($validated['cancel_reason'])) {
             $appointment->cancel_reason = $validated['cancel_reason'];
         }
@@ -60,6 +62,10 @@ class BookingController extends Controller
         $appointment->status = $validated['status'];
         $appointment->save();
         $appointment->load(['therapist', 'details.service']);
+
+        if ($statusChanged && in_array($validated['status'], ['Cancelled', 'Rejected'])) {
+            BookingMailer::toCustomer($appointment, 'booking_cancelled_by_studio');
+        }
 
         // ponytail: email aftercare (tata cara treatment) dinonaktifkan sementara — uncomment blok di bawah untuk mengaktifkan lagi.
         // if ($appointment->status === 'Completed') {

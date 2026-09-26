@@ -14,6 +14,8 @@ class EmailSettingController extends Controller
         'reminder_h1',
         'reminder_hours',
         'aftercare',
+        'booking_cancelled',
+        'booking_cancelled_by_studio',
     ];
 
     public function index()
@@ -48,6 +50,10 @@ class EmailSettingController extends Controller
         ]);
 
         foreach (self::TEMPLATES as $type) {
+            if (!isset($validated['templates'][$type])) {
+                continue;
+            }
+
             EmailSetting::updateOrCreate(['type' => $type], [
                 'subject' => $validated['templates'][$type]['subject'],
                 'body' => $validated['templates'][$type]['body'],

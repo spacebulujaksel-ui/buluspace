@@ -27,12 +27,15 @@ class SendH1Reminders extends Command
             ->whereNull('reminder_1_sent_at')
             ->get();
 
+        $sent = 0;
         foreach ($items as $appointment) {
-            BookingMailer::toCustomer($appointment, 'reminder_h1');
-            $appointment->update(['reminder_1_sent_at' => $now]);
+            if (BookingMailer::toCustomer($appointment, 'reminder_h1')) {
+                $appointment->update(['reminder_1_sent_at' => $now]);
+                $sent++;
+            }
         }
 
-        $this->info('Reminder H-1 diproses untuk '.$items->count().' booking.');
+        $this->info('Reminder H-1 diproses untuk '.$sent.' booking.');
 
         return 0;
     }

@@ -14,6 +14,7 @@ use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -24,6 +25,14 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+        // Percobaan dicatat sebelum validasi supaya booking yang ditolak pun punya jejak.
+        Log::info('Percobaan booking', [
+            'nama' => $request->input('customer_name'),
+            'tanggal' => $request->input('appointment_date'),
+            'jam' => $request->input('start_time'),
+            'cabang' => $request->input('location'),
+        ]);
+
         $validated = $request->validate([
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required|string|max:20',
@@ -40,10 +49,14 @@ class BookingController extends Controller
 
         $services = Service::whereIn('id', $validated['service_ids'])->where('status', 'Active')->get();
         if ($services->count() !== count($validated['service_ids'])) {
+            Log::warning('Booking ditolak: layanan tidak valid');
+
             return response()->json(['message' => 'Terdapat layanan yang tidak valid.'], 422);
         }
 
         if ($validated['customer_gender'] === 'Pria' && $services->contains(fn (Service $s) => $s->category === 'intimate')) {
+            Log::warning('Booking ditolak: intimate hanya untuk wanita');
+
             return response()->json(['message' => 'Layanan intimate hanya untuk wanita.'], 422);
         }
 
@@ -62,6 +75,8 @@ class BookingController extends Controller
         if ($startMin > $cutoffMin) {
             $cutoffHm = sprintf('%02d:%02d', intdiv($cutoffMin, 60), $cutoffMin % 60);
 
+            Log::warning('Booking ditolak: lewat jam tutup', ['cutoff' => $cutoffHm]);
+
             return response()->json([
                 'message' => 'Booking melewati jam tutup (19:00 WIB). Jam mulai maksimal untuk durasi ini adalah pukul '.$cutoffHm.' WIB.',
             ], 422);
@@ -76,6 +91,8 @@ class BookingController extends Controller
         $end = $start->copy()->addMinutes($totalMinutes);
 
         if ($start->isToday() && $start->lt(now()->copy()->addMinutes(30))) {
+            Log::warning('Booking ditolak: di bawah H-30 menit');
+
             return response()->json([
                 'message' => 'Booking untuk hari ini minimal H-30 menit sebelum waktu treatment.',
             ], 422);
@@ -107,6 +124,8 @@ class BookingController extends Controller
             $available = $branch->rooms_count - $blockedRoomsCount;
 
             if ($available <= 0) {
+                Log::warning('Booking ditolak: semua ruang diblokir', ['cabang' => $branch->name]);
+
                 return response()->json([
                     'message' => 'Semua ruang di cabang '.$branch->name.' sedang ditutup pada jam tersebut. Silakan pilih jam lain.',
                     'full' => true,
@@ -114,6 +133,8 @@ class BookingController extends Controller
             }
 
             if ($dayBookings->filter($overlaps)->count() >= $available) {
+                Log::warning('Booking ditolak: seluruh ruang penuh', ['cabang' => $branch->name]);
+
                 return response()->json([
                     'message' => 'Seluruh ruang di cabang '.$branch->name.' sudah penuh pada jam tersebut. Silakan pilih jam lain.',
                     'full' => true,
@@ -131,10 +152,14 @@ class BookingController extends Controller
             $therapist = Therapist::findOrFail($validated['therapist_id']);
 
             if ($therapist->status !== 'Active') {
+                Log::warning('Booking ditolak: terapis tidak aktif', ['terapis' => $therapist->id]);
+
                 return response()->json(['message' => 'Terapis sedang tidak aktif. Silakan pilih terapis lain.'], 422);
             }
 
             if (in_array($therapist->id, $leaveIds, true)) {
+                Log::warning('Booking ditolak: terapis sedang cuti', ['terapis' => $therapist->id]);
+
                 return response()->json(['message' => 'Terapis sedang cuti pada tanggal tersebut. Silakan pilih terapis lain.'], 422);
             }
 
@@ -150,6 +175,8 @@ class BookingController extends Controller
                 });
 
             if ($conflict) {
+                Log::warning('Booking ditolak: konflik slot terapis', ['terapis' => $therapist->id]);
+
                 return response()->json([
                     'message' => 'Slot jam tersebut baru saja terambil untuk terapis ini. Silakan pilih jam lain.',
                     'conflict' => true,
@@ -181,6 +208,8 @@ class BookingController extends Controller
 
             if (!$therapist) {
                 $scope = $branch ? ' di cabang '.$branch->name : '';
+
+                Log::warning('Booking ditolak: tidak ada terapis tersedia'.$scope);
 
                 return response()->json([
                     'message' => 'Tidak ada terapis tersedia'.$scope.' pada jam tersebut. Silakan pilih jam lain.',
@@ -276,6 +305,8 @@ class BookingController extends Controller
         $appointment->status = 'Cancelled';
         $appointment->cancel_reason = $validated['reason'] ?? null;
         $appointment->save();
+
+        BookingMailer::toCustomer($appointment->load('details.service'), 'booking_cancelled');
 
         return response()->json(['message' => 'Booking berhasil dibatalkan.', 'booking' => $appointment]);
     }

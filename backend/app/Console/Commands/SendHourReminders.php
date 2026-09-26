@@ -31,12 +31,15 @@ class SendHourReminders extends Command
                 return $now->gte($start->copy()->subMinutes(30)) && $now->lt($start);
             });
 
+        $sent = 0;
         foreach ($items as $appointment) {
-            BookingMailer::toCustomer($appointment, 'reminder_hours');
-            $appointment->update(['reminder_2_sent_at' => Carbon::now('Asia/Jakarta')]);
+            if (BookingMailer::toCustomer($appointment, 'reminder_hours')) {
+                $appointment->update(['reminder_2_sent_at' => Carbon::now('Asia/Jakarta')]);
+                $sent++;
+            }
         }
 
-        $this->info('Reminder 30 menit diproses untuk '.$items->count().' booking.');
+        $this->info('Reminder 30 menit diproses untuk '.$sent.' booking.');
 
         return 0;
     }

@@ -9,11 +9,14 @@ const TEMPLATE_LABELS: Record<string, string> = {
   reminder_h1: 'Pengingat H-1',
   reminder_hours: 'Pengingat 30 Menit Sebelum',
   aftercare: 'Tata Cara Setelah Treatment',
+  booking_cancelled: 'Pembatalan oleh Customer',
+  booking_cancelled_by_studio: 'Pembatalan oleh Studio',
 };
 
 const PLACEHOLDERS = [
   '{{customer_name}}', '{{customer_phone}}', '{{customer_email}}', '{{booking_code}}',
   '{{date}}', '{{time}}', '{{branch}}', '{{therapist}}', '{{services}}', '{{total}}', '{{admin_wa}}',
+  '{{cancel_reason}}',
 ];
 
 export default function Email() {

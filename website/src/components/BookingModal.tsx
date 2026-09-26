@@ -590,10 +590,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             .join(" · ") || null,
       });
 
+      if (!res.booking?.booking_code) {
+        setErrorMessage(
+          "Booking mungkin sudah tercatat, tetapi kode konfirmasi tidak diterima. Silakan hubungi kami via WhatsApp untuk memastikan.",
+        );
+        return;
+      }
+
       const newBooking: SavedBooking = {
-        id:
-          res.booking?.booking_code ??
-          `BS-${Math.floor(100000 + Math.random() * 900000)}`,
+        id: res.booking.booking_code,
         clientName: clientName.trim(),
         clientPhone: clientPhone.trim(),
         clientEmail: clientEmail.trim(),

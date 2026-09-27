@@ -1013,11 +1013,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   maksimal {`${String(Math.floor(cutoffMin / 60)).padStart(2, "0")}:${String(cutoffMin % 60).padStart(2, "0")}`} WIB.
                 </p>
               )}
-              {timeSlot && selectedSlotState === "full" && (
+              {timeSlot && selectedSlotState !== "available" && (
                 <p className="text-[11px] text-rose-600 mb-1.5 font-medium">
-                  Slot {timeSlot.replace(" WIB", "")} tidak tersedia untuk
-                  durasi {totalMinutes} menit — ruang di {selectedBranchName}{" "}
-                  sudah penuh. Silakan pilih jam lain.
+                  {selectedSlotState === "full"
+                    ? `Slot ${timeSlot.replace(" WIB", "")} tidak tersedia untuk durasi ${totalMinutes} menit — ruang di ${selectedBranchName} sudah penuh.`
+                    : `Slot ${timeSlot.replace(" WIB", "")} tidak bisa dipakai — jamnya sudah lewat atau di luar jam operasional.`}{" "}
+                  Silakan pilih jam lain.
                 </p>
               )}
               <div className="max-h-44 overflow-y-auto pr-1 grid grid-cols-4 xs:grid-cols-5 gap-1.5 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">
@@ -1246,7 +1247,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <button
               type="button"
               onClick={() => handleFormSubmit()}
-              disabled={submitting || !timeSlot || selectedSlotState === "full"}
+              disabled={submitting || selectedSlotState !== "available"}
               className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-700/20 disabled:opacity-60"
             >
               <MessageCircle className="w-4 h-4 fill-white" />

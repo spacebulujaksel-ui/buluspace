@@ -250,6 +250,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cutoffMin]);
 
+  // Hook tidak boleh ditaruh di bawah baris ini: jumlahnya jadi berbeda antar render
+  // (React error #310) karena return di potong saat modal tertutup.
   if (!isOpen) return null;
 
   const timeSlots = (() => {
@@ -439,11 +441,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return slotBusy(slotMin) ? "full" : "available";
   };
 
-  useEffect(() => {
-    if (!timeSlot || selectedServices.length === 0) return;
-    if (slotState(asMinutes(timeSlot.slice(0, 5))) === "full") setTimeSlot("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeSlot, totalMinutes, selectedServices, bookedSlots, blocked, rooms, therapistId, date]);
+  const selectedSlotState = timeSlot
+    ? slotState(asMinutes(timeSlot.slice(0, 5)))
+    : "past";
 
   const slotNowFull = (
     data: AvailabilityData,
@@ -1013,6 +1013,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   maksimal {`${String(Math.floor(cutoffMin / 60)).padStart(2, "0")}:${String(cutoffMin % 60).padStart(2, "0")}`} WIB.
                 </p>
               )}
+              {timeSlot && selectedSlotState === "full" && (
+                <p className="text-[11px] text-rose-600 mb-1.5 font-medium">
+                  Slot {timeSlot.replace(" WIB", "")} tidak tersedia untuk
+                  durasi {totalMinutes} menit — ruang di {selectedBranchName}{" "}
+                  sudah penuh. Silakan pilih jam lain.
+                </p>
+              )}
               <div className="max-h-44 overflow-y-auto pr-1 grid grid-cols-4 xs:grid-cols-5 gap-1.5 border border-slate-200 rounded-2xl p-2.5 bg-slate-50">
                 {timeSlots.map((slot) => {
                   const min = asMinutes(slot.slice(0, 5));
@@ -1239,7 +1246,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <button
               type="button"
               onClick={() => handleFormSubmit()}
-              disabled={submitting || !timeSlot}
+              disabled={submitting || !timeSlot || selectedSlotState === "full"}
               className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-700/20 disabled:opacity-60"
             >
               <MessageCircle className="w-4 h-4 fill-white" />

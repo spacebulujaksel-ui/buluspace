@@ -212,6 +212,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     (t) => t.branch === selectedBranchName,
   );
 
+  // Ganti cabang = terapis terpilih bisa milik cabang lain.
+  useEffect(() => {
+    setTherapistId("any");
+  }, [selectedBranchName]);
+
   const selectedSlotMin = timeSlot ? asMinutes(timeSlot.slice(0, 5)) : 0;
   const selectedWindowEnd = selectedSlotMin + totalMinutes;
   const therapistBusy = (tid: number): boolean => {

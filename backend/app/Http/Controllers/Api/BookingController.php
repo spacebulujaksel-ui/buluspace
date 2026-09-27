@@ -150,6 +150,12 @@ class BookingController extends Controller
         if (!empty($validated['therapist_id'])) {
             $therapist = Therapist::findOrFail($validated['therapist_id']);
 
+            if ($branch && $therapist->branch_id !== $branch->id) {
+                Log::warning('Booking ditolak: terapis dari cabang lain', ['terapis' => $therapist->id, 'cabang' => $branch->name]);
+
+                return response()->json(['message' => 'Terapis tersebut tidak tersedia di cabang '.$branch->name.'. Silakan pilih terapis lain.'], 422);
+            }
+
             if ($therapist->status !== 'Active') {
                 Log::warning('Booking ditolak: terapis tidak aktif', ['terapis' => $therapist->id]);
 

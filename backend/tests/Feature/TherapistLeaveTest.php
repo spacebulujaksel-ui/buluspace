@@ -55,6 +55,17 @@ class TherapistLeaveTest extends TestCase
         $this->assertStringContainsString('sedang cuti', $res->json('message'));
     }
 
+    public function test_booking_therapist_from_other_branch_is_rejected(): void
+    {
+        $south = Branch::create(['name' => 'Jakarta Selatan', 'rooms_count' => 5, 'sort_order' => 2]);
+        $southTherapist = Therapist::create(['name' => 'Sari', 'specialty' => null, 'experience_years' => 0, 'status' => 'Active', 'branch_id' => $south->id]);
+
+        $res = $this->postJson('/api/bookings', $this->payload($southTherapist->id));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('tidak tersedia di cabang', $res->json('message'));
+    }
+
     public function test_auto_assign_skips_therapist_on_leave(): void
     {
         $onLeave = $this->therapists[0];

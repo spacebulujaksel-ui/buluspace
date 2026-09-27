@@ -98,16 +98,13 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // Guardian: branch capacity = rooms_count minus distinct rooms blocked in this window.
-        $branch = $validated['location']
-            ? Branch::where('name', $validated['location'])->first()
-            : null;
+            // Guardian: branch capacity = rooms_count minus distinct rooms blocked in this window.
+            $branch = $validated['location']
+                ? Branch::where('name', $validated['location'])->first()
+                : null;
 
-        if ($branch) {
-            $overlaps = fn (Appointment $apt) => $start->lt(Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->end_time))
-                && $end->gt(Carbon::parse($apt->appointment_date->format('Y-m-d').' '.$apt->start_time));
-
-            $dayBookings = Appointment::where('location', $branch->name)
+            if ($branch) {
+                $dayBookings = Appointment::where('location', $branch->name)
                 ->whereDate('appointment_date', $validated['appointment_date'])
                 ->whereIn('status', ['Pending', 'Confirmed'])
                 ->get();
@@ -132,8 +129,10 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            if ($dayBookings->filter($overlaps)->count() >= $available) {
-                Log::warning('Booking ditolak: seluruh ruang penuh', ['cabang' => $branch->name]);
+            // Yang menentukan = puncak ruang terpakai bersamaan, bukan jumlah booking yang
+            // lewat di window (count dulu bikin 14:00-15:00 FULL walau bookingnya berurutan).
+            if ($this->peakOccupancy($dayBookings, $startMin, $startMin + $totalMinutes) >= $available) {
+                Log::warning('Booking ditolak: seluruh ruang penuh', ['cabang' => $branch->name, 'durasi' => $totalMinutes]);
 
                 return response()->json([
                     'message' => 'Seluruh ruang di cabang '.$branch->name.' sudah penuh pada jam tersebut. Silakan pilih jam lain.',
@@ -318,6 +317,21 @@ class BookingController extends Controller
         } while (Appointment::where('booking_code', $code)->exists());
 
         return $code;
+    }
+
+    /** Puncak jumlah booking yang jalan bersamaan di menit $from..$to (resolusi per menit). */
+    private function peakOccupancy(Collection $dayBookings, int $from, int $to): int
+    {
+        $occupancy = [];
+        foreach ($dayBookings as $apt) {
+            $a = (int) substr($apt->start_time, 0, 2) * 60 + (int) substr($apt->start_time, 3, 2);
+            $b = (int) substr($apt->end_time, 0, 2) * 60 + (int) substr($apt->end_time, 3, 2);
+            for ($m = max($a, $from); $m < min($b, $to); $m++) {
+                $occupancy[$m] = ($occupancy[$m] ?? 0) + 1;
+            }
+        }
+
+        return $occupancy ? max($occupancy) : 0;
     }
 
     private function totalMinutes(Collection $services): int

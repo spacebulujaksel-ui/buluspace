@@ -164,6 +164,104 @@ class BookingCapacityTest extends TestCase
         $this->postJson('/api/bookings', $this->payload('17:00', null, ''))->assertStatus(422);
     }
 
+    private function fiveRoomsSevenTherapists(): void
+    {
+        $branch = Branch::where('name', $this->branch)->first();
+        $branch->update(['rooms_count' => 5]);
+        foreach (['Elsa', 'Fajar', 'Gita'] as $name) {
+            Therapist::create(['name' => $name, 'phone' => '08'.$name, 'specialty' => null, 'experience_years' => 0, 'status' => 'Active', 'branch_id' => $branch->id]);
+        }
+    }
+
+    private function seedExistingBooking(string $start, string $end, int $therapistIndex): void
+    {
+        $therapists = Therapist::where('branch_id', Branch::where('name', $this->branch)->first()->id)->orderBy('id')->get();
+
+        \App\Models\Appointment::create([
+            'booking_code' => 'BS-'.str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT),
+            'therapist_id' => $therapists[$therapistIndex]->id,
+            'appointment_date' => now()->addDay()->format('Y-m-d'),
+            'start_time' => $start,
+            'end_time' => $end,
+            'status' => 'Confirmed',
+            'customer_name' => 'Existing',
+            'customer_phone' => '081234567890',
+            'customer_email' => 'existing@example.com',
+            'customer_gender' => 'Wanita',
+            'location' => $this->branch,
+            'total_price' => 200000,
+            'is_auto_assign' => true,
+        ]);
+    }
+
+    public function test_sequential_bookings_leave_room_free_for_the_whole_hour(): void
+    {
+        $this->fiveRoomsSevenTherapists();
+
+        // Kasus 3 Okt: 14:00-14:30 satu sesi lalu 14:30-15:00 empat sesi = 5 booking di
+        // dalam window, tapi tidak pernah 5 bersamaan -> room masih muat untuk 1 jam.
+        $this->seedExistingBooking('14:00', '14:30', 0);
+        for ($i = 1; $i < 5; $i++) {
+            $this->seedExistingBooking('14:30', '15:00', $i);
+        }
+
+        $this->postJson('/api/bookings', $this->payload('14:00'))->assertCreated();
+    }
+
+    public function test_full_hour_is_rejected_when_five_bookings_run_in_parallel(): void
+    {
+        $this->fiveRoomsSevenTherapists();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->seedExistingBooking('14:00', '15:00', $i);
+        }
+
+        $res = $this->postJson('/api/bookings', $this->payload('14:00'));
+
+        $res->assertStatus(422);
+        $this->assertTrue($res->json('full') === true);
+    }
+
+    public function test_blocked_room_counts_against_peak_not_booking_count(): void
+    {
+        $this->fiveRoomsSevenTherapists();
+        $branch = Branch::where('name', $this->branch)->first();
+
+        \App\Models\BlockedSlot::create([
+            'branch_id' => $branch->id,
+            'room_number' => 1,
+            'date' => now()->addDay()->format('Y-m-d'),
+            'start_time' => '14:00',
+            'end_time' => '15:00',
+        ]);
+
+        // 4 booking berurutan (puncak 4) + 1 ruang diblokir = 4 ruang tersedia -> muat.
+        $this->seedExistingBooking('14:00', '14:30', 0);
+        for ($i = 1; $i < 4; $i++) {
+            $this->seedExistingBooking('14:30', '15:00', $i);
+        }
+
+        $this->postJson('/api/bookings', $this->payload('14:00'))->assertCreated();
+    }
+
+    public function test_room_is_free_but_all_therapists_busy_rejects_with_therapist_message(): void
+    {
+        $this->fiveRoomsSevenTherapists();
+
+        // 7 terapis semuanya sibuk di window, puncak hanya 4 dari 5 ruang.
+        for ($i = 0; $i < 4; $i++) {
+            $this->seedExistingBooking('14:00', '14:30', $i);
+        }
+        for ($i = 4; $i < 7; $i++) {
+            $this->seedExistingBooking('14:30', '15:00', $i);
+        }
+
+        $res = $this->postJson('/api/bookings', $this->payload('14:00'));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('terapis', strtolower($res->json('message')));
+    }
+
     public function test_booking_today_within_30_minutes_is_rejected(): void
     {
         $payload = $this->payload(now()->addMinutes(5)->format('H:i'));

@@ -48,6 +48,7 @@ export default function Schedule() {
   const [blockNote, setBlockNote] = useState('');
   const [savingBlock, setSavingBlock] = useState(false);
   const [blockError, setBlockError] = useState('');
+  const [durMin, setDurMin] = useState(60);
 
   const load = () => {
     setLoading(true);
@@ -110,6 +111,21 @@ export default function Schedule() {
       return b.room_number === room && start < be && end > bs;
     })?.note ?? '';
 
+  // Puncak booking yang jalan bersamaan dalam window — sama dengan backend
+  // (BookingController::peakOccupancy), bukan jumlah booking yang lewat.
+  const windowPeak = (start: number, end: number) => {
+    const occupancy: Record<number, number> = {};
+    (data?.bookings ?? []).forEach((b) => {
+      const bs = toMin(b.start_time);
+      const be = toMin(b.end_time);
+      if (start >= be || end <= bs) return;
+      for (let m = Math.max(bs, start); m < Math.min(be, end); m++) {
+        occupancy[m] = (occupancy[m] ?? 0) + 1;
+      }
+    });
+    return Object.values(occupancy).reduce((max, n) => Math.max(max, n), 0);
+  };
+
   return (
     <div className="space-y-4">
       {error && (
@@ -138,6 +154,20 @@ export default function Schedule() {
         {capacity > 0 && (
           <span className="text-[11px] text-neutral-400">Kapasitas {capacity} ruang</span>
         )}
+        <label className="flex items-center gap-2 text-[11px] text-neutral-600 ml-auto">
+          Durasi treatment
+          <select
+            value={durMin}
+            onChange={(e) => setDurMin(Number(e.target.value))}
+            className="px-2.5 py-1.5 text-xs rounded-lg border border-neutral-200 bg-white"
+          >
+            {[15, 30, 45, 60, 75, 90].map((m) => (
+              <option key={m} value={m}>
+                {m} menit
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {/* Block form */}
@@ -207,31 +237,54 @@ export default function Schedule() {
             const isClosed = capacity > 0 && available <= 0;
             const isFull = capacity > 0 && bookings.length >= available;
             const rooms = Array.from({ length: capacity }, (_, i) => i + 1);
+            const winEnd = slot.start + durMin;
+            const winBlocked = Array.from(new Set(slotBlockedRooms(slot.start, winEnd)));
+            const winAvail = capacity - winBlocked.length;
+            const winClosed = capacity > 0 && winAvail <= 0;
+            const winPeak = windowPeak(slot.start, winEnd);
+            const winFull = capacity > 0 && !winClosed && winPeak >= winAvail;
             return (
               <div key={slot.start} className="rounded-xl bg-white border border-neutral-200 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <span className="text-[11px] font-mono font-semibold text-neutral-500 px-2 py-1 rounded-lg bg-neutral-100">
                     {toLabel(slot.start)} – {toLabel(slot.end)}
                   </span>
-                  {capacity > 0 && (
-                    isClosed ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-neutral-600">
-                        <Ban className="w-3.5 h-3.5" /> Ditutup
-                      </span>
-                    ) : isFull ? (
-                      <span className="text-[11px] font-semibold text-red-700">
-                        Penuh ({bookings.length}/{available})
-                      </span>
-                    ) : bookings.length > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-pink-700">
-                        <span className="w-2 h-2 rounded-full bg-pink-400" /> Terisi · {bookings.length} sesi
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-medium text-emerald-700">
-                        {uniqueBlocked.length > 0 ? `Tersedia ${available} dari ${capacity} ruang` : 'Kosong'}
-                      </span>
-                    )
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {capacity > 0 && (
+                      isClosed ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-neutral-600">
+                          <Ban className="w-3.5 h-3.5" /> Ditutup
+                        </span>
+                      ) : isFull ? (
+                        <span className="text-[11px] font-semibold text-red-700">
+                          Penuh ({bookings.length}/{available})
+                        </span>
+                      ) : bookings.length > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-pink-700">
+                          <span className="w-2 h-2 rounded-full bg-pink-400" /> Terisi · {bookings.length} sesi
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-medium text-emerald-700">
+                          {uniqueBlocked.length > 0 ? `Tersedia ${available} dari ${capacity} ruang` : 'Kosong'}
+                        </span>
+                      )
+                    )}
+                    {capacity > 0 && durMin > STEP && (
+                      winClosed ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-neutral-100 border border-neutral-300 text-[11px] font-medium text-neutral-600">
+                          <Ban className="w-3 h-3" /> Ditutup {toLabel(slot.start)}–{toLabel(winEnd)}
+                        </span>
+                      ) : winFull ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-red-50 border border-red-200 text-[11px] font-semibold text-red-700">
+                          Penuh utk {durMin} mnt · puncak {winPeak}/{winAvail} ruang
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] font-medium text-emerald-800">
+                          Bisa {durMin} mnt · {toLabel(slot.start)}–{toLabel(winEnd)} · puncak {winPeak}/{winAvail} ruang
+                        </span>
+                      )
+                    )}
+                  </div>
                 </div>
 
                 {/* Per-room strip — ruang yang diblokir tampil jelas */}

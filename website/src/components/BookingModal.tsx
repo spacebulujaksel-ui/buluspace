@@ -195,6 +195,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return h * 60 + m;
   };
 
+  const hhmm = (min: number) =>
+    `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+
   const selectedBranchName = location.startsWith("Jakarta Selatan")
     ? "Jakarta Selatan"
     : "Jakarta Barat";
@@ -359,6 +362,25 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     ? `${selectedTherapistObj.name} (${selectedTherapistObj.role})`
     : "Rekomendasi Terbaik Bulu Space (Auto-Assign)";
 
+  // Puncak booking yang jalan bersamaan di window — sama dengan backend
+  // (BookingController::peakOccupancy). Count semua booking yang lewat akan
+  // salah: booking berurutan cuma butuh 1 ruang, bukan 1 ruang per booking.
+  const peakOccupancy = (
+    slotMin: number,
+    slotEnd: number,
+    list: { start_time: string; end_time: string }[],
+  ): number => {
+    const occupancy: Record<number, number> = {};
+    for (const b of list) {
+      const a = asMinutes(b.start_time);
+      const z = asMinutes(b.end_time);
+      for (let m = Math.max(a, slotMin); m < Math.min(z, slotEnd); m++) {
+        occupancy[m] = (occupancy[m] ?? 0) + 1;
+      }
+    }
+    return Object.values(occupancy).reduce((max, n) => Math.max(max, n), 0);
+  };
+
   const slotBusy = (slotMin: number): boolean => {
     if (totalMinutes <= 0) return true;
     const now = new Date();
@@ -390,8 +412,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     );
     const available = capacity - blockedRooms.size;
     if (available <= 0) return true;
-    const overlapping = bookedSlots.filter((b) => overlaps(b)).length;
-    if (overlapping >= available) return true;
+    if (peakOccupancy(slotMin, slotEnd, bookedSlots) >= available) return true;
     if (therapistId !== "any") {
       const tid = Number(therapistId);
       if (
@@ -418,6 +439,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     return slotBusy(slotMin) ? "full" : "available";
   };
 
+  useEffect(() => {
+    if (!timeSlot || selectedServices.length === 0) return;
+    if (slotState(asMinutes(timeSlot.slice(0, 5))) === "full") setTimeSlot("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeSlot, totalMinutes, selectedServices, bookedSlots, blocked, rooms, therapistId, date]);
+
   const slotNowFull = (
     data: AvailabilityData,
     slotMin: number,
@@ -440,11 +467,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     );
     const available = capacity - blockedRooms.size;
     if (available <= 0) return true;
-    const overlapping = data.booked.filter(
-      (b) =>
-        slotMin < asMinutes(b.end_time) && slotEnd > asMinutes(b.start_time),
-    ).length;
-    return overlapping >= available;
+    return peakOccupancy(slotMin, slotEnd, data.booked) >= available;
   };
 
   const formatRupiah = (val: number) => {
@@ -569,7 +592,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       if (slotNowFull(fresh, startMin, startMin + totalMinutes)) {
         setTimeSlot("");
         setErrorMessage(
-          "Slot yang Anda pilih baru saja terisi. Silakan pilih jam lain.",
+          `Slot ${startTime} tidak bisa dipakai untuk durasi ${totalMinutes} menit — ruang di ${branchLabel} sudah penuh selama ${startTime}–${hhmm(startMin + totalMinutes)} WIB. Silakan pilih jam lain.`,
         );
         return;
       }
@@ -1216,7 +1239,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <button
               type="button"
               onClick={() => handleFormSubmit()}
-              disabled={submitting}
+              disabled={submitting || !timeSlot}
               className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-emerald-700/20 disabled:opacity-60"
             >
               <MessageCircle className="w-4 h-4 fill-white" />

@@ -198,6 +198,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const hhmm = (min: number) =>
     `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 
+  const toDateStr = (d: Date) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const selectedBranchName = location.startsWith("Jakarta Selatan")
     ? "Jakarta Selatan"
     : "Jakarta Barat";
@@ -487,13 +494,6 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       month: "short",
       year: "numeric",
     }).format(d);
-  };
-
-  const toDateStr = (d: Date) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
   };
 
   const isPastDate = (dateStr: string) => {

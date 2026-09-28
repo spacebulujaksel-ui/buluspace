@@ -162,12 +162,6 @@ export default function Login() {
             </button>
           </form>
         )}
-
-        {selectedBranch && (
-          <p className="mt-4 text-center text-[11px] text-neutral-400">
-            Demo: {selectedBranch.name === 'Jakarta Barat' ? 'adminjakbar@buluspace.com / adminjakbar123' : 'adminjaksel@buluspace.com / adminjaksel123'}
-          </p>
-        )}
       </div>
     </div>
   );

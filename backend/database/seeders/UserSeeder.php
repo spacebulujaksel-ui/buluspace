@@ -11,8 +11,8 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $users = [
-            ['name' => 'Admin Utama', 'email' => 'admin@buluspace.com', 'phone' => '081212121213', 'password' => 'admin123', 'role' => 'Admin'],
-            ['name' => 'Citra', 'email' => 'citraut@gmail.com', 'phone' => '085432584744', 'password' => 'citra221', 'role' => 'Admin'],
+            ['name' => 'admin jakbar', 'email' => 'adminjakbar@buluspace.com', 'phone' => '081212121213', 'password' => 'adminjakbar123', 'role' => 'Admin'],
+            ['name' => 'admin jaksel', 'email' => 'adminjaksel@buluspace.com', 'phone' => '085432584744', 'password' => 'adminjaksel123', 'role' => 'Admin'],
             ['name' => 'Andi', 'email' => 'andi@gmail.com', 'phone' => '085163274684', 'password' => 'andi123', 'role' => 'Customer'],
             ['name' => 'Budi', 'email' => 'budi@gmail.com', 'phone' => '081232547985', 'password' => 'budi333', 'role' => 'Customer'],
             ['name' => 'Clarissa Maharani', 'email' => 'clarissa@mail.com', 'phone' => '081298765432', 'password' => 'clarissa123', 'role' => 'Customer'],
@@ -24,8 +24,8 @@ class UserSeeder extends Seeder
 
         foreach ($users as $u) {
             $branchId = match ($u['email']) {
-                'admin@buluspace.com' => $barat?->id,
-                'citraut@gmail.com' => $selatan?->id,
+                'adminjakbar@buluspace.com' => $barat?->id,
+                'adminjaksel@buluspace.com' => $selatan?->id,
                 default => null,
             };
 

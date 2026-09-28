@@ -10,4 +10,3 @@ Artisan::command('inspire', function () {
 
 Schedule::command('app:send-h1-reminders')->dailyAt('00:00'); // 07:00 WIB (server UTC)
 Schedule::command('app:send-hour-reminders')->everyFifteenMinutes();
-Schedule::command('app:sync-therapist-leave-status')->hourly();

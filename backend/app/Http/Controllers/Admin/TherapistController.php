@@ -57,10 +57,6 @@ class TherapistController extends Controller
             'end_date' => $validated['end_date'],
         ]);
 
-        if ($therapist->status === 'Active' && $therapist->isOnLeaveOn(today())) {
-            $therapist->update(['status' => 'Inactive']);
-        }
-
         return response()->json(['message' => 'Jadwal cuti ditambahkan.', 'leave' => $leave], 201);
     }
 

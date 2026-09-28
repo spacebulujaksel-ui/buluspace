@@ -88,13 +88,38 @@ class TherapistLeaveTest extends TestCase
         $this->assertContains($onLeave->id, $res->json('on_leave_ids'));
     }
 
-    public function test_leave_status_command_inactivates_on_leave_today(): void
+    public function test_leave_does_not_change_therapist_status(): void
     {
         $therapist = $this->therapists[0];
         TherapistLeave::create(['therapist_id' => $therapist->id, 'start_date' => now()->format('Y-m-d'), 'end_date' => now()->format('Y-m-d')]);
 
-        $this->artisan('app:sync-therapist-leave-status')->assertExitCode(0);
+        $this->assertSame('Active', $therapist->fresh()->status);
+    }
 
-        $this->assertSame('Inactive', $therapist->fresh()->status);
+    public function test_booking_therapist_is_allowed_after_leave_ends(): void
+    {
+        $therapist = $this->therapists[0];
+        TherapistLeave::create([
+            'therapist_id' => $therapist->id,
+            'start_date' => now()->format('Y-m-d'),
+            'end_date' => now()->format('Y-m-d'),
+        ]);
+
+        $res = $this->postJson('/api/bookings', $this->payload($therapist->id));
+
+        $res->assertCreated();
+        $this->assertSame($therapist->id, $res->json('booking.therapist_id'));
+        $this->assertSame('Active', $therapist->fresh()->status);
+    }
+
+    public function test_manually_inactive_therapist_is_still_rejected(): void
+    {
+        $therapist = $this->therapists[0];
+        $therapist->update(['status' => 'Inactive']);
+
+        $res = $this->postJson('/api/bookings', $this->payload($therapist->id));
+
+        $res->assertStatus(422);
+        $this->assertStringContainsString('tidak aktif', $res->json('message'));
     }
 }

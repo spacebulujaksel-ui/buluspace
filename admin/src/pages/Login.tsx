@@ -47,10 +47,10 @@ export default function Login() {
         <div className="text-center mb-8">
           <img
             src="/asset/img/Bulu Space_Logo Icon-04.png"
-            alt="BuluSpace"
+            alt="Bulu Space"
             className="w-12 h-auto mx-auto mb-3"
           />
-          <h1 className="text-xl font-semibold tracking-tight text-neutral-900">BuluSpace Admin</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Bulu Space Admin</h1>
           <p className="text-xs text-neutral-400 mt-1">
             {selectedBranch ? `Login ke cabang ${selectedBranch.name}` : 'Pilih cabang yang ingin Anda kelola'}
           </p>

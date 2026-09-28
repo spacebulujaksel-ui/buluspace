@@ -49,12 +49,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="h-16 flex items-center gap-2.5 px-5 border-b border-neutral-800">
           <img
             src="/asset/img/Bulu Space_Logo Icon-03.png"
-            alt="BuluSpace"
+            alt="Bulu Space"
             className="w-8 h-auto"
           />
           <div className="min-w-0">
             <p className="text-sm font-semibold tracking-tight text-white truncate">
-              BuluSpace
+              Bulu Space
             </p>
             <p className="text-[10px] text-neutral-400">Admin Panel</p>
           </div>

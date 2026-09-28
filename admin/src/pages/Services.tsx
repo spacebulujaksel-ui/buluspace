@@ -17,7 +17,7 @@ const CATEGORIES: Record<string, string> = {
 
 const EMPTY: Service = {
   id: 0, name: '', description: '', price: 0, duration_minutes: 0,
-  last_order_time: null, image: '', status: 'Active', category: 'face', wax_type: 'Gentle Film Hard Wax',
+  last_order_time: null, image: '', status: 'Active', category: 'face', wax_type: 'Natural Sugar',
 };
 
 export default function Services() {
@@ -126,7 +126,7 @@ export default function Services() {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="border-b border-neutral-200">
-                      {['Nama', 'Deskripsi', 'Harga', 'Durasi', 'Wax Type', 'Status', 'Aksi'].map((h) => (
+                      {['Nama', 'Deskripsi', 'Harga', 'Durasi', 'Jenis Treatment', 'Status', 'Aksi'].map((h) => (
                         <th key={h} className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
                           {h}
                         </th>
@@ -299,13 +299,14 @@ export default function Services() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Wax Type</label>
+              <label className="block text-xs font-semibold text-neutral-800 mb-1.5">Jenis Treatment</label>
               <select
                 value={form.wax_type}
                 onChange={(e) => setForm({ ...form, wax_type: e.target.value })}
                 className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
               >
-                <option value="Gentle Film Hard Wax">Gentle Film Hard Wax</option>
+                <option value="Natural Sugar">Natural Sugar</option>
+                <option value="Threading">Threading</option>
                 <option value="Organic Soft Honey">Organic Soft Honey</option>
                 <option value="Soothing Treatment">Soothing Treatment</option>
               </select>

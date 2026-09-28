@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { AlertCircle, Loader2, Ban, Plus, Trash2, Calendar, DoorOpen } from 'lucide-react';
+import { AlertCircle, Loader2, Ban, Plus, Trash2, Calendar, DoorOpen, Check } from 'lucide-react';
 import { api } from '../lib/api';
 import { Appointment } from '../types';
+import { Modal } from '../components/Modal';
 
 interface Blocked {
   id: number;
@@ -48,18 +49,25 @@ export default function Schedule() {
   const [blockNote, setBlockNote] = useState('');
   const [savingBlock, setSavingBlock] = useState(false);
   const [blockError, setBlockError] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [notice, setNotice] = useState('');
 
-  const load = () => {
-    setLoading(true);
+  const load = (showLoader = true) => {
+    if (showLoader) setLoading(true);
     setError('');
+    setNotice('');
     api
       .get<ScheduleData>(`/admin/schedule?date=${date}`)
       .then((r) => setData(r))
       .catch((e) => setError(e instanceof Error ? e.message : 'Gagal memuat jadwal.'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (showLoader) setLoading(false);
+      });
   };
 
-  useEffect(load, [date]);
+  useEffect(() => load(), [date]);
 
   const addBlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +76,7 @@ export default function Schedule() {
     try {
       await api.post('/admin/schedule/block', { date, room_number: blockRoom, start_time: blockStart, end_time: blockEnd, note: blockNote });
       setBlockNote('');
-      load();
+      load(false);
     } catch (err) {
       setBlockError(err instanceof Error ? err.message : 'Gagal memblokir jam.');
     } finally {
@@ -79,10 +87,25 @@ export default function Schedule() {
   const removeBlock = async (id: number) => {
     try {
       await api.delete(`/admin/schedule/block/${id}`);
-      load();
+      load(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menghapus blokir.');
     }
+  };
+
+  const mark = (apt: Appointment, status: 'Completed' | 'Cancelled', reason?: string) => {
+    setUpdating(true);
+    api
+      .put(`/admin/bookings/${apt.id}/status`, { status, cancel_reason: reason })
+      .then(() => load(false))
+      .then(() => setNotice(`${apt.booking_code} → ${status === 'Completed' ? 'Selesai' : 'Dibatalkan'}`))
+      .catch((e) => setError(e instanceof Error ? e.message : 'Gagal mengubah status.'))
+      .finally(() => setUpdating(false));
+  };
+
+  const askCancel = (apt: Appointment) => {
+    setCancelTarget(apt);
+    setCancelReason('');
   };
 
   const capacity = data?.rooms_count ?? 0;
@@ -115,6 +138,11 @@ export default function Schedule() {
       {error && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
           <AlertCircle className="w-4 h-4 shrink-0" /> {error}
+        </div>
+      )}
+      {notice && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">
+          <Check className="w-4 h-4 shrink-0" /> {notice}
         </div>
       )}
 
@@ -266,16 +294,47 @@ export default function Schedule() {
                 {/* Bookings */}
                 {bookings.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
-                    {bookings.map((b) => (
-                      <div
-                        key={b.id}
-                        className="inline-flex flex-col items-start gap-0.5 px-2.5 py-1.5 rounded-lg bg-neutral-50 border border-neutral-200"
-                      >
-                        <p className="text-[11px] font-semibold text-neutral-800 font-mono">{b.booking_code}</p>
-                        <p className="text-[11px] text-neutral-600">{b.customer_name}</p>
-                        <p className="text-[10px] text-neutral-400">{b.therapist?.name ?? '—'}</p>
-                      </div>
-                    ))}
+                    {bookings.map((b) => {
+                      const isSlotStart = toMin(b.start_time) >= slot.start && toMin(b.start_time) < slot.end;
+                      const services = (b.details ?? [])
+                        .map((d) => `${d.service?.name ?? `Layanan #${d.service_id}`}${d.quantity > 1 ? ` × ${d.quantity}` : ''}`)
+                        .join(', ');
+                      return (
+                        <div
+                          key={b.id}
+                          className="inline-flex flex-col items-start gap-0.5 px-2.5 py-1.5 rounded-lg bg-neutral-50 border border-neutral-200"
+                        >
+                          <p className="text-[11px] font-semibold text-neutral-800 font-mono">{b.booking_code}</p>
+                          <p className="text-[11px] text-neutral-600">{b.customer_name}</p>
+                          {services && (
+                            <p title={services} className="text-[10px] text-neutral-500 max-w-[200px] truncate">
+                              {services}
+                            </p>
+                          )}
+                          <p className="text-[10px] text-neutral-400">{b.therapist?.name ?? '—'}</p>
+                          {b.status === 'Confirmed' && isSlotStart && (
+                            <div className="flex items-center gap-1 pt-1 mt-0.5">
+                              <button
+                                onClick={() => mark(b, 'Completed')}
+                                disabled={updating}
+                                className="px-2 py-1 rounded-lg text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                                title="Tandai selesai"
+                              >
+                                Selesai
+                              </button>
+                              <button
+                                onClick={() => askCancel(b)}
+                                disabled={updating}
+                                className="px-2 py-1 rounded-lg text-[11px] font-medium text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors disabled:opacity-50"
+                                title="Batalkan booking"
+                              >
+                                Batal
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -283,6 +342,49 @@ export default function Schedule() {
           })
         )}
       </div>
+
+      <Modal
+        title="Batalkan Booking"
+        subtitle={cancelTarget ? `Kode ${cancelTarget.booking_code}` : undefined}
+        isOpen={!!cancelTarget}
+        onClose={() => setCancelTarget(null)}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-[13px] text-neutral-600">
+            Booking <span className="font-semibold text-neutral-900">{cancelTarget?.booking_code}</span>{' '}
+            akan dibatalkan. Tuliskan alasan pembatalan (opsional). Customer akan menerima email pembatalan.
+          </p>
+          <textarea
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            rows={4}
+            maxLength={500}
+            placeholder="Alasan pembatalan"
+            className="w-full px-3 py-2 text-sm rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white resize-none"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setCancelTarget(null)}
+              disabled={updating}
+              className="px-4 py-2 rounded-xl text-[13px] font-medium text-neutral-600 bg-white border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+            >
+              Batal
+            </button>
+            <button
+              onClick={() => {
+                if (!cancelTarget) return;
+                mark(cancelTarget, 'Cancelled', cancelReason.trim() || undefined);
+                setCancelTarget(null);
+              }}
+              disabled={updating}
+              className="px-4 py-2 rounded-xl text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50"
+            >
+              {updating ? 'Menyimpan...' : 'Batalkan Booking'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

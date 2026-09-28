@@ -81,6 +81,8 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAdmin::class])
         Route::delete('/therapists/{id}', [AdminTherapistController::class, 'destroy']);
         Route::post('/therapists/{id}/leaves', [AdminTherapistController::class, 'storeLeave']);
         Route::delete('/therapists/{id}/leaves/{leaveId}', [AdminTherapistController::class, 'destroyLeave']);
+        Route::post('/therapists/{id}/off-days', [AdminTherapistController::class, 'storeOffDay']);
+        Route::delete('/therapists/{id}/off-days/{offDayId}', [AdminTherapistController::class, 'destroyOffDay']);
 
         Route::get('/services', [AdminServiceController::class, 'index']);
         Route::post('/services', [AdminServiceController::class, 'store']);

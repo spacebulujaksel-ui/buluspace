@@ -48,6 +48,7 @@ type AvailabilityData = {
     end_time: string;
   }[];
   on_leave_ids: number[];
+  off_day_ids: number[];
 };
 
 export const BookingModal: React.FC<BookingModalProps> = ({
@@ -97,6 +98,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     { room_number: number; start_time: string; end_time: string }[]
   >([]);
   const [onLeaveIds, setOnLeaveIds] = useState<number[]>([]);
+  const [offDayIds, setOffDayIds] = useState<number[]>([]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState(() => {
     const now = new Date();
@@ -165,6 +167,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       setRooms(r.rooms ?? {});
       setBlocked(r.blocked ?? []);
       setOnLeaveIds(r.on_leave_ids ?? []);
+      setOffDayIds(r.off_day_ids ?? []);
     } catch {
       setBookedSlots([]);
     }
@@ -234,12 +237,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     if (
       therapistId !== "any" &&
       (therapistBusy(Number(therapistId)) ||
-        onLeaveIds.includes(Number(therapistId)))
+        onLeaveIds.includes(Number(therapistId)) ||
+        offDayIds.includes(Number(therapistId)))
     ) {
       setTherapistId("any");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [therapistId, timeSlot, totalMinutes, bookedSlots, onLeaveIds]);
+  }, [therapistId, timeSlot, totalMinutes, bookedSlots, onLeaveIds, offDayIds]);
 
   const closeMinute = 19 * 60;
   const staticCutoff = selectedServiceObjs.reduce<string | null>(
@@ -829,7 +833,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   const isSelected = therapistId === t.id;
                   const busy = therapistBusy(Number(t.id));
                   const onLeave = onLeaveIds.includes(Number(t.id));
-                  const disabled = busy || onLeave;
+                  const onOffDay = offDayIds.includes(Number(t.id));
+                  const disabled = busy || onLeave || onOffDay;
                   return (
                     <div
                       key={t.id}
@@ -847,9 +852,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       title={
                         onLeave
                           ? `${t.nickname} sedang cuti pada tanggal ini`
-                          : busy
-                            ? `${t.nickname} sedang sibuk di jam tersebut`
-                            : t.name
+                          : onOffDay
+                            ? `${t.nickname} sedang libur pada hari ini`
+                            : busy
+                              ? `${t.nickname} sedang sibuk di jam tersebut`
+                              : t.name
                       }
                     >
                       <div className="w-10 h-10 rounded-full bg-pink-100 border border-pink-200 flex items-center justify-center text-pink-600 text-xs font-bold shrink-0">

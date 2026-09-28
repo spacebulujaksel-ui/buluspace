@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Therapist extends Model
 {
@@ -31,5 +32,17 @@ class Therapist extends Model
     public function leaves(): HasMany
     {
         return $this->hasMany(TherapistLeave::class);
+    }
+
+    public function offDays(): HasMany
+    {
+        return $this->hasMany(TherapistOffDay::class);
+    }
+
+    public function isOffDayOn($date): bool
+    {
+        return $this->offDays()
+            ->where('day_of_week_iso', Carbon::parse($date)->dayOfWeekIso)
+            ->exists();
     }
 }

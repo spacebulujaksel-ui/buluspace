@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Therapist;
 use App\Models\TherapistLeave;
+use App\Models\TherapistOffDay;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +13,7 @@ class TherapistController extends Controller
 {
     public function index(Request $request)
     {
-        return response()->json(['therapists' => Therapist::with('leaves')->where('branch_id', $request->user()->branch_id)->orderByDesc('id')->get()]);
+        return response()->json(['therapists' => Therapist::with(['leaves', 'offDays'])->where('branch_id', $request->user()->branch_id)->orderByDesc('id')->get()]);
     }
 
     public function store(Request $request)
@@ -68,6 +69,31 @@ class TherapistController extends Controller
         $leave->delete();
 
         return response()->json(['message' => 'Jadwal cuti dihapus.']);
+    }
+
+    public function storeOffDay(Request $request, int $id)
+    {
+        $therapist = $this->scoped($id);
+
+        $validated = $request->validate([
+            'day_of_week_iso' => 'required|integer|between:1,7',
+        ]);
+
+        $offDay = TherapistOffDay::firstOrCreate([
+            'therapist_id' => $therapist->id,
+            'day_of_week_iso' => $validated['day_of_week_iso'],
+        ]);
+
+        return response()->json(['message' => 'Jadwal libur rutin ditambahkan.', 'off_day' => $offDay], 201);
+    }
+
+    public function destroyOffDay(Request $request, int $id, int $offDayId)
+    {
+        $therapist = $this->scoped($id);
+
+        TherapistOffDay::where('therapist_id', $therapist->id)->findOrFail($offDayId)->delete();
+
+        return response()->json(['message' => 'Jadwal libur rutin dihapus.']);
     }
 
     public function destroy(int $id)

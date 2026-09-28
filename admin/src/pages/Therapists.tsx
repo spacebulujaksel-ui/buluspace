@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, AlertCircle, CalendarX2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertCircle, CalendarX2, CalendarDays } from 'lucide-react';
 import { api } from '../lib/api';
-import { Therapist, ActiveStatus, TherapistLeave } from '../types';
+import { Therapist, ActiveStatus, TherapistLeave, TherapistOffDay } from '../types';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 
 const EMPTY: Therapist = { id: 0, name: '', status: 'Active', experience_years: 0 };
+
+const DAY_NAMES = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
 const todayStr = () => {
   const d = new Date();
@@ -24,6 +26,7 @@ export default function Therapists() {
   const [error, setError] = useState('');
   const [leaveStart, setLeaveStart] = useState('');
   const [leaveEnd, setLeaveEnd] = useState('');
+  const [offDaySel, setOffDaySel] = useState(1);
 
   const load = async () => {
     setLoading(true);
@@ -111,6 +114,28 @@ export default function Therapists() {
     }
   };
 
+  const addOffDay = async () => {
+    if (!editing || !offDaySel) return;
+    setError('');
+    try {
+      await api.post(`/admin/therapists/${editing.id}/off-days`, { day_of_week_iso: offDaySel });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal menambah jadwal libur rutin.');
+    }
+  };
+
+  const removeOffDay = async (o: TherapistOffDay) => {
+    if (!editing) return;
+    setError('');
+    try {
+      await api.delete(`/admin/therapists/${editing.id}/off-days/${o.id}`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal menghapus jadwal libur rutin.');
+    }
+  };
+
   const remove = async (t: Therapist) => {
     if (!confirm(`Hapus terapis "${t.name}"?`)) return;
     try {
@@ -147,7 +172,7 @@ export default function Therapists() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-neutral-200">
-                  {['Nama', 'Status', 'Cuti', 'Aksi'].map((h) => (
+                  {['Nama', 'Status', 'Cuti', 'Libur', 'Aksi'].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] uppercase tracking-wider font-semibold text-neutral-400">
                       {h}
                     </th>
@@ -191,6 +216,23 @@ export default function Therapists() {
                               >
                                 <CalendarX2 className="w-3 h-3" />
                                 {l.start_date.slice(0, 10)} → {l.end_date.slice(0, 10)}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-[12px] text-neutral-300">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {t.offDays && t.offDays.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {t.offDays.map((o) => (
+                              <span
+                                key={o.id}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-50 text-neutral-600 border border-neutral-200"
+                              >
+                                <CalendarDays className="w-3 h-3" />
+                                {DAY_NAMES[o.day_of_week_iso]}
                               </span>
                             ))}
                           </div>
@@ -269,6 +311,21 @@ export default function Therapists() {
                         >
                           <CalendarX2 className="w-3 h-3" />
                           {l.start_date.slice(0, 10)} → {l.end_date.slice(0, 10)}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[12px] text-neutral-300">—</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {t.offDays && t.offDays.length > 0 ? (
+                      t.offDays.map((o) => (
+                        <span
+                          key={o.id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-50 text-neutral-600 border border-neutral-200"
+                        >
+                          <CalendarDays className="w-3 h-3" />
+                          {DAY_NAMES[o.day_of_week_iso]}
                         </span>
                       ))
                     ) : (
@@ -390,6 +447,55 @@ export default function Therapists() {
               >
                 Tambah Cuti
               </button>
+            </div>
+          )}
+
+          {editing && (
+            <div className="pt-2 border-t border-neutral-100">
+              <p className="text-xs font-bold text-neutral-800 mb-2 flex items-center gap-1.5">
+                <CalendarDays className="w-4 h-4 text-pink-500" /> Jadwal Libur Rutin
+              </p>
+              <p className="text-[11px] text-neutral-400 mb-3">Hari libur tetap tiap minggu, berbeda dengan cuti.</p>
+              {editing.offDays && editing.offDays.length > 0 ? (
+                <div className="space-y-1.5 mb-3">
+                  {editing.offDays.map((o) => (
+                    <div key={o.id} className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2">
+                      <span className="text-xs text-neutral-600">{DAY_NAMES[o.day_of_week_iso]}</span>
+                      <button
+                        onClick={() => removeOffDay(o)}
+                        className="p-1 text-neutral-400 hover:text-rose-600 transition-colors"
+                        title="Hapus jadwal libur"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[11px] text-neutral-400 mb-3">Belum ada jadwal libur rutin.</p>
+              )}
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="block text-[11px] font-medium text-neutral-600 mb-1">Hari libur</label>
+                  <select
+                    value={offDaySel}
+                    onChange={(e) => setOffDaySel(Number(e.target.value))}
+                    className="w-full px-2.5 py-2 text-xs rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
+                  >
+                    {DAY_NAMES.map((name, i) =>
+                      i === 0 ? null : (
+                        <option key={i} value={i}>{name}</option>
+                      ),
+                    )}
+                  </select>
+                </div>
+                <button
+                  onClick={addOffDay}
+                  className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 transition-colors"
+                >
+                  Tambah
+                </button>
+              </div>
             </div>
           )}
 

@@ -22,12 +22,18 @@ export interface TherapistLeave {
   end_date: string;
 }
 
+export interface TherapistOffDay {
+  id: number;
+  day_of_week_iso: number;
+}
+
 export interface Therapist {
   id: number;
   name: string;
   status: ActiveStatus;
   experience_years?: number | null;
   leaves?: TherapistLeave[];
+  offDays?: TherapistOffDay[];
   created_at?: string;
   updated_at?: string;
 }

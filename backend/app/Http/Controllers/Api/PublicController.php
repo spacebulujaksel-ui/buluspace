@@ -10,6 +10,7 @@ use App\Models\Review;
 use App\Models\Service;
 use App\Models\Therapist;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class PublicController extends Controller
 {
@@ -120,6 +121,16 @@ class PublicController extends Controller
             ->distinct()
             ->pluck('therapist_id');
 
-        return response()->json(['booked' => $booked, 'rooms' => $rooms, 'blocked' => $blocked, 'on_leave_ids' => $onLeaveIds->values()]);
+        $offDayIds = \App\Models\TherapistOffDay::where('day_of_week_iso', Carbon::parse($validated['date'])->dayOfWeekIso)
+            ->distinct()
+            ->pluck('therapist_id');
+
+        return response()->json([
+            'booked' => $booked,
+            'rooms' => $rooms,
+            'blocked' => $blocked,
+            'on_leave_ids' => $onLeaveIds->values(),
+            'off_day_ids' => $offDayIds->values(),
+        ]);
     }
 }

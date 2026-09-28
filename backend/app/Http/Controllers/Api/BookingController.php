@@ -10,6 +10,7 @@ use App\Models\Branch;
 use App\Models\Service;
 use App\Models\Therapist;
 use App\Models\TherapistLeave;
+use App\Models\TherapistOffDay;
 use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -150,6 +151,10 @@ class BookingController extends Controller
             ->pluck('therapist_id')
             ->all();
 
+        $offDayIds = TherapistOffDay::where('day_of_week_iso', Carbon::parse($validated['appointment_date'])->dayOfWeekIso)
+            ->pluck('therapist_id')
+            ->all();
+
         if (!empty($validated['therapist_id'])) {
             $therapist = Therapist::findOrFail($validated['therapist_id']);
 
@@ -169,6 +174,12 @@ class BookingController extends Controller
                 Log::warning('Booking ditolak: terapis sedang cuti', ['terapis' => $therapist->id]);
 
                 return response()->json(['message' => 'Terapis sedang cuti pada tanggal tersebut. Silakan pilih terapis lain.'], 422);
+            }
+
+            if (in_array($therapist->id, $offDayIds, true)) {
+                Log::warning('Booking ditolak: hari libur rutin terapis', ['terapis' => $therapist->id, 'tanggal' => $validated['appointment_date']]);
+
+                return response()->json(['message' => 'Terapis sedang libur pada hari tersebut (hari libur rutin). Silakan pilih terapis lain.'], 422);
             }
 
             $conflict = Appointment::where('therapist_id', $therapist->id)
@@ -194,8 +205,8 @@ class BookingController extends Controller
             $candidates = Therapist::where('status', 'Active')
                 ->when($branch, fn ($q) => $q->where('branch_id', $branch->id))
                 ->get()
-                ->filter(function (Therapist $t) use ($start, $end, $leaveIds) {
-                    if (in_array($t->id, $leaveIds, true)) {
+                ->filter(function (Therapist $t) use ($start, $end, $leaveIds, $offDayIds) {
+                    if (in_array($t->id, $leaveIds, true) || in_array($t->id, $offDayIds, true)) {
                         return false;
                     }
                     $busy = Appointment::where('therapist_id', $t->id)

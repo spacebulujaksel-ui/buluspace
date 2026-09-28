@@ -8,19 +8,27 @@ export function combinationError(_selected: CombinationItem[]): string | null {
   return null;
 }
 
-// Add-on yang durasinya diserap ke durasi dasar Brazilian/Feel Smooth (tidak menambah total).
+// Paket memberi gratis SATU layanan 15 menit. Hanya layanan 15 menit yang boleh
+// diserap; 10 menit dan 30/45 menit selalu dihitung normal.
+const PACKAGE_FREE_MINUTES = 15;
 const ABSORBED: Record<string, string[]> = {
-  Brazilian: ["Eyebrows", "Upper Lip", "Chin", "Cheek", "Forehead", "Underarms", "Half Arms", "Half Legs", "Chest", "Stomach", "Buttocks"],
-  "Feel Smooth": ["Eyebrows", "Upper Lip", "Chin", "Cheek", "Forehead", "Underarms", "Chest", "Stomach", "Buttocks", "Basic Bikini"],
+  Brazilian: ["Eyebrows", "Underarms", "Half Arms", "Half Legs", "Chest", "Stomach", "Buttocks"],
+  "Feel Smooth": ["Eyebrows", "Underarms", "Chest", "Stomach", "Buttocks", "Basic Bikini"],
 };
 
 export function totalMinutesFor(items: CombinationItem[]): number {
   const hasBrazilian = items.some((i) => i.name === "Brazilian");
   const hasFeelSmooth = items.some((i) => i.name === "Feel Smooth");
-  if (!hasBrazilian && !hasFeelSmooth) return items.reduce((acc, i) => acc + i.duration, 0);
+  const total = items.reduce((acc, i) => acc + i.duration, 0);
+  if (!hasBrazilian && !hasFeelSmooth) return total;
+
   const absorbed = [
     ...(hasBrazilian ? ABSORBED["Brazilian"] : []),
     ...(hasFeelSmooth ? ABSORBED["Feel Smooth"] : []),
   ];
-  return items.reduce((acc, i) => acc + (absorbed.includes(i.name) ? 0 : i.duration), 0);
+  const hasFreeSlot = items.some(
+    (i) => absorbed.includes(i.name) && i.duration === PACKAGE_FREE_MINUTES,
+  );
+
+  return hasFreeSlot ? total - PACKAGE_FREE_MINUTES : total;
 }

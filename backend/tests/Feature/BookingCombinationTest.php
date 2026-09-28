@@ -32,10 +32,11 @@ class BookingCombinationTest extends TestCase
             'brazilian' => $make('Brazilian', 'intimate', 30),
             'full_legs' => $make('Full Legs', 'legs', 30),
             'full_arms' => $make('Full Arms', 'arms', 30),
-            'half_arms' => $make('Half Arms', 'arms', 20),
-            'half_legs' => $make('Half Legs', 'legs', 25),
+            'half_arms' => $make('Half Arms', 'arms', 15),
+            'half_legs' => $make('Half Legs', 'legs', 15),
             'full_front' => $make('Full Front', 'upper', 30),
             'full_back' => $make('Full Back', 'upper', 30),
+            'eyebrows' => $make('Eyebrows', 'face', 15),
             'forehead' => $make('Forehead', 'face', 10),
             'cheek' => $make('Cheek', 'face', 10),
             'underarms' => $make('Underarms', 'arms', 15),
@@ -81,15 +82,47 @@ class BookingCombinationTest extends TestCase
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'half_legs', 'forehead'])));
 
         $res->assertCreated();
-        $this->assertSame(30, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(40, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_brazilian_absorbs_single_short_addon(): void
     {
-        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'forehead'])));
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'eyebrows'])));
 
         $res->assertCreated();
         $this->assertSame(30, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_does_not_absorb_ten_minute_addon(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'forehead'])));
+
+        $res->assertCreated();
+        $this->assertSame(40, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_plus_eyebrows_and_underarms_is_45_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'eyebrows', 'underarms'])));
+
+        $res->assertCreated();
+        $this->assertSame(45, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_absorbs_only_one_of_three_addons(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'eyebrows', 'underarms', 'half_arms'])));
+
+        $res->assertCreated();
+        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_brazilian_plus_full_legs_and_two_addons_is_75_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs', 'eyebrows', 'underarms'])));
+
+        $res->assertCreated();
+        $this->assertSame(75, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_brazilian_absorbs_underarms(): void
@@ -113,7 +146,7 @@ class BookingCombinationTest extends TestCase
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['brazilian', 'full_legs', 'forehead'])));
 
         $res->assertCreated();
-        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(70, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_brazilian_plus_clean_girl_adds_duration(): void
@@ -149,7 +182,15 @@ class BookingCombinationTest extends TestCase
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'forehead', 'underarms'])));
 
         $res->assertCreated();
-        $this->assertSame(60, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(70, $this->durationMinutes($res->json('booking')));
+    }
+
+    public function test_feel_smooth_plus_eyebrows_and_underarms_is_75_minutes(): void
+    {
+        $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'eyebrows', 'underarms'])));
+
+        $res->assertCreated();
+        $this->assertSame(75, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_feel_smooth_absorbs_underarms(): void
@@ -165,7 +206,7 @@ class BookingCombinationTest extends TestCase
         $res = $this->postJson('/api/bookings', $this->payload($this->ids(['feel_smooth', 'half_arms'])));
 
         $res->assertCreated();
-        $this->assertSame(80, $this->durationMinutes($res->json('booking')));
+        $this->assertSame(75, $this->durationMinutes($res->json('booking')));
     }
 
     public function test_feel_smooth_plus_full_arms_adds_duration(): void

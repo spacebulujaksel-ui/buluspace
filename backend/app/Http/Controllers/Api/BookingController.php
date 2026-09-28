@@ -20,8 +20,11 @@ class BookingController extends Controller
 {
     private const MALE_SURCHARGE_PER_TREATMENT = 7000;
 
-    private const BRAZILIAN_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
-    private const FEEL_SMOOTH_ABSORBED = ['Eyebrows', 'Upper Lip', 'Chin', 'Cheek', 'Forehead', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
+    // Paket memberi gratis SATU layanan 15 menit. Hanya layanan 15 menit yang
+    // boleh diserap; 10 menit dan 30/45 menit selalu dihitung normal.
+    private const PACKAGE_FREE_MINUTES = 15;
+    private const BRAZILIAN_ABSORBED = ['Eyebrows', 'Underarms', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
+    private const FEEL_SMOOTH_ABSORBED = ['Eyebrows', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
 
     public function store(Request $request)
     {
@@ -348,6 +351,12 @@ class BookingController extends Controller
             $names->contains('Feel Smooth') ? self::FEEL_SMOOTH_ABSORBED : [],
         )));
 
-        return (int) $services->reject(fn (Service $s) => in_array($s->name, $absorbed))->sum('duration_minutes');
+        $total = (int) $services->sum('duration_minutes');
+
+        $hasFreeSlot = $services->contains(
+            fn (Service $s) => in_array($s->name, $absorbed, true) && (int) $s->duration_minutes === self::PACKAGE_FREE_MINUTES
+        );
+
+        return $hasFreeSlot ? $total - self::PACKAGE_FREE_MINUTES : $total;
     }
 }

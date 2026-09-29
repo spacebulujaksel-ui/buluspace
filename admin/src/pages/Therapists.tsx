@@ -26,7 +26,7 @@ export default function Therapists() {
   const [error, setError] = useState('');
   const [leaveStart, setLeaveStart] = useState('');
   const [leaveEnd, setLeaveEnd] = useState('');
-  const [offDaySel, setOffDaySel] = useState(1);
+  const [offDaySel, setOffDaySel] = useState<number | ''>('');
 
   const load = async () => {
     setLoading(true);
@@ -120,6 +120,7 @@ export default function Therapists() {
     try {
       await api.post(`/admin/therapists/${editing.id}/off-days`, { day_of_week_iso: offDaySel });
       await load();
+      setOffDaySel('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menambah jadwal libur rutin.');
     }
@@ -300,7 +301,8 @@ export default function Therapists() {
                       {t.status}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="text-[10px] text-neutral-400">Cuti:</span>
                     {t.leaves && t.leaves.length > 0 ? (
                       t.leaves.map((l) => (
                         <span
@@ -317,7 +319,8 @@ export default function Therapists() {
                       <span className="text-[12px] text-neutral-300">—</span>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="text-[10px] text-neutral-400">Libur:</span>
                     {t.offDays && t.offDays.length > 0 ? (
                       t.offDays.map((o) => (
                         <span
@@ -457,20 +460,29 @@ export default function Therapists() {
               </p>
               <p className="text-[11px] text-neutral-400 mb-3">Hari libur tetap tiap minggu, berbeda dengan cuti.</p>
               {editing.offDays && editing.offDays.length > 0 ? (
-                <div className="space-y-1.5 mb-3">
-                  {editing.offDays.map((o) => (
-                    <div key={o.id} className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2">
-                      <span className="text-xs text-neutral-600">{DAY_NAMES[o.day_of_week_iso]}</span>
-                      <button
-                        onClick={() => removeOffDay(o)}
-                        className="p-1 text-neutral-400 hover:text-rose-600 transition-colors"
-                        title="Hapus jadwal libur"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <p className="text-[11px] text-neutral-600 mb-3">
+                    <span className="font-semibold">Libur rutin:</span>{' '}
+                    {[...editing.offDays]
+                      .sort((a, b) => a.day_of_week_iso - b.day_of_week_iso)
+                      .map((o) => DAY_NAMES[o.day_of_week_iso])
+                      .join(', ')}
+                  </p>
+                  <div className="space-y-1.5 mb-3">
+                    {editing.offDays.map((o) => (
+                      <div key={o.id} className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2">
+                        <span className="text-xs text-neutral-600">{DAY_NAMES[o.day_of_week_iso]}</span>
+                        <button
+                          onClick={() => removeOffDay(o)}
+                          className="p-1 text-neutral-400 hover:text-rose-600 transition-colors"
+                          title="Hapus jadwal libur"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <p className="text-[11px] text-neutral-400 mb-3">Belum ada jadwal libur rutin.</p>
               )}
@@ -479,19 +491,23 @@ export default function Therapists() {
                   <label className="block text-[11px] font-medium text-neutral-600 mb-1">Hari libur</label>
                   <select
                     value={offDaySel}
-                    onChange={(e) => setOffDaySel(Number(e.target.value))}
+                    onChange={(e) => setOffDaySel(e.target.value === '' ? '' : Number(e.target.value))}
                     className="w-full px-2.5 py-2 text-xs rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white"
                   >
+                    <option value="">Pilih hari libur…</option>
                     {DAY_NAMES.map((name, i) =>
                       i === 0 ? null : (
-                        <option key={i} value={i}>{name}</option>
+                        <option key={i} value={i} disabled={editing.offDays?.some((o) => o.day_of_week_iso === i)}>
+                          {name}
+                        </option>
                       ),
                     )}
                   </select>
                 </div>
                 <button
                   onClick={addOffDay}
-                  className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 transition-colors"
+                  disabled={offDaySel === ''}
+                  className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50 transition-colors"
                 >
                   Tambah
                 </button>

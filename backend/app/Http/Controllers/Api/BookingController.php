@@ -11,21 +11,18 @@ use App\Models\Service;
 use App\Models\Therapist;
 use App\Models\TherapistLeave;
 use App\Models\TherapistOffDay;
+use App\Services\BookingDuration;
 use App\Services\BookingMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
     private const MALE_SURCHARGE_PER_TREATMENT = 7000;
 
-    // Paket memberi gratis SATU layanan 15 menit. Hanya layanan 15 menit yang
-    // boleh diserap; 10 menit dan 30/45 menit selalu dihitung normal.
-    private const PACKAGE_FREE_MINUTES = 15;
-    private const BRAZILIAN_ABSORBED = ['Eyebrows', 'Underarms', 'Half Arms', 'Half Legs', 'Chest', 'Stomach', 'Buttocks'];
-    private const FEEL_SMOOTH_ABSORBED = ['Eyebrows', 'Underarms', 'Chest', 'Stomach', 'Buttocks', 'Basic Bikini'];
+    // Aturan durasi (paket gratis SATU layanan 15 menit) + cek kapasitas ruang
+    // sudah dipindah ke App\Services\BookingDuration supaya satu sumber kebenaran.
 
     public function store(Request $request)
     {
@@ -64,7 +61,7 @@ class BookingController extends Controller
             return response()->json(['message' => 'Layanan intimate hanya untuk wanita.'], 422);
         }
 
-        $totalMinutes = $this->totalMinutes($services);
+        $totalMinutes = BookingDuration::totalMinutes($services);
 
         $closingMin = 19 * 60;
         $staticCutoff = $services->filter(fn (Service $s) => !empty($s->last_order_time))
@@ -135,7 +132,7 @@ class BookingController extends Controller
 
             // Yang menentukan = puncak ruang terpakai bersamaan, bukan jumlah booking yang
             // lewat di window (count dulu bikin 14:00-15:00 FULL walau bookingnya berurutan).
-            if ($this->peakOccupancy($dayBookings, $startMin, $startMin + $totalMinutes) >= $available) {
+            if (BookingDuration::peakOccupancy($dayBookings, $startMin, $startMin + $totalMinutes) >= $available) {
                 Log::warning('Booking ditolak: seluruh ruang penuh', ['cabang' => $branch->name, 'durasi' => $totalMinutes]);
 
                 return response()->json([
@@ -337,37 +334,5 @@ class BookingController extends Controller
         } while (Appointment::where('booking_code', $code)->exists());
 
         return $code;
-    }
-
-    /** Puncak jumlah booking yang jalan bersamaan di menit $from..$to (resolusi per menit). */
-    private function peakOccupancy(Collection $dayBookings, int $from, int $to): int
-    {
-        $occupancy = [];
-        foreach ($dayBookings as $apt) {
-            $a = (int) substr($apt->start_time, 0, 2) * 60 + (int) substr($apt->start_time, 3, 2);
-            $b = (int) substr($apt->end_time, 0, 2) * 60 + (int) substr($apt->end_time, 3, 2);
-            for ($m = max($a, $from); $m < min($b, $to); $m++) {
-                $occupancy[$m] = ($occupancy[$m] ?? 0) + 1;
-            }
-        }
-
-        return $occupancy ? max($occupancy) : 0;
-    }
-
-    private function totalMinutes(Collection $services): int
-    {
-        $names = $services->pluck('name');
-        $absorbed = array_values(array_unique(array_merge(
-            $names->contains('Brazilian') ? self::BRAZILIAN_ABSORBED : [],
-            $names->contains('Feel Smooth') ? self::FEEL_SMOOTH_ABSORBED : [],
-        )));
-
-        $total = (int) $services->sum('duration_minutes');
-
-        $hasFreeSlot = $services->contains(
-            fn (Service $s) => in_array($s->name, $absorbed, true) && (int) $s->duration_minutes === self::PACKAGE_FREE_MINUTES
-        );
-
-        return $hasFreeSlot ? $total - self::PACKAGE_FREE_MINUTES : $total;
     }
 }

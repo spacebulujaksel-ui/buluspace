@@ -27,12 +27,18 @@ class BookingCapacityTest extends TestCase
         $this->service = Service::create(['name' => 'Brazilian', 'description' => null, 'price' => 200000, 'duration_minutes' => 60, 'category' => 'intimate', 'status' => 'Active']);
     }
 
+    // Tiap panggilan = customer BERBEDA (nama+telepon unik) supaya tidak kena guard
+    // duplikat di BookingController (nama+telepon+tanggal+jam+layanan identik = retry).
+    private int $seq = 0;
+
     private function payload(string $time, ?int $therapistId = null, string $gender = 'Wanita'): array
     {
+        $this->seq++;
+
         return [
-            'customer_name' => 'Test Client',
-            'customer_phone' => '081234567890',
-            'customer_email' => 'client@example.com',
+            'customer_name' => 'Test Client '.$this->seq,
+            'customer_phone' => '0812345678'.$this->seq,
+            'customer_email' => 'client'.$this->seq.'@example.com',
             'customer_gender' => $gender,
             'therapist_id' => $therapistId,
             'appointment_date' => now()->addDay()->format('Y-m-d'),

@@ -48,6 +48,31 @@ class BookingController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Retry setelah timeout tidak boleh bikin booking baru (kasus BS-766680/BS-235378:
+        // customer klik lagi karena "loading", request pertama tetap tersimpan di server).
+        // Kunci = identitas pemesanan yang sama persis: nama + telepon + tanggal + jam +
+        // set layanan. ponytail: cek app-level, bukan unique index — index gabungan
+        // memblokir rebooking sah setelah cancel. Ceiling: 2 request simultan <100ms bisa lolos.
+        $requestedServices = collect($validated['service_ids'])->sort()->values()->all();
+        $dup = Appointment::where('customer_phone', $validated['customer_phone'])
+            ->where('customer_name', $validated['customer_name'])
+            ->whereDate('appointment_date', $validated['appointment_date'])
+            ->where('start_time', 'like', $validated['start_time'].'%')
+            ->whereIn('status', ['Pending', 'Confirmed'])
+            ->with('details')
+            ->get()
+            ->first(fn (Appointment $a) => $a->details->pluck('service_id')->sort()->values()->all() === $requestedServices);
+
+        if ($dup) {
+            Log::info('Booking duplikat, kembalikan yang sudah ada', ['kode' => $dup->booking_code]);
+            $dup->load(['therapist', 'details.service']);
+
+            return response()->json([
+                'message' => 'Booking ini sudah tercatat sebelumnya.',
+                'booking' => $dup,
+            ], 200);
+        }
+
         $services = Service::whereIn('id', $validated['service_ids'])->where('status', 'Active')->get();
         if ($services->count() !== count($validated['service_ids'])) {
             Log::warning('Booking ditolak: layanan tidak valid');
@@ -264,8 +289,12 @@ class BookingController extends Controller
         }
 
         $booking->load(['therapist', 'details.service']);
-        BookingMailer::toCustomer($booking, 'booking_confirmation');
-        BookingMailer::toAdmin($booking);
+        // Email dikirim SETELAH response, bukan sebelum — SMTP lambat menahan 201
+        // sampai >12 detik = client timeout, customer klik lagi, booking dobel.
+        app()->terminating(function () use ($booking) {
+            BookingMailer::toCustomer($booking, 'booking_confirmation');
+            BookingMailer::toAdmin($booking);
+        });
 
         return response()->json([
             'message' => 'Booking berhasil dibuat.',

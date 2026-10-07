@@ -1,5 +1,7 @@
 const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api').replace(/\/$/, '');
-const TIMEOUT_MS = 12000;
+// Cukup panjang untuk jaringan lambat; backend sudah membalas cepat (email
+// dikirim setelah response) dan retry identik dikembalikan booking yang sama.
+const TIMEOUT_MS = 25000;
 
 export class ApiError extends Error {
   status: number;

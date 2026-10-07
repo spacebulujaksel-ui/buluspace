@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureAdmin::class])
         Route::get('/bookings', [AdminBookingController::class, 'index']);
         Route::get('/bookings/{id}', [AdminBookingController::class, 'show']);
         Route::put('/bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
+        Route::put('/bookings/{id}/services', [AdminBookingController::class, 'updateServices']);
 
         Route::get('/schedule', [AdminScheduleController::class, 'index']);
         Route::post('/schedule/block', [AdminScheduleController::class, 'storeBlock']);

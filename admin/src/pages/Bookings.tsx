@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Search, Filter, Eye, X, AlertCircle } from 'lucide-react';
+import { Search, Filter, Eye, X, AlertCircle, Pencil } from 'lucide-react';
 import { api } from '../lib/api';
 import { formatRupiah, formatDate, formatDateTime } from '../data/helpers';
-import { Appointment } from '../types';
+import { Appointment, Service } from '../types';
 import { Modal } from '../components/Modal';
+import { totalMinutesFor, minutesOf } from '../lib/bookingDuration';
 
 const STATUS_OPTIONS = ['All', 'Confirmed', 'Completed', 'Cancelled', 'Rejected'] as const;
 
@@ -24,6 +25,9 @@ export default function Bookings() {
   const [updating, setUpdating] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [editTarget, setEditTarget] = useState<Appointment | null>(null);
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
   const load = () => fetchBookings(true);
 
@@ -73,6 +77,55 @@ export default function Bookings() {
     if (!cancelTarget) return;
     await updateStatus(cancelTarget.id, 'Cancelled', cancelReason.trim() || undefined);
     setCancelTarget(null);
+  };
+
+  const openEdit = async (apt: Appointment) => {
+    setEditTarget(apt);
+    setSelectedServiceIds((apt.details ?? []).map((d) => d.service_id));
+    setError('');
+    try {
+      const r = await api.get<{ services: Service[] }>('/admin/services');
+      setAllServices(r.services.filter((s) => s.status === 'Active'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal memuat daftar layanan.');
+    }
+  };
+
+  const slotMinutes = editTarget
+    ? minutesOf(editTarget.end_time) - minutesOf(editTarget.start_time)
+    : 0;
+
+  const selectedServices = allServices.filter((s) => selectedServiceIds.includes(s.id));
+  const selectedMinutes = totalMinutesFor(selectedServices);
+  const overSlot = selectedMinutes > slotMinutes;
+
+  const toggleService = (id: number) => {
+    if (selectedServiceIds.includes(id)) {
+      setSelectedServiceIds((ids) => ids.filter((x) => x !== id));
+      return;
+    }
+    const candidate = [
+      ...selectedServices,
+      allServices.find((s) => s.id === id)!,
+    ];
+    if (totalMinutesFor(candidate) > slotMinutes) return;
+    setSelectedServiceIds((ids) => [...ids, id]);
+  };
+
+  const submitServices = async () => {
+    if (!editTarget) return;
+    setUpdating(true);
+    try {
+      await api.put(`/admin/bookings/${editTarget.id}/services`, {
+        service_ids: selectedServiceIds,
+      });
+      setEditTarget(null);
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal menyimpan layanan.');
+    } finally {
+      setUpdating(false);
+    }
   };
 
     return (
@@ -350,7 +403,18 @@ export default function Bookings() {
               </div>
 
               <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100">
-                <p className="text-[11px] text-neutral-400 mb-2">Layanan</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[11px] text-neutral-400">Layanan</p>
+                  {selected.status === 'Confirmed' && (
+                    <button
+                      onClick={() => openEdit(selected)}
+                      disabled={updating}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium text-pink-700 bg-pink-50 border border-pink-200 hover:bg-pink-100 transition-colors disabled:opacity-50"
+                    >
+                      <Pencil className="w-3 h-3" /> Edit
+                    </button>
+                  )}
+                </div>
                 {selected.details?.map((d) => (
                   <div key={d.id} className="flex items-center justify-between py-1.5 first:pt-0 last:pb-0">
                     <div className="flex items-center gap-2">
@@ -461,6 +525,89 @@ export default function Bookings() {
               className="px-4 py-2 rounded-xl text-[13px] font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50"
             >
               {updating ? 'Menyimpan...' : 'Batalkan Booking'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        title="Edit Layanan"
+        subtitle={editTarget ? `${editTarget.booking_code} · Jam ${editTarget.start_time.slice(0, 5)}–${editTarget.end_time.slice(0, 5)}` : undefined}
+        isOpen={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-4">
+          <p className="text-[12px] text-neutral-500">
+            Pilih layanan pengganti. Total durasi tidak boleh melebihi slot booking
+            saat ini (<span className="font-semibold text-neutral-700">{slotMinutes} menit</span>).
+            Durasi yang membuat slot lewat otomatis tidak bisa dipilih.
+          </p>
+
+          {overSlot && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              Durasi terpilih {selectedMinutes} menit melebihi slot {slotMinutes} menit — kurangi pilihan.
+            </div>
+          )}
+
+          <div className="max-h-64 overflow-y-auto space-y-1.5 rounded-xl border border-neutral-200 p-2">
+            {allServices.length === 0 ? (
+              <p className="text-center text-xs text-neutral-400 py-6">Memuat layanan...</p>
+            ) : (
+              allServices.map((s) => {
+                const checked = selectedServiceIds.includes(s.id);
+                const disabled = !!editTarget && !checked && totalMinutesFor([...selectedServices, s]) > slotMinutes;
+                return (
+                  <label
+                    key={s.id}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
+                      checked
+                        ? 'border-pink-200 bg-pink-50'
+                        : disabled
+                          ? 'border-neutral-100 bg-neutral-50 opacity-50 cursor-not-allowed'
+                          : 'border-neutral-100 bg-white hover:bg-neutral-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={disabled}
+                      onChange={() => toggleService(s.id)}
+                      className="accent-pink-600 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-neutral-800">{s.name}</p>
+                      <p className="text-[11px] text-neutral-400 truncate">{s.description}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[12px] font-mono text-neutral-600">{formatRupiah(Number(s.price))}</p>
+                      <p className="text-[10px] text-neutral-400">{s.duration_minutes} mnt</p>
+                    </div>
+                  </label>
+                );
+              })
+            )}
+          </div>
+
+          <div className="flex justify-between items-center rounded-xl bg-neutral-50 border border-neutral-100 px-3 py-2.5 text-[12px] text-neutral-600">
+            <span>Durasi terpilih: <span className="font-semibold text-neutral-900">{selectedMinutes} menit</span></span>
+            <span>Slot: {slotMinutes} menit</span>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setEditTarget(null)}
+              disabled={updating}
+              className="px-4 py-2 rounded-xl text-[13px] font-medium text-neutral-600 bg-white border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+            >
+              Batal
+            </button>
+            <button
+              onClick={submitServices}
+              disabled={updating || selectedServiceIds.length === 0 || overSlot}
+              className="px-4 py-2 rounded-xl text-[13px] font-medium text-white bg-neutral-900 hover:bg-neutral-800 transition-colors disabled:opacity-50"
+            >
+              {updating ? 'Menyimpan...' : 'Simpan Layanan'}
             </button>
           </div>
         </div>

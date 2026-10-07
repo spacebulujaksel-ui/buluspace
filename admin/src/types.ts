@@ -33,7 +33,7 @@ export interface Therapist {
   status: ActiveStatus;
   experience_years?: number | null;
   leaves?: TherapistLeave[];
-  offDays?: TherapistOffDay[];
+  off_days?: TherapistOffDay[];
   created_at?: string;
   updated_at?: string;
 }

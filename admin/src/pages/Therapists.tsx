@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, AlertCircle, CalendarX2, CalendarDays } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertCircle, CalendarX2, CalendarDays, Check } from 'lucide-react';
 import { api } from '../lib/api';
 import { Therapist, ActiveStatus, TherapistLeave, TherapistOffDay } from '../types';
 import { Modal } from '../components/Modal';
@@ -27,6 +27,8 @@ export default function Therapists() {
   const [leaveStart, setLeaveStart] = useState('');
   const [leaveEnd, setLeaveEnd] = useState('');
   const [offDaySel, setOffDaySel] = useState<number | ''>('');
+  const [addedDay, setAddedDay] = useState('');
+  const [notice, setNotice] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -55,13 +57,23 @@ export default function Therapists() {
   const openAdd = () => {
     setEditing(null);
     setForm({ ...EMPTY });
+    setAddedDay('');
+    setNotice('');
     setModalOpen(true);
   };
 
   const openEdit = (t: Therapist) => {
     setEditing(t);
     setForm({ ...t });
+    setAddedDay('');
+    setNotice('');
     setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setAddedDay('');
+    setNotice('');
   };
 
   const handleSave = async () => {
@@ -117,10 +129,14 @@ export default function Therapists() {
   const addOffDay = async () => {
     if (!editing || !offDaySel) return;
     setError('');
+    setNotice('');
+    const day = DAY_NAMES[offDaySel];
     try {
       await api.post(`/admin/therapists/${editing.id}/off-days`, { day_of_week_iso: offDaySel });
       await load();
       setOffDaySel('');
+      setAddedDay(day);
+      setTimeout(() => setAddedDay(''), 2500);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menambah jadwal libur rutin.');
     }
@@ -129,9 +145,11 @@ export default function Therapists() {
   const removeOffDay = async (o: TherapistOffDay) => {
     if (!editing) return;
     setError('');
+    setNotice('');
     try {
       await api.delete(`/admin/therapists/${editing.id}/off-days/${o.id}`);
       await load();
+      setNotice(`Libur ${DAY_NAMES[o.day_of_week_iso]} dihapus.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal menghapus jadwal libur rutin.');
     }
@@ -225,9 +243,9 @@ export default function Therapists() {
                         )}
                       </td>
                       <td className="px-4 py-3.5">
-                        {t.offDays && t.offDays.length > 0 ? (
+                        {t.off_days && t.off_days.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
-                            {t.offDays.map((o) => (
+                            {t.off_days.map((o) => (
                               <span
                                 key={o.id}
                                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-50 text-neutral-600 border border-neutral-200"
@@ -321,8 +339,8 @@ export default function Therapists() {
                   </div>
                   <div className="flex flex-wrap items-center gap-1">
                     <span className="text-[10px] text-neutral-400">Libur:</span>
-                    {t.offDays && t.offDays.length > 0 ? (
-                      t.offDays.map((o) => (
+                    {t.off_days && t.off_days.length > 0 ? (
+                      t.off_days.map((o) => (
                         <span
                           key={o.id}
                           className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-neutral-50 text-neutral-600 border border-neutral-200"
@@ -373,7 +391,7 @@ export default function Therapists() {
         title={editing ? 'Edit Terapis' : 'Tambah Terapis'}
         subtitle={editing ? `Mengedit data ${editing.name}` : 'Tambahkan terapis baru'}
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={closeModal}
       >
         <div className="space-y-4">
           <div>
@@ -459,17 +477,17 @@ export default function Therapists() {
                 <CalendarDays className="w-4 h-4 text-pink-500" /> Jadwal Libur Rutin
               </p>
               <p className="text-[11px] text-neutral-400 mb-3">Hari libur tetap tiap minggu, berbeda dengan cuti.</p>
-              {editing.offDays && editing.offDays.length > 0 ? (
+              {editing.off_days && editing.off_days.length > 0 ? (
                 <>
                   <p className="text-[11px] text-neutral-600 mb-3">
                     <span className="font-semibold">Libur rutin:</span>{' '}
-                    {[...editing.offDays]
+                    {[...editing.off_days]
                       .sort((a, b) => a.day_of_week_iso - b.day_of_week_iso)
                       .map((o) => DAY_NAMES[o.day_of_week_iso])
                       .join(', ')}
                   </p>
                   <div className="space-y-1.5 mb-3">
-                    {editing.offDays.map((o) => (
+                    {editing.off_days.map((o) => (
                       <div key={o.id} className="flex items-center justify-between bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2">
                         <span className="text-xs text-neutral-600">{DAY_NAMES[o.day_of_week_iso]}</span>
                         <button
@@ -486,6 +504,11 @@ export default function Therapists() {
               ) : (
                 <p className="text-[11px] text-neutral-400 mb-3">Belum ada jadwal libur rutin.</p>
               )}
+              {notice && (
+                <div className="mb-3 flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-[11px] text-emerald-700">
+                  <Check className="w-3.5 h-3.5 shrink-0" /> {notice}
+                </div>
+              )}
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <label className="block text-[11px] font-medium text-neutral-600 mb-1">Hari libur</label>
@@ -497,7 +520,7 @@ export default function Therapists() {
                     <option value="">Pilih hari libur…</option>
                     {DAY_NAMES.map((name, i) =>
                       i === 0 ? null : (
-                        <option key={i} value={i} disabled={editing.offDays?.some((o) => o.day_of_week_iso === i)}>
+                        <option key={i} value={i} disabled={editing.off_days?.some((o) => o.day_of_week_iso === i)}>
                           {name}
                         </option>
                       ),
@@ -507,16 +530,16 @@ export default function Therapists() {
                 <button
                   onClick={addOffDay}
                   disabled={offDaySel === ''}
-                  className="px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50 transition-colors"
+                  className="min-w-[9.5rem] px-3 py-2 rounded-lg bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50 transition-colors"
                 >
-                  Tambah
+                  {addedDay ? `✓ ${addedDay} ditambahkan` : 'Tambah'}
                 </button>
               </div>
             </div>
           )}
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" onClick={() => setModalOpen(false)}>Batal</Button>
+            <Button variant="secondary" onClick={closeModal}>Batal</Button>
             <Button onClick={handleSave}>{editing ? 'Simpan' : 'Tambah'}</Button>
           </div>
         </div>
